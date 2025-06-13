@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react"
+import React, { RefObject, useEffect } from "react"
 import { CellPosition } from "./SheetView";
 import { Text, Divider, Input, Button, makeStyles} from "@fluentui/react-components";
-import { Sheet, updateSheetCellMatrix } from "../sheet/sheet";
+import { getCellBoundaryCheck, Sheet} from "../sheet/sheet";
 import { Cell, createDefaultCell } from "../cell/cellPluginSystem";
 import { FaCheck } from "react-icons/fa6";
 import { RxCross1 } from "react-icons/rx";
+import { dirtyDrawCanvasCell } from "./canvasTable/dirtyDrawCanvasCell";
+import { useDirtyBuffer } from "./useDirtyBuffer";
 
 
 const useStyles = makeStyles({
@@ -21,59 +23,98 @@ const useStyles = makeStyles({
 })
 
 export interface EditingRangeProps {
-  sheet: Sheet,
-  setSheet: React.Dispatch<Sheet>  
-  activeCell: CellPosition | null
-  setActiveCell: React.Dispatch<CellPosition | null>
+  sheet: Sheet;
+  activeCell: CellPosition | null;
+  setActiveCell: React.Dispatch<CellPosition | null>;
+  canvasRef: RefObject<HTMLCanvasElement>;
+  dirty: ReturnType<typeof useDirtyBuffer>;
+  updateCells: [number, number, Cell][];
+  setUpdateCells: React.Dispatch<[number, number, Cell][]>;
 }
 
 const EditingRange: React.FC<EditingRangeProps> = ({
   sheet,
-  setSheet,
   activeCell,
   setActiveCell,
+  canvasRef,
+  dirty,
+  updateCells,
+  setUpdateCells,
 }) => {
 
   const styles = useStyles();
-  const [editingCell, setEditingCell] = useState<Cell | null>(null);
+  const [editingValue, setEditingValue] = React.useState<string>("");
 
+  
   const handleConfirm = () => {
     const r = activeCell!.sheetRC.row;
     const c = activeCell!.sheetRC.col;
-    const sheet2 = updateSheetCellMatrix(sheet, [[r, c, editingCell!]])
-    setSheet(sheet2);
-    setEditingCell(null);
+
+    const dirtyCell = dirty.get(r, c);
+    if (!dirtyCell) return;
+
+    // ✅ 重畫 cell
+    const canvas = canvasRef.current!;
+    const ctx = canvas.getContext("2d")!;
+
+    dirtyDrawCanvasCell({
+      ctx,
+      cell: dirtyCell,
+      cellLeft: activeCell!.canvasCoord.x,
+      cellTop: activeCell!.canvasCoord.y,
+      cellHeight: sheet.sheetCellHeight,
+      cellWidth: sheet.sheetCellWidth,
+      row: r
+    });
+
+    setUpdateCells([...updateCells, [r, c, structuredClone(dirtyCell)]])
+
+    // ✅ UI 狀態清除
     setActiveCell(null);
-  }
+    setEditingValue("");
+  };
+
 
   const handleCancel = () => {
-    setEditingCell(null);
+    const r = activeCell!.sheetRC.row;
+    const c = activeCell!.sheetRC.col;
+    dirty.deleteCell(r, c);
+    
     setActiveCell(null);
+    setEditingValue("");
+
+    console.log(dirty.dirtyMapRef.current)
   }
   
   useEffect(() => {
-    if(!activeCell) {
-      setEditingCell(null)
-      return;
+    if (!activeCell) return;
+    
+    const { row: r, col: c } = activeCell.sheetRC;
+    const cell = getCellBoundaryCheck(sheet, r, c);
+    if (!cell) return;
+    
+    if (!dirty.has(r, c)) {
+      dirty.markDirty(r, c, structuredClone(cell));
     }
-    const r = activeCell.sheetRC.row;
-    const c = activeCell.sheetRC.col;
-    if ((r < 0) || (c < 0))  return;
-    setEditingCell(structuredClone(sheet.cellMatrix[r][c]));
 
-  }, [activeCell, sheet])
+    const dirtyCell = dirty.get(r, c);
+    if (dirtyCell) {
+      setEditingValue(dirtyCell.payload.value ?? "");
+    }
+
+  }, [activeCell])
 
   return(
     <>
     {
-      activeCell !== null && editingCell !== null 
-      && (activeCell.sheetRC.row >= 0) && (activeCell.sheetRC.col >= 0) &&
+      activeCell !== null 
+      &&
       <div 
       hidden={
         activeCell.canvasCoord.x < sheet.sheetCellWidth
-        || activeCell.canvasCoord.x > activeCell.containerRect.w - sheet.sheetCellWidth / 2
+        || activeCell.canvasCoord.x > activeCell.containerRect.w - sheet.sheetCellWidth
         || activeCell.canvasCoord.y < sheet.sheetCellHeight
-        || activeCell.canvasCoord.y > activeCell.containerRect.h - sheet.sheetCellHeight / 2
+        || activeCell.canvasCoord.y > activeCell.containerRect.h - sheet.sheetCellHeight
       }
       style={{ 
         position: "absolute",
@@ -85,16 +126,28 @@ const EditingRange: React.FC<EditingRangeProps> = ({
       }}>
         <Input
           appearance="underline"
-          value = {editingCell!.payload.value}
           style={{ 
             width: sheet.sheetCellWidth,
             height: sheet.sheetCellHeight,
           }}
+          value={editingValue}
           onChange={(e) => {
-            let nc = createDefaultCell(editingCell.type);
-            nc.payload.value = e.target.value;
-            setEditingCell(nc)
+            setEditingValue(e.target.value); // ✅ UI 會即時更新
+            const r = activeCell!.sheetRC.row;
+            const c = activeCell!.sheetRC.col;
+
+            // 取得目前該 cell 的型別
+            const type = getCellBoundaryCheck(sheet, r, c)?.type;
+            if (!type) return;
+
+            // 建立一個新的 cell，寫入使用者輸入的值
+            const newCell = createDefaultCell(type);
+            newCell.payload.value = e.target.value;
+
+            // 寫入 dirty buffer
+            dirty.markDirty(r, c, newCell);
           }}
+
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               handleConfirm();
@@ -113,7 +166,7 @@ const EditingRange: React.FC<EditingRangeProps> = ({
           <Button
             className={styles.quickEditButton} 
             icon={<FaCheck size={10}/>}
-            onClick={handleCancel}
+            onClick={handleConfirm}
           > 
           </Button>
           <Button 

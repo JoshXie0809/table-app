@@ -1,15 +1,10 @@
-export type RenderGridOptions = {
-  overscan?: number;
-  font?: string;
-  paddingX?: number;
-  showBorder?: boolean;
-  borderColor?: string;
-  textColor?: string;
-};
+import { getColumnHeaderBoundaryCheck, Sheet, sheetSize } from "../../sheet/sheet";
+import { RenderGridOptions} from "./RenderGrid";
+
 
 export default function RenderColHeader({
   ctx,
-  columnHeader,
+  sheet,
   scrollLeft,
   cellWidth,
   cellHeight,
@@ -17,7 +12,7 @@ export default function RenderColHeader({
   options = {},
 }: {
   ctx: CanvasRenderingContext2D;
-  columnHeader: string[];
+  sheet: Sheet,
   scrollLeft: number;
   cellWidth: number;
   cellHeight: number;
@@ -46,8 +41,8 @@ export default function RenderColHeader({
   ctx.lineWidth = 1;
 
 
-  const nCol = columnHeader.length;
-
+  const nCol = sheetSize(sheet)[1]
+  
   const startCol = Math.max(Math.floor(scrollLeft / cellWidth) - overscan, 0);
   const endCol = Math.min(Math.ceil((scrollLeft + canvasWidth) / cellWidth) + overscan, nCol);
 
@@ -69,7 +64,10 @@ export default function RenderColHeader({
     ctx.fillStyle = textColor;
     ctx.textAlign = "center";      // 水平置中（center of the x position）
     ctx.textBaseline = "middle";   // 垂直置中（center of the y position）
-    const text = columnHeader[j] ?? "";
+
+    const text = getColumnHeaderBoundaryCheck(sheet, j);
+    if(text === null) return;
+    
     ctx.fillText(text, paddingX + cellLeft + cellWidth / 2, cellTop + cellHeight / 2);
   }
 

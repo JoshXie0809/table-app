@@ -40,7 +40,7 @@ function App() {
     
     <main>
       <div style={{ 
-        padding: "24px",  
+        padding: "24px 12px",  
         height: "900px", 
         display: "flex",
         flexDirection: "column",  

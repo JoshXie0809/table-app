@@ -69,6 +69,42 @@ export function createSheet (
   return sheet;
 }
 
+export function getCellBoundaryCheck(sheet: Sheet, r: number, c:number) : null | Cell
+{
+  // boundery check
+  const size = sheetSize(sheet);
+  const nRow = size[0];
+  const nCol = size[1];
+  
+  if ((r < 0) || (c < 0) || r >= nRow || c >= nCol )  
+    return null;
+
+  return sheet.cellMatrix[r][c];
+}
+
+export function getColumnHeaderBoundaryCheck(sheet: Sheet, c: number) {
+  // boundery check
+  const size = sheetSize(sheet);
+  const nCol = size[1];
+  if ( (c < 0) || c >= nCol )  
+    return null;
+
+  return sheet.columnHeader[c];
+}
+
+
+export function getRowHeaderBoundaryCheck(sheet: Sheet, r: number) {
+  // boundery check
+  const size = sheetSize(sheet);
+  const nRow = size[0];
+  if ( (r < 0) || r >= nRow )  
+    return null;
+  
+  return sheet.rowHeader[r];
+}
+
+
+
 export function updateSheetCellMatrix(
   sheet: Sheet,
   cells: [r: number | null, c: number | null, newCell: Cell][]

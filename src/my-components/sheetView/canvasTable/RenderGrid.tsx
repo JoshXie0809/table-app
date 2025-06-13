@@ -1,4 +1,6 @@
-import { Cell, getCellRenderer } from "../../cell/cellPluginSystem";
+import { getCellRenderer } from "../../cell/cellPluginSystem";
+import { getCellBoundaryCheck, Sheet, sheetSize } from "../../sheet/sheet";
+import { DirtyCells } from "../SheetView";
 
 export type RenderGridOptions = {
   overscan?: number;
@@ -12,23 +14,25 @@ export type RenderGridOptions = {
 
 export default function RenderGrid({
   ctx,
-  cellMatrix,
+  sheet,
   scrollLeft,
   scrollTop,
   cellWidth,
   cellHeight,
   canvasWidth,
   canvasHeight,
+  // dirtyCells,
   options = {},
-}: {
+} : {
   ctx: CanvasRenderingContext2D;
-  cellMatrix: Cell[][];
+  sheet: Sheet;
   scrollLeft: number;
   scrollTop: number;
   cellWidth: number;
   cellHeight: number;
   canvasWidth: number;
   canvasHeight: number;
+  // dirtyCells: DirtyCells;
   options?: RenderGridOptions;
 }) {
 
@@ -48,8 +52,9 @@ export default function RenderGrid({
   ctx.scale(dpr, dpr);
   // ctx.clearRect(0, 0, canvasWidth, canvasHeight);
   
-  const nRow = cellMatrix.length;
-  const nCol = cellMatrix[0]?.length || 0;
+  const size = sheetSize(sheet);
+  const nRow = size[0];
+  const nCol = size[1];
 
   const startRow = Math.max(Math.floor(scrollTop / cellHeight) - overscan, 0);
   const endRow = Math.min(Math.ceil((scrollTop + canvasHeight) / cellHeight) + overscan, nRow);
@@ -74,16 +79,21 @@ export default function RenderGrid({
       }
 
       // 文字
-      let c = cellMatrix[i][j];
-      let renderer = getCellRenderer(c.type);
+      // from sheet
+      let cell = getCellBoundaryCheck(sheet, i, j);
+      if (cell === null) return;
       
+      // // dirty
+      // let dirtyCell = dirtyCells.get(`r${i}c${j}`);
+      // if(dirtyCell) // not null
+      //     cell = dirtyCell;
+
+      let renderer = getCellRenderer(cell.type);
       if (renderer)
         renderer
-        (ctx, c, cellLeft, cellTop, cellWidth, cellHeight, 
-            { paddingX: paddingX, font: font, textColor: textColor }
+        (ctx, cell, cellLeft, cellTop, cellWidth, cellHeight, 
+            { ...options, paddingX: paddingX, font: font, textColor: textColor, }
         );
-      
-      
     }
   }
 

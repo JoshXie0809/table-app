@@ -1,10 +1,17 @@
-import React, { useEffect, useReducer, useRef, useState } from "react";
+import React, { RefObject, useEffect, useReducer, useRef, useState } from "react";
 import { Sheet, sheetSize } from "../../sheet/sheet";
 import  RenderGrid  from "./RenderGrid";
 import RenderColHeader from "./RenderColHeader";
 import RenderRowHeader from "./RenderRowHeader";
 import { CellPosition } from "../SheetView";
+// import { DirtyCells } from "../SheetView";
 import { useSheetInteraction } from "./hook/useSheetInteraction";
+
+
+function CanvasSettingsReducer(state: CanvasSettings, action: Partial<CanvasSettings>) {
+  return {...state, ...action};
+}
+
 
 type CanvasSettings = {
   cellHeight: number;
@@ -15,15 +22,13 @@ type CanvasSettings = {
   TotalWidth: number;
 }
 
-function CanvasSettingsReducer(state: CanvasSettings, action: Partial<CanvasSettings>) {
-  return {...state, ...action};
-}
-
 interface CanvasTableProps {
   sheet: Sheet,
   onCellClick?: (rc: CellPosition) => void,
   onScroll?: (x: number, y: number) => void,
   onResize?: () => void,
+  canvasRef: RefObject<HTMLCanvasElement>;
+  // dirtyCells: DirtyCells;
 };
 
 const CanvasTable: React.FC<CanvasTableProps> = ({
@@ -31,9 +36,9 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
   onCellClick,
   onScroll,
   onResize,
+  canvasRef,
+  // dirtyCells,
 }) => {
-
-  
 
   const animationFrameRef = useRef<number | null>(null);
   useEffect(() => {
@@ -44,7 +49,7 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
       };
   }, []);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  
   const containerRef = useRef<HTMLDivElement>(null);
   const scrollSpacerRef = useRef<HTMLDivElement>(null);
 
@@ -126,9 +131,10 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
     // initial-draw
     RenderGrid({
       ctx,
-      cellMatrix: sheet.cellMatrix,
+      sheet,
       scrollLeft,
       scrollTop,
+      // dirtyCells,
       cellWidth: canvasSettings.cellWidth,
       cellHeight: canvasSettings.cellHeight,
       canvasWidth: ctx.canvas.width / dpr,
@@ -137,7 +143,7 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
 
     RenderColHeader({
       ctx,
-      columnHeader: sheet.columnHeader,
+      sheet,
       scrollLeft,
       cellWidth: canvasSettings.cellWidth,
       cellHeight: canvasSettings.cellHeight,
@@ -146,7 +152,7 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
 
     RenderRowHeader({
       ctx,
-      rowHeader: sheet.rowHeader,
+      sheet,
       scrollTop,
       cellWidth: canvasSettings.cellWidth,
       cellHeight: canvasSettings.cellHeight,      
@@ -181,13 +187,14 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
 
       RenderGrid({
         ctx,
-        cellMatrix: sheet.cellMatrix,
+        sheet,
         scrollLeft,
         scrollTop,
         cellWidth: canvasSettings.cellWidth,
         cellHeight: canvasSettings.cellHeight,
         canvasWidth: ctx.canvas.width / dpr,
         canvasHeight: ctx.canvas.width / dpr,
+        // dirtyCells,
         options: {
           font: "14px Segoe UI, sans-serif",
           showBorder: true,
@@ -199,7 +206,7 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
 
       RenderRowHeader({
         ctx,
-        rowHeader: sheet.rowHeader,
+        sheet,
         scrollTop,
         cellWidth: canvasSettings.cellWidth,
         cellHeight: canvasSettings.cellHeight,      
@@ -208,7 +215,7 @@ const CanvasTable: React.FC<CanvasTableProps> = ({
 
       RenderColHeader({
         ctx,
-        columnHeader: sheet.columnHeader,
+        sheet,
         scrollLeft,
         cellWidth: canvasSettings.cellWidth,
         cellHeight: canvasSettings.cellHeight,

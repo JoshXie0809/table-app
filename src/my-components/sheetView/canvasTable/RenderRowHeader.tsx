@@ -1,16 +1,11 @@
-export type RenderGridOptions = {
-  overscan?: number;
-  font?: string;
-  paddingX?: number;
-  showBorder?: boolean;
-  borderColor?: string;
-  textColor?: string;
-};
+import { getRowHeaderBoundaryCheck, Sheet, sheetSize } from "../../sheet/sheet";
+import { RenderGridOptions} from "./RenderGrid";
+
 
 
 export default function RenderRowHeader ({
   ctx,
-  rowHeader,
+  sheet,
   scrollTop,
   cellWidth,
   cellHeight,
@@ -18,7 +13,7 @@ export default function RenderRowHeader ({
   options = {},
 }: {
   ctx: CanvasRenderingContext2D;
-  rowHeader: string[];
+  sheet: Sheet;
   scrollTop: number;
   cellWidth: number;
   cellHeight: number;
@@ -45,7 +40,7 @@ export default function RenderRowHeader ({
   ctx.textBaseline = "middle";
   ctx.lineWidth = 1;
 
-  const nRow = rowHeader.length;
+  const nRow = sheetSize(sheet)[0];
 
   const startRow = Math.max(Math.floor(scrollTop / cellHeight) - overscan, 0);
   const endRow = Math.min(Math.ceil((scrollTop + canvasHeight) / cellHeight) + overscan, nRow);
@@ -68,7 +63,10 @@ export default function RenderRowHeader ({
     ctx.fillStyle = textColor;
     ctx.textAlign = "center";      // 水平置中（center of the x position）
     ctx.textBaseline = "middle";   // 垂直置中（center of the y position）
-    const text = rowHeader[i] ?? "";
+    
+    const text = getRowHeaderBoundaryCheck(sheet, i);
+    if (text === null) return;
+
     ctx.fillText(text, cellLeft + paddingX + cellWidth / 2, cellTop + cellHeight / 2);
 
   }
