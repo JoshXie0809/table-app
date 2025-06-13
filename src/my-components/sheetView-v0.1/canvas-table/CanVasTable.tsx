@@ -30,7 +30,7 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
   handleScroll,
   canvasRef,
 }) => {
-
+  
   const [totalRows, totalCols] = sheetSize(sheet);
   const cellHeight = sheet.sheetCellHeight || 30;
   const cellWidth = sheet.sheetCellWidth || 100;
@@ -76,6 +76,7 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     if (!canvas || !container) return;
 
     const dpr = window.devicePixelRatio || 1;
+
     // 設定畫布大小
     canvas.width = Math.round(containerDimensions.width * dpr);
     canvas.height = Math.round(containerDimensions.height * dpr);

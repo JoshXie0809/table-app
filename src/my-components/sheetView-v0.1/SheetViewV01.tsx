@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { Sheet, updateSheetCellMatrix } from "../sheet/sheet";
 import { SheetVirtualTableImpl } from "./sheet-virtual-table/SheetVirtualTable";
 import { Cell } from "../cell/cellPluginSystem";
 import { CanvasTable } from "./canvas-table/CanVasTable";
+import { useVirtualTableRenderer } from "./hooks/useVirtualTableRenderer";
+import { drawGrid } from "./canvas-table/draw/drawGrid";
 
 export interface SheetViewProps {
   sheet: Sheet,
@@ -52,7 +54,7 @@ const SheetView01: React.FC<SheetViewProps> = ({
     }
   };
 
-  
+
   return (
     <div 
       style={{
@@ -64,13 +66,13 @@ const SheetView01: React.FC<SheetViewProps> = ({
       }}
     >
         {virtualTableRef.current && (
-            <CanvasTable
-              sheet={sheet}
-              virtualTable={virtualTableRef.current}
-              containerRef={containerRef}
-              canvasRef={canvasRef}
-              onCellClick={(r, w) => {return;}}
-              handleScroll={handleScroll}
+          <CanvasTable
+            sheet={sheet}
+            virtualTable={virtualTableRef.current}
+            containerRef={containerRef}
+            canvasRef={canvasRef}
+            onCellClick={(r, w) => {return;}}
+            handleScroll={handleScroll}
           />
         )}
     
