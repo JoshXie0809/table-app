@@ -29,12 +29,14 @@ const SheetView01: React.FC<SheetViewProps> = ({
   };
 
   useEffect(() => {
-    virtualTableRef.current = new SheetVirtualTableImpl(
-      sheet,
-      containerRef,
-    );
-  }, [sheet, containerRef, handleCellDataChanged]);
+    if (virtualTableRef.current) {
+      virtualTableRef.current.setSheet(sheet); // ✅ 更新資料來源
+    } else {
+      virtualTableRef.current = new SheetVirtualTableImpl(sheet, containerRef);
+    }
 
+    setRerender({}); // ✅ 通知畫面重新渲染
+  }, [sheet]); // <- 只有監聽 sheet 就夠
 
 
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
@@ -63,6 +65,7 @@ const SheetView01: React.FC<SheetViewProps> = ({
     >
         {virtualTableRef.current && (
             <CanvasTable
+              sheet={sheet}
               virtualTable={virtualTableRef.current}
               containerRef={containerRef}
               canvasRef={canvasRef}

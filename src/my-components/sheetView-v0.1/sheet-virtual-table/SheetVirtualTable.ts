@@ -142,4 +142,8 @@ export class SheetVirtualTableImpl implements SheetVirtualTable {
 
     return visibleRowHeaders;
   } 
+
+  setSheet(newSheet: Sheet) {
+    this.sheet = newSheet;;
+  }
 }
