@@ -104,6 +104,23 @@ export function getRowHeaderBoundaryCheck(sheet: Sheet, r: number) {
 }
 
 
+export function getCellNoCheck(sheet: Sheet, r: number, c:number)
+{
+  return sheet.cellMatrix[r][c];
+}
+
+export function getColumnHeaderNoCheck(sheet: Sheet, c: number) {
+  
+  return sheet.columnHeader[c];
+}
+
+
+export function getRowHeaderNoCheck(sheet: Sheet, r: number) {
+  
+  return sheet.rowHeader[r];
+}
+
+
 
 export function updateSheetCellMatrix(
   sheet: Sheet,

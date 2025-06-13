@@ -1,6 +1,6 @@
 import { getCellRenderer } from "../../cell/cellPluginSystem";
 import { getCellBoundaryCheck, Sheet, sheetSize } from "../../sheet/sheet";
-import { DirtyCells } from "../SheetView";
+// import { DirtyCells } from "../SheetView";
 
 export type RenderGridOptions = {
   overscan?: number;

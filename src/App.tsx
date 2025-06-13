@@ -4,14 +4,12 @@ import { FloatingInputPanel } from "./my-components/ProtalPanel";
 import { createSheet, updateSheetCellMatrix } from "./my-components/sheet/sheet";
 import { registerBuiltInCellPlugins } from "./my-components/cell/initCellPlugins.ts"
 import { createDefaultCell } from "./my-components/cell/cellPluginSystem.ts";
-import SheetView from "./my-components/sheetView/SheetView.tsx";
+import SheetView01 from "./my-components/sheetView-v0.1/SheetViewV01.tsx";
 
 registerBuiltInCellPlugins();
 
 
 function App() {
-
-  // const sheetRef = useRef<Sheet>(createSheet({ nRow: 1000, nCol: 50 }));
 
   const init_sheet = useMemo(() => {
     return createSheet({nRow: 1000, nCol: 50})
@@ -24,12 +22,11 @@ function App() {
     nc.payload.value = "⚡⚡1234567879";
     
     const sheet2 = updateSheetCellMatrix(sheet, [
-      [2, 2, nc],
+      [2, null, nc],
+      [null, 2, nc],
     ]);
 
     setSheet(sheet2)
-
-    // console.log(sheetRef.current)
     
   }, [])
 
@@ -40,7 +37,7 @@ function App() {
     
     <main>
       <div style={{ 
-        padding: "24px 12px",  
+        padding: "24px 20px",  
         height: "900px", 
         display: "flex",
         flexDirection: "column",  
@@ -58,8 +55,7 @@ function App() {
          <FloatingInputPanel onClose={() => setOpen(false)} />
         }
 
-        <SheetView sheet={sheet} setSheet={setSheet} />
-        
+        <SheetView01 sheet={sheet} setSheet={setSheet} />
 
       </div>
     </main>
