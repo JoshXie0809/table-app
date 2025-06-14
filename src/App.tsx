@@ -12,11 +12,12 @@ registerBuiltInCellPlugins();
 function App() {
 
   const init_sheet = useMemo(() => {
-    return createSheet({nRow: 1000, nCol: 50})
+    return createSheet({nRow: 1500, nCol: 150})
   }, []) 
   const [sheet, setSheet] = React.useState(init_sheet);
 
   const [open, setOpen] = React.useState(false);
+
   useEffect(() => {
     let nc = createDefaultCell("Text");
     nc.payload.value = "⚡⚡1234567879";

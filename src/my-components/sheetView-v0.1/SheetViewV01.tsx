@@ -1,10 +1,11 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Sheet, updateSheetCellMatrix } from "../sheet/sheet";
 import { SheetVirtualTableImpl } from "./sheet-virtual-table/SheetVirtualTable";
 import { Cell } from "../cell/cellPluginSystem";
 import { CanvasTable } from "./canvas-table/CanVasTable";
 import { useVirtualTableRenderer } from "./hooks/useVirtualTableRenderer";
 import { drawGrid } from "./canvas-table/draw/drawGrid";
+import { CanvasLayoutEngine } from "./canvas-table/cavas-layout-engine/CanvasLayoutEngine";
 
 export interface SheetViewProps {
   sheet: Sheet,
@@ -18,9 +19,18 @@ const SheetView01: React.FC<SheetViewProps> = ({
     
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const virtualTableRef = useRef<SheetVirtualTableImpl | null>(null);
+  const layoutEngineRef = useRef<CanvasLayoutEngine | null>(null);
 
+  useEffect(() => {
+    if (layoutEngineRef.current) {
+      layoutEngineRef.current.setSheet(sheet); // ✅ 更新資料來源
+    } else {
+      layoutEngineRef.current = new CanvasLayoutEngine(sheet);
+    }
+
+    setRerender({}); // ✅ 通知畫面重新渲染
+  }, [sheet]); // <- 只有監聽 sheet 就夠
+  
   const [, setRerender] = useState({}); // 用於觸發 CanvasTable 重新渲染
 
 
@@ -30,28 +40,25 @@ const SheetView01: React.FC<SheetViewProps> = ({
     );
   };
 
-  useEffect(() => {
-    if (virtualTableRef.current) {
-      virtualTableRef.current.setSheet(sheet); // ✅ 更新資料來源
-    } else {
-      virtualTableRef.current = new SheetVirtualTableImpl(sheet, containerRef);
-    }
-
-    setRerender({}); // ✅ 通知畫面重新渲染
-  }, [sheet]); // <- 只有監聽 sheet 就夠
-
-
   const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {
     const container = event.currentTarget;
-    if (container && virtualTableRef.current) {
+    const layoutEngine = layoutEngineRef.current;
+
+    if (container && layoutEngine) {
       const scrollTop = container.scrollTop;
       const scrollLeft = container.scrollLeft;
       const canvasWidth = container.offsetWidth;
       const canvasHeight = container.offsetHeight;
 
-      virtualTableRef.current.updateVisibleRange(scrollLeft, scrollTop, canvasWidth, canvasHeight);
-      setRerender({}); // 觸發 CanvasTable 重新渲染
+      layoutEngine.updateViewport(
+        scrollLeft,
+        scrollTop,
+        canvasWidth,
+        canvasHeight,
+      )
     }
+
+    setRerender({})
   };
 
 
@@ -65,17 +72,17 @@ const SheetView01: React.FC<SheetViewProps> = ({
         boxSizing: "border-box"
       }}
     >
-        {virtualTableRef.current && (
-          <CanvasTable
-            sheet={sheet}
-            virtualTable={virtualTableRef.current}
-            containerRef={containerRef}
-            canvasRef={canvasRef}
-            onCellClick={(r, w) => {return;}}
-            handleScroll={handleScroll}
-          />
-        )}
-    
+      
+      {layoutEngineRef.current &&
+        <CanvasTable
+          layoutEngine={layoutEngineRef.current}
+          containerRef={containerRef}
+          canvasRef={canvasRef}
+          onCellClick={(r, w) => {return;}}
+          handleScroll={handleScroll}
+        />
+      }
+
     </div>
   )
 }

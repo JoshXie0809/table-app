@@ -1,32 +1,14 @@
 import { getCellRenderer } from "../../../cell/cellPluginSystem";
-import { SheetVirtualTableImpl } from "../../sheet-virtual-table/SheetVirtualTable";
+import { getCellNoCheck, getColumnHeaderNoCheck, getRowHeaderNoCheck, Sheet } from "../../../sheet/sheet";
+import { CanvasLayout } from "../cavas-layout-engine/CanvasLayoutEngine";
 
 export function drawGrid(
   ctx: CanvasRenderingContext2D, 
-  opts: {
-    virtualTable: SheetVirtualTableImpl;
-    container: HTMLDivElement;
-    canvas: HTMLCanvasElement;
-    cellWidth: number;
-    cellHeight: number;
-    dpr: number;
-}) 
+  layout: CanvasLayout,
+  sheet: Sheet,
+  dpr: number,
+) 
 {
-  const { virtualTable, container, canvas, cellWidth, cellHeight, dpr } = opts;
-  
-  const ctxWidth = canvas.width / dpr;
-  const ctxHeight = canvas.height / dpr;
-  
-  const scrollLeft = container.scrollLeft;
-  const scrollTop = container.scrollTop;
-
-  virtualTable.updateVisibleRange(scrollLeft, scrollTop, ctxWidth, ctxHeight);
-
-  const visibleData = virtualTable.getVisibleData();
-  const visibleRange = virtualTable.visibleRange;
-
-  const rowOffset = scrollTop % cellHeight;
-  const colOffset = scrollLeft % cellWidth;
 
   const font = "14px system-ui, sans-serif";
   const paddingX = 12;
@@ -37,98 +19,88 @@ export function drawGrid(
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
-  // ctx.clearRect(0, 0, canvas.width / dpr, canvas.height / dpr);
-  
-  for (let i = 0; i < visibleData.length; i++) {
-    const cellTop = (i+1) * cellHeight - rowOffset;
 
-    for (let j = 0; j < visibleData[i].length; j++) {
-      const cellLeft = (j+1) * cellWidth - colOffset;
-      const cell = visibleData[i][j];
+  // 文字
+  ctx.fillStyle = textColor;
+  ctx.textAlign = "center";      // 水平置中（center of the x position）
+  ctx.textBaseline = "middle";   // 垂直置中（center of the y position）
+  ctx.font = "bold 14px system-ui, sans-serif";
+  ctx.strokeStyle = borderColor;
 
-      ctx.fillStyle = (visibleRange.startRow + i) % 2 === 0 ? "#fff" : "#f9f9f9";
-      ctx.fillRect(cellLeft, cellTop, cellWidth, cellHeight);
+  for(let i = 0; i < layout.visibleCells.length; i++) {
+    const row = layout.visibleCells[i];
+    for(let j of row) {
+      const row = j.rowIndex;
+      const col = j.colIndex;
 
-      if (showBorder) {
-        ctx.strokeStyle = borderColor;
-        ctx.strokeRect(cellLeft, cellTop, cellWidth, cellHeight);
-      }
-
+      const cell = getCellNoCheck(sheet, row, col);
       const renderer = getCellRenderer(cell.type);
-      if (renderer) {
-        renderer(ctx, cell, cellLeft, cellTop, cellWidth, cellHeight, {
+
+      let {x, y, w, h} = j.position
+      
+      //  背景
+      ctx.fillStyle = row  % 2 === 0 ? "#fff" : "#f9f9f9";
+      ctx.fillRect(x, y, w, h);
+
+      // 邊框
+      if (showBorder) 
+        ctx.strokeRect(x, y, w, h);
+
+      if (renderer) 
+        renderer(ctx, cell, x, y, w, h, {
           paddingX,
           font,
           textColor,
-        });
-      }
+      });
     }
+  }
+  
+  ctx.save();
+  ctx.textAlign = "center";     
+  ctx.textBaseline = "middle";  
+  ctx.font = "bold 14px system-ui, sans-serif";
+  ctx.strokeStyle = borderColor;
+
+  for(let j of layout.visibleColumnHeaders) {
+    let {x, y, w, h} = j.position
+    // 背景
+    ctx.fillStyle = "#f9f9f9";
+    ctx.fillRect(x, y, w, h);
+
+    // 邊框
+    if (showBorder) 
+      ctx.strokeRect(x, y, w, h);
+    
+    let str = getColumnHeaderNoCheck(sheet, j.index)
+    ctx.fillStyle = textColor;
+    ctx.fillText(str, x + w / 2, y + h / 2);
   }
 
   ctx.save();
-  ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.scale(dpr, dpr);
-
-  ctx.font = font;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.lineWidth = 1;
-
-  const VisibleColumnHeaders = virtualTable.getVisibleColumnHeader();
-  for(let j = 0; j < VisibleColumnHeaders.length; j++) {
-    const cellLeft = (j + 1) * cellWidth - colOffset;
-    // 背景
-      ctx.fillStyle = "#f9f9f9";
-      ctx.fillRect(cellLeft, 0, cellWidth, cellHeight);
-
-    // 邊框
-    if (showBorder) {
-      ctx.strokeStyle = borderColor;
-      ctx.strokeRect(cellLeft, 0, cellWidth, cellHeight);
-    }
-
-    // 文字
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "center";      // 水平置中（center of the x position）
-    ctx.textBaseline = "middle";   // 垂直置中（center of the y position）
-    ctx.font = "bold 14px system-ui, sans-serif";
-    
-    ctx.fillText(VisibleColumnHeaders[j], paddingX + cellLeft + cellWidth / 2, 0 + cellHeight / 2);
-  }
-
-  ctx.font = font;
-  ctx.textAlign = "left";
-  ctx.textBaseline = "middle";
-  ctx.lineWidth = 1;
-
-  const VisibleRowHeaders = virtualTable.getVisibleRowHeader();
-  for(let i = 0; i < VisibleRowHeaders.length; i++) {
-    const cellTop = (i + 1) * cellHeight - rowOffset;
+  for(let i of layout.visibleRowHeaders) {
+    let {x, y, w, h} = i.position
     // 背景
     ctx.fillStyle = "#f9f9f9";
-    ctx.fillRect(0, cellTop, cellWidth, cellHeight);
+    ctx.fillRect(x, y, w, h);
 
     // 邊框
-    if (showBorder) {
-      ctx.strokeStyle = borderColor;
-      ctx.strokeRect(0, cellTop, cellWidth, cellHeight);
-    }
-
-    // 文字
-    ctx.fillStyle = textColor;
-    ctx.textAlign = "center";      // 水平置中（center of the x position）
-    ctx.textBaseline = "middle";   // 垂直置中（center of the y position）
-    ctx.font = "bold 14px system-ui, sans-serif";
+    if (showBorder) 
+      ctx.strokeRect(x, y, w, h);
     
-    ctx.fillText(VisibleRowHeaders[i],  cellWidth / 2, cellTop + cellHeight / 2);
+    let str = getRowHeaderNoCheck(sheet, i.index)
+    ctx.fillStyle = textColor;
+    ctx.fillText(str, x + w / 2, y + h / 2);
   }
 
+  ctx.save();
   ctx.fillStyle = "#f9f9f9";
-  ctx.fillRect(0, 0, cellWidth, cellHeight);
+  let {x, y, w, h} = layout.Null.position
 
-  ctx.strokeStyle = borderColor;
-  ctx.strokeRect(0, 0, cellWidth, cellHeight);
+  ctx.fillRect(x, y, w, h);
+  ctx.strokeRect(x, y, w, h);
+
   ctx.restore();
+
 };
 
 

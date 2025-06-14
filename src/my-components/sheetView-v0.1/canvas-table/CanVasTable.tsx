@@ -2,17 +2,18 @@ import React, {
   RefObject,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
-import { SheetVirtualTableImpl } from "../sheet-virtual-table/SheetVirtualTable";
+
 import { Sheet, sheetSize } from "../../sheet/sheet";
 import { drawGrid } from "./draw/drawGrid";
-import { useVirtualTableRenderer } from "../hooks/useVirtualTableRenderer";
+
+import { CanvasLayoutEngine } from "./cavas-layout-engine/CanvasLayoutEngine";
 
 export interface CanvasTableProps {
-  sheet: Sheet,
-  virtualTable: SheetVirtualTableImpl;
+  layoutEngine: CanvasLayoutEngine,
   canvasRef: RefObject<HTMLCanvasElement>;
   containerRef: RefObject<HTMLDivElement>;
 
@@ -22,8 +23,7 @@ export interface CanvasTableProps {
 }
 
 export const CanvasTable: React.FC<CanvasTableProps> = ({
-  sheet,
-  virtualTable,
+  layoutEngine,
   onCellClick,
   onResize,
   containerRef,
@@ -31,10 +31,11 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
   canvasRef,
 }) => {
   
+  const sheet = layoutEngine.getSheet() 
+
   const [totalRows, totalCols] = sheetSize(sheet);
   const cellHeight = sheet.sheetCellHeight || 30;
   const cellWidth = sheet.sheetCellWidth || 100;
-
   const totalHeight = (1 / 4 + totalRows) * cellHeight + cellHeight;
   const totalWidth = (1 / 4 + totalCols) * cellWidth + cellWidth;
 
@@ -43,7 +44,6 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     width: 0,
     height: 0,
   });
-
 
   // ✅ ResizeObserver：追蹤容器大小變化
   useEffect(() => {
@@ -75,6 +75,13 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     const container = containerRef.current;
     if (!canvas || !container) return;
 
+    layoutEngine.updateViewport(
+      container.scrollLeft,
+      container.scrollTop,
+      container.offsetWidth,
+      container.offsetHeight
+    );
+
     const dpr = window.devicePixelRatio || 1;
 
     // 設定畫布大小
@@ -86,31 +93,12 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    drawGrid(ctx, {
-      virtualTable,
-      container,
-      canvas,
-      cellWidth,
-      cellHeight,
-      dpr,
-    });
-  }, [virtualTable, canvasRef, containerRef, containerDimensions]);
+    const layout = layoutEngine.getLayout();
 
-  // ✅ 外部 sheet 更新時 → 自動 draw
-  useVirtualTableRenderer({
-    sheet,
-    virtualTable,
-    canvas: canvasRef.current,
-    container: containerRef.current,
-    drawFn: draw,
-  });
+    drawGrid(ctx, layout, sheet, dpr);
 
-  // ✅ 初始化時立即繪製一次（非等待 scroll）
-  useEffect(() => {
-    draw();
-  }, [draw]);
+  }, [layoutEngine, containerDimensions]);
 
-  // ✅ Scroll handler：僅負責觸發重繪
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -123,6 +111,9 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     };
 
     container.addEventListener("scroll", onScroll);
+    
+    draw()
+
     return () => {
       container.removeEventListener("scroll", onScroll);
       if (animationFrameRef.current) {
