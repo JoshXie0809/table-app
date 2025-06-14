@@ -12,7 +12,7 @@ registerBuiltInCellPlugins();
 function App() {
 
   const init_sheet = useMemo(() => {
-    return createSheet({nRow: 1500, nCol: 150})
+    return createSheet({nRow: 15000, nCol: 150})
   }, []) 
   const [sheet, setSheet] = React.useState(init_sheet);
 
@@ -21,7 +21,7 @@ function App() {
   useEffect(() => {
     let nc = createDefaultCell("Text");
     nc.payload.value = "⚡⚡1234567879";
-    
+
     const sheet2 = updateSheetCellMatrix(sheet, [
       [2, null, nc],
       [null, 2, nc],

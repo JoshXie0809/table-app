@@ -29,17 +29,18 @@ export function drawGrid(
 
   for(let i = 0; i < layout.visibleCells.length; i++) {
     const row = layout.visibleCells[i];
-    for(let j of row) {
-      const row = j.rowIndex;
-      const col = j.colIndex;
 
-      const cell = getCellNoCheck(sheet, row, col);
+    for(let j of row) {
+      const r = j.rowIndex;
+      const c = j.colIndex;
+
+      const cell = getCellNoCheck(sheet, r, c);
       const renderer = getCellRenderer(cell.type);
 
       let {x, y, w, h} = j.position
       
       //  背景
-      ctx.fillStyle = row  % 2 === 0 ? "#fff" : "#f9f9f9";
+      ctx.fillStyle = r % 2 === 0 ? "#fff" : "#f9f9f9";
       ctx.fillRect(x, y, w, h);
 
       // 邊框
@@ -80,7 +81,7 @@ export function drawGrid(
   for(let i of layout.visibleRowHeaders) {
     let {x, y, w, h} = i.position
     // 背景
-    ctx.fillStyle = "#f9f9f9";
+    ctx.fillStyle = i.index % 2 === 0 ? "#fff" : "#f9f9f9";
     ctx.fillRect(x, y, w, h);
 
     // 邊框
@@ -93,12 +94,14 @@ export function drawGrid(
   }
 
   ctx.save();
+
   ctx.fillStyle = "#f9f9f9";
   let {x, y, w, h} = layout.Null.position
 
   ctx.fillRect(x, y, w, h);
   ctx.strokeRect(x, y, w, h);
 
+  ctx.save();
   ctx.restore();
 
 };

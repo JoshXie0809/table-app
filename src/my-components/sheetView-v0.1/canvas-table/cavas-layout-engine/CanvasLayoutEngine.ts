@@ -170,5 +170,65 @@ export class CanvasLayoutEngine {
     })
   }
 
-  
+  public getHeaderWidth() {
+    return this.cellWidth;
+  }
+
+  public getHeaderHeight() {
+    return this.cellHeight
+  }
+
+   /**
+   * 命中測試：根據畫布座標找出對應的儲存格索引
+   */
+  public getCellAtPoint(canvasX: number, canvasY: number): { row: number; col: number } | null {
+    
+   const layout = this.getLayout();
+    for (const row of layout.visibleCells) {
+      for (const cellLayout of row) {
+        const {x, y, w, h} = cellLayout.position; 
+        if (
+          canvasX >= x && canvasX <= x + w &&
+          canvasY >= y && canvasY <= y + h
+        ) {
+          return { row: cellLayout.rowIndex, col: cellLayout.colIndex };
+        }
+      }
+    }
+    return null;
+  }
+
+  /**
+   * 新增：獲取任意指定儲存格「當前」在畫布上的佈局資訊
+   * @param row 儲存格的行索引
+   * @param col 儲存格的列索引
+   * @returns {CellLayout | null} 如果該儲存格在當前視窗可見，則返回其佈局
+   */
+
+  public getCellLayout(row: number, col: number): CellLayout | null {
+    const x = col * this.cellWidth - this.scrollLeft + this.getHeaderWidth();
+    const y = row * this.cellHeight - this.scrollTop + this.getHeaderHeight();
+
+    // 檢查這個儲存格是否與當前的可視區域有交集
+    // (這裡的 this.viewWidth 包含了標頭，所以要減去)
+    if (x > this.viewWidth 
+      || y > this.viewHeight 
+      || x + this.cellWidth < this.getHeaderWidth() 
+      || y + this.cellHeight < this.getHeaderHeight()) {
+      return null; // 完全在可視範圍外
+    }
+
+    return {
+      rowIndex: row,
+      colIndex: col,
+      position: {
+        x,
+        y,
+        w: this.getHeaderWidth(),
+        h: this.getHeaderHeight(),
+      }
+    };
+  }
+
+
 }

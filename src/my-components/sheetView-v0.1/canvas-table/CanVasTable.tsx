@@ -1,8 +1,6 @@
 import React, {
-  RefObject,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -11,27 +9,28 @@ import { Sheet, sheetSize } from "../../sheet/sheet";
 import { drawGrid } from "./draw/drawGrid";
 
 import { CanvasLayoutEngine } from "./cavas-layout-engine/CanvasLayoutEngine";
+import { CanvasContext } from "./CanvasContext";
 
 export interface CanvasTableProps {
   layoutEngine: CanvasLayoutEngine,
-  canvasRef: RefObject<HTMLCanvasElement>;
-  containerRef: RefObject<HTMLDivElement>;
 
   onCellClick?: (row: number, column: number) => void;
   onResize?: () => void;
   handleScroll?: (event: React.UIEvent<HTMLDivElement>) => void;
+
+  children?: React.ReactNode;
 }
 
 export const CanvasTable: React.FC<CanvasTableProps> = ({
   layoutEngine,
-  onCellClick,
-  onResize,
-  containerRef,
-  handleScroll,
-  canvasRef,
+  children,
 }) => {
-  
-  const sheet = layoutEngine.getSheet() 
+
+  const sheet = layoutEngine.getSheet();
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mainCanvasRef = useRef<HTMLCanvasElement>(null);
+  const hoverCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const [totalRows, totalCols] = sheetSize(sheet);
   const cellHeight = sheet.sheetCellHeight || 30;
@@ -44,6 +43,17 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     width: 0,
     height: 0,
   });
+
+    // ✅ 準備要共享給子元件的 context value
+  const contextValue = {
+    // 透過 !! 將 .current 物件轉換為布林值，表示 DOM 是否已掛載
+    isReady: !!(containerRef.current && mainCanvasRef.current && hoverCanvasRef.current),
+    layoutEngine,
+    containerRef,
+    mainCanvasRef,
+    hoverCanvasRef,
+  };
+
 
   // ✅ ResizeObserver：追蹤容器大小變化
   useEffect(() => {
@@ -71,9 +81,11 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
 
   // ✅ draw 函數：讀取 ref.current 在內部，確保即時正確
   const draw = useCallback(() => {
-    const canvas = canvasRef.current;
+    const canvas = mainCanvasRef.current;
     const container = containerRef.current;
-    if (!canvas || !container) return;
+    const hoverCanvas = hoverCanvasRef.current;
+
+    if (!canvas || !container || !hoverCanvas) return;
 
     layoutEngine.updateViewport(
       container.scrollLeft,
@@ -85,8 +97,14 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     const dpr = window.devicePixelRatio || 1;
 
     // 設定畫布大小
-    canvas.width = Math.round(containerDimensions.width * dpr);
-    canvas.height = Math.round(containerDimensions.height * dpr);
+    const cw = Math.round(containerDimensions.width * dpr);
+    const ch = Math.round(containerDimensions.height * dpr);
+
+    canvas.width = cw;
+    hoverCanvas.width = cw;
+    canvas.height = ch;
+    hoverCanvas.height = ch;
+
     canvas.style.width = `${containerDimensions.width}px`;
     canvas.style.height = `${containerDimensions.height}px`;
 
@@ -99,6 +117,7 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
 
   }, [layoutEngine, containerDimensions]);
 
+  // 讓畫面輸出好看
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -123,35 +142,62 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
   }, [draw]);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        height: "100%",
-        width: "100%",
-        overflow: "scroll",
-        position: "relative",
-      }}
-      onScroll={handleScroll}
-    >
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: "sticky",
-          top: 0,
-          left: 0,
-        }}
-      />
+    <CanvasContext.Provider value={contextValue}>
       <div
-        id="canvas-table-scrollSpacer"
+        ref={containerRef}
         style={{
-          height: `${totalHeight}px`,
-          width: `${totalWidth}px`,
-          position: "absolute",
-          top: 0,
-          left: 0,
-          pointerEvents: "none",
-        }}
-      />
-    </div>
+          height: "100%",
+          width: "100%",
+          overflow: "scroll",
+          position: "relative",
+        }} 
+      >
+
+        <div style={{position: "sticky", top: 0, left: 0, zIndex: 1}}>
+          <canvas
+            ref={mainCanvasRef}
+            style={{
+              position: "sticky",
+              zIndex: 1,
+              top: 0,
+              left: 0,
+              pointerEvents: 'none',
+            }}
+          />
+
+          <canvas
+            ref={hoverCanvasRef}
+            style={{
+              position: "absolute",
+              zIndex: 10,
+              top: 0,
+              left: 0,
+              pointerEvents: 'none', // ✅ 關鍵！讓滑鼠事件「穿透」這層畫布
+            }}
+          />
+
+        </div>
+        
+
+        <div
+          id="canvas-table-scrollSpacer"
+          style={{
+            height: `${totalHeight}px`,
+            width: `${totalWidth}px`,
+            position: "absolute",
+            top: 0,
+            left: 0,
+            pointerEvents: "none",
+          }}
+        />
+
+
+
+
+
+      {children}
+      </div>
+    </CanvasContext.Provider>
   );
+    
 };
