@@ -16,11 +16,10 @@ registerBuiltInSheetPlugins();
 
 function App() {
 
-  const plugin = getSheetPlugin("array");
-
+  const plugin = getSheetPlugin("sparse");
 
   const init_sheet = useMemo(() => {
-    return plugin!.createSheet(50000, 100)
+    return plugin!.createSheet(12800, 512)
   }, []) 
 
   const [sheet, setSheet] = React.useState(init_sheet);
@@ -30,10 +29,12 @@ function App() {
   useEffect(() => {
     let nc = createDefaultCell("Text");
     nc.payload.value = "⚡⚡1234567879";
-    const sheet2 = SheetPluginDefalutTool.updateSheetData(sheet, [
+    let sheet2 = SheetPluginDefalutTool.updateSheetData(sheet, [
       [2, null, nc],
       [null, 2, nc],
+      [5000, 50, nc],
     ]);
+
     setSheet(sheet2)
 
   }, [])

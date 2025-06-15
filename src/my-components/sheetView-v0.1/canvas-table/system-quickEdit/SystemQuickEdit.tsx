@@ -19,7 +19,6 @@ export const SystemQuickEdit: React.FC = () => {
   const [editingCell, setEditingCell] = useState<{ row: number; col: number } | null>(null);
   const [editingCellValue, setEditingCellValue] = useState("");
   const [open, setOpen] = React.useState(false);
-  
 
   
    // --- 邏輯：監聽clock事件來觸發編輯器 ---
@@ -28,7 +27,8 @@ export const SystemQuickEdit: React.FC = () => {
     const container = containerRef.current;
 
     const cellType = layoutEngine.getSheet().type;
-    const getCellNoCheck = getSheetPlugin(cellType)!.getCellNoCheck;
+    const plugin = getSheetPlugin(cellType)!;
+    
 
     const handleClick = throttle((event: MouseEvent) => {
       // 1. 獲取滑鼠在容器內的座標
@@ -39,7 +39,7 @@ export const SystemQuickEdit: React.FC = () => {
 
       if (cell) {
         // 2. 從引擎獲取儲存格在「滾動容器內」的相對佈局
-        setEditingCellValue(getCellNoCheck(layoutEngine.getSheet(), cell.row, cell.col).payload.value);
+        setEditingCellValue(plugin.getCellNoCheck(layoutEngine.getSheet(), cell.row, cell.col).payload.value);
         const cellLayout = layoutEngine.getCellLayout(cell.row, cell.col);
 
         if (cellLayout) {
@@ -105,14 +105,19 @@ export const SystemQuickEdit: React.FC = () => {
   
   if(!isReady || !layoutEngine || !containerRef) return null;
   // ✅ 如果可見，就使用 Portal 將我們的 JSX 「傳送」出去
+
+  
+  const cellWidth = layoutEngine.getCellWidth();
+  const cellHeight = layoutEngine.getCellHeight();
+
   return ReactDOM.createPortal(
     // 這是我們要渲染的 JSX (編輯框)
     <div
       style={{
         position: 'fixed', // 使用 'fixed' 定位，其基準是整個瀏覽器視窗
           // ✅ 修正：明確設定基準點 (anchor point) 在畫面的左上角
-        top: 0,
-        left: 0,
+        top: cellHeight * 2 / 5,
+        left: cellWidth / 5,
 
         // 如果不可見，就什麼隱藏確保html物件存在
         display: isVisible ? 'block' : 'none',
@@ -120,20 +125,20 @@ export const SystemQuickEdit: React.FC = () => {
         // ✨ 優化：基於 (0,0) 點進行位移，這部分由 GPU 加速，效能更好
         transform: `translate(${position.left}px, ${position.top}px)`,
         willChange: 'transform', // ✅ 提前 hint 瀏覽器為 transform 做 GPU buffer
-        border: '0px solid #2196F3', // 藍色邊框
-        backgroundColor: "white",
         boxSizing: "border-box",
         zIndex: 10,
       }}
     >
       <Input
         autoFocus // 自動聚焦
-        appearance="underline"
+        // appearance="underline"
         // onBlur={() => setIsVisible(false)}
         value={editingCellValue}
         onChange={e => setEditingCellValue(e.target.value)}
         style={{
-          width: `${layoutEngine.getCellWidth()}px`,
+          padding: 4,
+          border: '2px solid rgb(94, 182, 153)',
+          width: `${layoutEngine.getCellWidth() * 2}px`,
           height: `${layoutEngine.getCellHeight()}px`,
         }}
         onKeyDown={(e) => {

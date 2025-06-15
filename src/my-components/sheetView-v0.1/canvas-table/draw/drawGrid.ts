@@ -1,6 +1,5 @@
 import { getCellRenderer } from "../../../cell/cellPluginSystem";
 import { getSheetPlugin, Sheet } from "../../../sheet/SheetPluginSystem";
-
 import { CanvasLayout } from "../cavas-layout-engine/CanvasLayoutEngine";
 
 export function drawGrid(
@@ -12,9 +11,7 @@ export function drawGrid(
 {
 
   const plugin = getSheetPlugin(sheet.type)!;
-  const getCellNoCheck = plugin.getCellNoCheck;
-  const getRowHeaderNoCheck = plugin.getRowHeaderNoCheck;
-  const getColumnHeaderNoCheck = plugin.getColumnHeaderNoCheck;
+  
 
   const font = "14px system-ui, sans-serif";
   const paddingX = 12;
@@ -40,7 +37,7 @@ export function drawGrid(
       const r = j.rowIndex;
       const c = j.colIndex;
 
-      const cell = getCellNoCheck(sheet, r, c);
+      const cell = plugin.getCellNoCheck(sheet, r, c);
       const renderer = getCellRenderer(cell.type);
 
       let {x, y, w, h} = j.position
@@ -78,7 +75,7 @@ export function drawGrid(
     if (showBorder) 
       ctx.strokeRect(x, y, w, h);
     
-    let str = getColumnHeaderNoCheck(sheet, j.index)
+    let str = plugin.getColumnHeaderNoCheck(sheet, j.index)
     ctx.fillStyle = textColor;
     ctx.fillText(str, x + w / 2, y + h / 2);
   }
@@ -94,7 +91,7 @@ export function drawGrid(
     if (showBorder) 
       ctx.strokeRect(x, y, w, h);
     
-    let str = getRowHeaderNoCheck(sheet, i.index)
+    let str = plugin.getRowHeaderNoCheck(sheet, i.index)
     ctx.fillStyle = textColor;
     ctx.fillText(str, x + w / 2, y + h / 2);
   }
