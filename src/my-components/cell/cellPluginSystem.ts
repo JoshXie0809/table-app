@@ -36,7 +36,7 @@ export function registerCellPlugin (
 ) {
 
   if (cellPluginRegistry.has(plugin.type) && !options.override)
-    throw new Error(`CellRenderer for type '${plugin.type}' already registered.`);
+    throw new Error(`type '${plugin.type}' already registered.`);
     // 確認是否誤寫
   
   cellPluginRegistry.set(plugin.type, plugin);  

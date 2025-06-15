@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useContext } from "react";
 import { CanvasContext } from "../CanvasContext"; // ✅ 引入 Context
-
+import { throttle } from 'lodash';
 
 export const SystemHover: React.FC = () => {
   const { isReady, layoutEngine, containerRef, hoverCanvasRef } = useContext(CanvasContext);
@@ -13,18 +13,19 @@ export const SystemHover: React.FC = () => {
     if (!isReady) return;
 
     const container = containerRef!.current!;
-    const handleMouseMove = (event: MouseEvent) => {
+
+    const handleMouseMove = throttle((event: MouseEvent) => {
       const rect = container.getBoundingClientRect();
       const canvasX = event.clientX - rect.left;
       const canvasY = event.clientY - rect.top;
       const cell = layoutEngine!.getCellAtPoint(canvasX, canvasY);
 
       if (cell?.row !== hoveredCell?.row || cell?.col !== hoveredCell?.col) 
-        setHoveredCell(cell);
-      
-    };
+        setHoveredCell(cell);  
+    });
 
-    const handleMouseLeave = () => setHoveredCell(null);
+    const handleMouseLeave = throttle(() => setHoveredCell(null));
+
     container.addEventListener("mousemove", handleMouseMove);
     container.addEventListener("mouseleave", handleMouseLeave);
 
@@ -89,6 +90,43 @@ export const SystemHover: React.FC = () => {
       }
     }
   }, [isReady, hoveredCell, layoutEngine, containerRef, hoverCanvasRef]);
+
+
+  useEffect(() => {
+      if ( !isReady || !containerRef?.current || !layoutEngine || !hoveredCell) {
+        return;
+      }
+  
+      const container = containerRef.current;
+      let animationFrameId: number; // 用來儲存 requestAnimationFrame 的 ID
+  
+      const handleScroll = () => {
+      // ✨ 優化點：取消上一個未執行的 frame，避免重複執行
+      cancelAnimationFrame(animationFrameId);
+  
+      // ✨ 優化點：請求瀏覽器在下一次繪製時才執行更新
+      animationFrameId = requestAnimationFrame(() => {
+        const containerRect = container.getBoundingClientRect();
+        const cellLayout = layoutEngine.getCellLayout(hoveredCell.row, hoveredCell.col);
+  
+        if (cellLayout) {
+          const { x, y } = cellLayout.position;
+          const newTop = containerRect.top + y;
+          const newLeft = containerRect.left + x;
+          setHoveredCell({ row: newTop, col: newLeft });
+        }
+      });
+    };
+  
+    container.addEventListener('scroll', handleScroll, { passive: true }); // passive: true 告訴瀏覽器這個監聽器不會阻止滾動
+  
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      cancelAnimationFrame(animationFrameId); // ✨ 組件卸載時，確保取消最後一個 frame
+    };
+  }, [hoveredCell]);
+
+  
 
   return null;
 }

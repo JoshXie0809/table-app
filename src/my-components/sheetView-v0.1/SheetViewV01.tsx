@@ -1,10 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Sheet, updateSheetCellMatrix } from "../sheet/sheet";
+import React, { useEffect, useRef, useState } from "react"
 
-import { Cell } from "../cell/cellPluginSystem";
 import { CanvasTable } from "./canvas-table/CanVasTable";
 import { CanvasLayoutEngine } from "./canvas-table/cavas-layout-engine/CanvasLayoutEngine";
 import { SystemHover } from "./canvas-table/system-hover/SystemHover";
+import { SystemQuickEdit } from "./canvas-table/system-quickEdit/SystemQuickEdit";
+import { Sheet } from "../sheet/SheetPluginSystem";
 
 export interface SheetViewProps {
   sheet: Sheet,
@@ -12,8 +12,7 @@ export interface SheetViewProps {
 }
 
 const SheetView01: React.FC<SheetViewProps> = ({
-  sheet,
-  setSheet,
+  sheet
 }) => {
 
   const layoutEngineRef = useRef<CanvasLayoutEngine | null>(null);
@@ -30,15 +29,6 @@ const SheetView01: React.FC<SheetViewProps> = ({
   }, [sheet]); // <- 只有監聽 sheet 就夠
   
 
-  const handleCellDataChanged = (row: number, column: number, newCell: Cell) => {
-    setSheet(
-      (prevSheet) => updateSheetCellMatrix(prevSheet, [[row, column, newCell]])
-    );
-  };
-
-  const handleScroll = (event: React.UIEvent<HTMLDivElement>) => {};
-
-
   return (
     <div       
 
@@ -54,10 +44,9 @@ const SheetView01: React.FC<SheetViewProps> = ({
       {layoutEngineRef.current &&
         <CanvasTable
           layoutEngine={layoutEngineRef.current}
-          onCellClick={(r, w) => {return;}}
-          handleScroll={handleScroll}
         >
           <SystemHover />
+          <SystemQuickEdit />
         
         </CanvasTable>
       }

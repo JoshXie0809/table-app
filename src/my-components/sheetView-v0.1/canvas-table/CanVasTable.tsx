@@ -5,7 +5,6 @@ import React, {
   useState,
 } from "react";
 
-import { Sheet, sheetSize } from "../../sheet/sheet";
 import { drawGrid } from "./draw/drawGrid";
 
 import { CanvasLayoutEngine } from "./cavas-layout-engine/CanvasLayoutEngine";
@@ -27,22 +26,9 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
 }) => {
 
   const sheet = layoutEngine.getSheet();
-
   const containerRef = useRef<HTMLDivElement>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const hoverCanvasRef = useRef<HTMLCanvasElement>(null);
-
-  const [totalRows, totalCols] = sheetSize(sheet);
-  const cellHeight = sheet.sheetCellHeight || 30;
-  const cellWidth = sheet.sheetCellWidth || 100;
-  const totalHeight = (1 / 4 + totalRows) * cellHeight + cellHeight;
-  const totalWidth = (1 / 4 + totalCols) * cellWidth + cellWidth;
-
-  const animationFrameRef = useRef<number | null>(null);
-  const [containerDimensions, setContainerDimensions] = useState({
-    width: 0,
-    height: 0,
-  });
 
     // ✅ 準備要共享給子元件的 context value
   const contextValue = {
@@ -53,6 +39,20 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     mainCanvasRef,
     hoverCanvasRef,
   };
+
+  const [totalRows, totalCols] = layoutEngine.getSheetSize();
+  const cellHeight = sheet.sheetCellHeight || 30;
+  const cellWidth = sheet.sheetCellWidth || 100;
+  const totalHeight = (1 / 4 + totalRows) * cellHeight + cellHeight;
+  const totalWidth = (1 / 4 + totalCols) * cellWidth + cellWidth;
+
+
+  const animationFrameRef = useRef<number | null>(null);
+  const [containerDimensions, setContainerDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+
 
 
   // ✅ ResizeObserver：追蹤容器大小變化
@@ -83,9 +83,8 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
   const draw = useCallback(() => {
     const canvas = mainCanvasRef.current;
     const container = containerRef.current;
-    const hoverCanvas = hoverCanvasRef.current;
 
-    if (!canvas || !container || !hoverCanvas) return;
+    if (!canvas || !container) return;
 
     layoutEngine.updateViewport(
       container.scrollLeft,
@@ -101,9 +100,7 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     const ch = Math.round(containerDimensions.height * dpr);
 
     canvas.width = cw;
-    hoverCanvas.width = cw;
     canvas.height = ch;
-    hoverCanvas.height = ch;
 
     canvas.style.width = `${containerDimensions.width}px`;
     canvas.style.height = `${containerDimensions.height}px`;
@@ -141,6 +138,7 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
     };
   }, [draw]);
 
+
   return (
     <CanvasContext.Provider value={contextValue}>
       <div
@@ -157,8 +155,7 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
           <canvas
             ref={mainCanvasRef}
             style={{
-              position: "sticky",
-              zIndex: 1,
+              position: "absolute",
               top: 0,
               left: 0,
               pointerEvents: 'none',
@@ -169,12 +166,14 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
             ref={hoverCanvasRef}
             style={{
               position: "absolute",
-              zIndex: 10,
+              zIndex: 1,
               top: 0,
               left: 0,
               pointerEvents: 'none', // ✅ 關鍵！讓滑鼠事件「穿透」這層畫布
             }}
           />
+
+        
 
         </div>
         

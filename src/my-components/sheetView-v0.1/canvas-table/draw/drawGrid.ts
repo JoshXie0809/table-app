@@ -1,5 +1,6 @@
 import { getCellRenderer } from "../../../cell/cellPluginSystem";
-import { getCellNoCheck, getColumnHeaderNoCheck, getRowHeaderNoCheck, Sheet } from "../../../sheet/sheet";
+import { getSheetPlugin, Sheet } from "../../../sheet/SheetPluginSystem";
+
 import { CanvasLayout } from "../cavas-layout-engine/CanvasLayoutEngine";
 
 export function drawGrid(
@@ -9,6 +10,11 @@ export function drawGrid(
   dpr: number,
 ) 
 {
+
+  const plugin = getSheetPlugin(sheet.type)!;
+  const getCellNoCheck = plugin.getCellNoCheck;
+  const getRowHeaderNoCheck = plugin.getRowHeaderNoCheck;
+  const getColumnHeaderNoCheck = plugin.getColumnHeaderNoCheck;
 
   const font = "14px system-ui, sans-serif";
   const paddingX = 12;

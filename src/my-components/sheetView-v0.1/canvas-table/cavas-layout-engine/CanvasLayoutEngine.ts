@@ -1,4 +1,4 @@
-import { Sheet, sheetSize } from "../../../sheet/sheet";
+import { getSheetPlugin, Sheet } from "../../../sheet/SheetPluginSystem";
 
 export interface canvasTopLeft {
   x: number;
@@ -65,6 +65,14 @@ export class CanvasLayoutEngine {
     return this.sheet;
   }
 
+  public getSheetSize(): [nRow: number, nCol: number] 
+  {
+    const sheetType = this.sheet.type;
+    
+    const plugin = getSheetPlugin(sheetType)!;
+    return plugin.sheetSize(this.sheet);    
+  }
+
     /**
    * 更新視窗狀態，這是觸發重新計算的主要入口
    * @param scrollLeft 當前水平滾動位置
@@ -92,7 +100,8 @@ export class CanvasLayoutEngine {
     // 1. 計算可視範圍 (startRow, endRow, startCol, endCol)
     // 這段邏輯可以從之前的 SheetVirtualTableImpl 中搬過來
 
-    const [nRow, nCol] = sheetSize(this.sheet);
+    
+    const [nRow, nCol] = this.getSheetSize();
 
     const startRow = Math.max(Math.floor(this.scrollTop / this.cellHeight), 0);
     const endRow = Math.min(Math.ceil((this.scrollTop + this.viewHeight) / this.cellHeight), nRow);
@@ -178,6 +187,14 @@ export class CanvasLayoutEngine {
     return this.cellHeight
   }
 
+  public getCellWidth() {
+    return this.cellWidth;
+  }
+
+  public getCellHeight() {
+    return this.cellHeight
+  }
+
    /**
    * 命中測試：根據畫布座標找出對應的儲存格索引
    */
@@ -224,8 +241,8 @@ export class CanvasLayoutEngine {
       position: {
         x,
         y,
-        w: this.getHeaderWidth(),
-        h: this.getHeaderHeight(),
+        w: this.cellWidth,
+        h: this.cellHeight,
       }
     };
   }

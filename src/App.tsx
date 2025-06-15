@@ -1,35 +1,41 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { FluentProvider, webLightTheme, Text } from "@fluentui/react-components";
 import { FloatingInputPanel } from "./my-components/ProtalPanel";
-import { createSheet, updateSheetCellMatrix } from "./my-components/sheet/sheet";
-import { registerBuiltInCellPlugins } from "./my-components/cell/initCellPlugins.ts"
-import { createDefaultCell } from "./my-components/cell/cellPluginSystem.ts";
+
 import SheetView01 from "./my-components/sheetView-v0.1/SheetViewV01.tsx";
 
+import { registerBuiltInCellPlugins } from "./my-components/cell/initCellPlugins.ts"
+import { registerBuiltInSheetPlugins } from "./my-components/sheet/initShetPlugin.ts";
+
+import { getSheetPlugin } from "./my-components/sheet/SheetPluginSystem.ts";
+
 registerBuiltInCellPlugins();
+registerBuiltInSheetPlugins();
 
 
 function App() {
 
+  const plugin = getSheetPlugin("array");
+
+
   const init_sheet = useMemo(() => {
-    return createSheet({nRow: 15000, nCol: 150})
+    return plugin!.createSheet(50000, 100)
   }, []) 
+
   const [sheet, setSheet] = React.useState(init_sheet);
 
   const [open, setOpen] = React.useState(false);
 
-  useEffect(() => {
-    let nc = createDefaultCell("Text");
-    nc.payload.value = "⚡⚡1234567879";
+  // useEffect(() => {
+  //   let nc = createDefaultCell("Text");
+  //   nc.payload.value = "⚡⚡1234567879";
+  //   const sheet2 = updateSheetCellMatrix(sheet, [
+  //     [2, null, nc],
+  //     [null, 2, nc],
+  //   ]);
+  //   setSheet(sheet2)
 
-    const sheet2 = updateSheetCellMatrix(sheet, [
-      [2, null, nc],
-      [null, 2, nc],
-    ]);
-
-    setSheet(sheet2)
-    
-  }, [])
+  // }, [])
 
   requestAnimationFrame
 
@@ -60,6 +66,7 @@ function App() {
 
       </div>
     </main>
+    <div id="canvas-table-quickEdit-portal-root"/>
     </FluentProvider>
   );
 }
