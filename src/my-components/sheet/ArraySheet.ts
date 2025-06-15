@@ -1,6 +1,5 @@
 import { SheetPlugin, Sheet, defaultSheetCellWidth, defaultSheetCellHeight, defaultSheetOrder } from "./SheetPluginSystem";
 import { Cell, createDefaultCell } from "../cell/cellPluginSystem";
-import { has } from "lodash"
 
 // ArraySheet
 // tpye: "ArraySheet"
@@ -58,6 +57,21 @@ export const ArraySheetPlugin: SheetPlugin =
     if(!this.checker(sheet)) return [0, 0];
     return [sheet.fields.rowHeader.length, sheet.fields.columnHeader.length];
   },
+
+  setCellBoundaryCheck(sheet: Sheet, row: number, col: number, newCell: Cell): boolean {
+    const [nRow, nCol] = this.sheetSize(sheet);
+    if(row < 0 || row >= nRow) return false;
+    if(col < 0 || col >= nCol) return false;
+
+    sheet.fields.cellMatrix[row][col] = newCell;
+    return true;
+  },
+
+
+  setCellNoCheck(sheet: Sheet, row: number, col: number, newCell: Cell): void {
+    sheet.fields.cellMatrix[row][col] = newCell;
+  },
+
 
   getCellBoundaryCheck(sheet: Sheet, row: number, col: number): Cell | null {
     const [nRow, nCol] = this.sheetSize(sheet);

@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { FluentProvider, webLightTheme, Text } from "@fluentui/react-components";
 import { FloatingInputPanel } from "./my-components/ProtalPanel";
 
@@ -7,7 +7,8 @@ import SheetView01 from "./my-components/sheetView-v0.1/SheetViewV01.tsx";
 import { registerBuiltInCellPlugins } from "./my-components/cell/initCellPlugins.ts"
 import { registerBuiltInSheetPlugins } from "./my-components/sheet/initShetPlugin.ts";
 
-import { getSheetPlugin } from "./my-components/sheet/SheetPluginSystem.ts";
+import { getSheetPlugin, SheetPluginDefalutTool } from "./my-components/sheet/SheetPluginSystem.ts";
+import { createDefaultCell } from "./my-components/cell/cellPluginSystem.ts";
 
 registerBuiltInCellPlugins();
 registerBuiltInSheetPlugins();
@@ -26,16 +27,16 @@ function App() {
 
   const [open, setOpen] = React.useState(false);
 
-  // useEffect(() => {
-  //   let nc = createDefaultCell("Text");
-  //   nc.payload.value = "⚡⚡1234567879";
-  //   const sheet2 = updateSheetCellMatrix(sheet, [
-  //     [2, null, nc],
-  //     [null, 2, nc],
-  //   ]);
-  //   setSheet(sheet2)
+  useEffect(() => {
+    let nc = createDefaultCell("Text");
+    nc.payload.value = "⚡⚡1234567879";
+    const sheet2 = SheetPluginDefalutTool.updateSheetData(sheet, [
+      [2, null, nc],
+      [null, 2, nc],
+    ]);
+    setSheet(sheet2)
 
-  // }, [])
+  }, [])
 
   requestAnimationFrame
 

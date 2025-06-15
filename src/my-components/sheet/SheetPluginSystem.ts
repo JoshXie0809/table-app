@@ -6,7 +6,7 @@ export const defaultSheetOrder = -111;
 
 
 export interface Sheet {
-  type: string;
+  readonly type: string;
   sheetName: string;
 
   fields: { [key: string]: any };
@@ -29,6 +29,9 @@ export interface SheetPlugin {
   ): Sheet;
 
   sheetSize(sheet: Sheet): [nRow: number, nCol: number];
+
+  setCellBoundaryCheck(sheet: Sheet, row: number, col: number, newCell: Cell): boolean;
+  setCellNoCheck(sheet: Sheet, row: number, col: number, newCell: Cell): void;
 
   getCellBoundaryCheck(sheet: Sheet, row: number, col: number): Cell | null;
   getCellNoCheck(sheet: Sheet, row: number, col: number): Cell;
@@ -79,4 +82,51 @@ export function CTool(
   tool: string
 ): any | undefined {
   return plugin?.customTools?.[tool];
+}
+
+export const SheetPluginDefalutTool = {
+
+  updateSheetData(
+    sheet: Sheet, 
+    cells: [r: number | null, c: number | null, newCell: Cell][],
+
+  ): Sheet {
+
+    const plugin = getSheetPlugin(sheet.type)!;
+    const newSheet: Sheet = {...sheet};
+
+    const [nR, nC] = plugin.sheetSize(newSheet);
+
+    cells.forEach(cell => {
+      const r = cell[0];
+      const c = cell[1];
+      const newCell = cell[2];
+
+      if(r === null && c === null) {
+        for(let i = 0; i < nR; i++) 
+          for(let j = 0; j < nC; j++) 
+            plugin.setCellNoCheck(newSheet, i, j, structuredClone(newCell))     
+          
+      } else 
+      if(c === null && r !== null && (r >= 0 && r < nR)) {
+        for(let j = 0; j < nC; j++) 
+          plugin.setCellNoCheck(newSheet, r, j, structuredClone(newCell)) 
+        
+
+      } else 
+      if(r === null && c!== null && (c >= 0 && c < nC)) {
+        for(let i = 0; i < nR; i++) 
+          plugin.setCellNoCheck(newSheet, i, c, structuredClone(newCell)) 
+        
+
+      } else 
+      if((r !== null && c !== null))
+        plugin.setCellNoCheck(newSheet, r, c, structuredClone(newCell)) 
+    })
+
+    return newSheet;
+
+  }
+
+  
 }
