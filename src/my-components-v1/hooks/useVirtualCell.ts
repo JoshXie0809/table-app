@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ICellData } from "../ICellData";
 import { ICell, IVirtualCells } from "../IVirtualSheet";
 
@@ -42,6 +42,7 @@ export const useVirtualCells = (options: UseVirtualCellsOptions ) => {
     // ------------------------------------
 
     // 儲存核心 Cell 數據的 Map
+     // 儲存核心 Cell 數據的 Map
     const [cellsMap, setCellsMap] = useState<Map<string, ICellData>>(() => {
         const initialMap = new Map<string, ICellData>();
         if (iCells) {
@@ -52,19 +53,31 @@ export const useVirtualCells = (options: UseVirtualCellsOptions ) => {
         return initialMap;
     });
 
+    // 暫時擱置 後面更新
     const [fields, _setFields]  = useState<Map<string, any>>(() => {
         const initFields = new Map<string, any>()
         return initFields;
     });
 
-    const [sheetSize, _setSheetSize] = useState({ nRow: iRowCount, nCol: iColCount });
-    const [cellWidth, _setCellWidth] = useState(iCellWidth);
-    const [cellHeight, _setCellHeight] = useState(iCellHeight);
-    const [sheetName, _setSheetName] = useState(iSheetName)
+    const [sheetSize, setSheetSize] = useState({ nRow: iRowCount, nCol: iColCount });
+    const [cellWidth, setCellWidth] = useState(iCellWidth);
+    const [cellHeight, setCellHeight] = useState(iCellHeight);
+    const [sheetName, setSheetName] = useState(iSheetName)
 
-    // 鍵轉換函式 (由於是純函式，可以直接引用)
-    const toKey = _toKey; // 直接引用輔助函式
-    const toRC = _toRC;   // 直接引用輔助函式
+
+    useEffect(() => {
+        const map = new Map<string, ICellData>();
+        iCells?.forEach(cell => map.set(_toKey(cell.row, cell.col), cell.cellData));
+        setCellsMap(map);
+        setSheetSize({ nRow: iRowCount, nCol: iColCount });
+        setCellWidth(iCellWidth);
+        setCellHeight(iCellHeight);
+        setSheetName(iSheetName);
+    }, [iCells, iRowCount, iColCount, iCellWidth, iCellHeight, iSheetName])
+
+
+    const toKey = useMemo(() => _toKey, []);
+    const toRC = useMemo(() => _toRC, []);
 
 
     // 設定 Cell 數據

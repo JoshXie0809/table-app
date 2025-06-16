@@ -5,7 +5,8 @@ import { FloatingInputPanel } from "./my-components-v0/ProtalPanel.tsx";
 import { invoke } from "@tauri-apps/api/core";
 import { ICell, IVirtualCells } from "./my-components-v1/IVirtualSheet.ts";
 import { useVirtualCells, UseVirtualCellsOptions } from "./my-components-v1/hooks/useVirtualCell.ts";
-import { VirtualCellsRenderer } from "./test.tsx";
+import { SheetView11 } from "./my-components-v1/sheetView/SheetView-v1.0.tsx";
+
 
 interface TauriApiLoadSheetResponse {
     type: string;
@@ -24,15 +25,13 @@ function App() {
     // optionsState 儲存傳給 useVirtualCells 的選項
     const [virtualCellsOptions, setVirtualCellsOptions] = useState<UseVirtualCellsOptions | null>(null);
 
-
-    
-
     useEffect(() => {
         async function loadInitialSheetData() { // 更好的命名
             try {
                 // 模擬一個 Sheet ID，實際應該從路由或用戶選擇中獲取
                 const sheetIdToLoad = "default_sheet_id"; 
-                const res: TauriApiLoadSheetResponse = await invoke("load_sheet_data", { sheetName: sheetIdToLoad }); // <-- 修正：參數名和類型
+                const res: TauriApiLoadSheetResponse = 
+                  await invoke("load_sheet_data", { sheetName: sheetIdToLoad }); 
 
                 // 從回應中提取數據，構建 UseVirtualCellsOptions
                 const options: UseVirtualCellsOptions = {
@@ -46,7 +45,7 @@ function App() {
                 };
 
                 setVirtualCellsOptions(options);
-            } catch(error) {
+              } catch(error) {
                 console.error("Error loading initial sheet data:", error);
             }
         }
@@ -78,9 +77,9 @@ function App() {
          <FloatingInputPanel onClose={() => setOpen(false)} />
         }
 
-        {virtualCellsOptions && (
-          <VirtualCellsRenderer options={virtualCellsOptions} />
-        )}
+        {virtualCellsOptions && 
+          <SheetView11 options={virtualCellsOptions}/>
+        }
 
 
       </div>
