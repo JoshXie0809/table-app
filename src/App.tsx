@@ -4,9 +4,10 @@ import { FloatingInputPanel } from "./my-components-v0/ProtalPanel.tsx";
 
 import { invoke } from "@tauri-apps/api/core";
 import { ICell, IVirtualCells } from "./my-components-v1/IVirtualSheet.ts";
-import { useVirtualCells } from "./my-components-v1/hooks/useVirtualCell.ts";
+import { useVirtualCells, UseVirtualCellsOptions } from "./my-components-v1/hooks/useVirtualCell.ts";
+import { VirtualCellsRenderer } from "./test.tsx";
 
-interface TauriApiLoadSheet {
+interface TauriApiLoadSheetResponse {
     type: string;
     sheetName: string;
     rowCount: number;
@@ -19,30 +20,41 @@ interface TauriApiLoadSheet {
 
 function App() {
 
-  const [open, setOpen] = React.useState(false);
-  const [vc, setVC] = useState<null | IVirtualCells>(null );
+    const [open, setOpen] = React.useState(false);
+    // optionsState 儲存傳給 useVirtualCells 的選項
+    const [virtualCellsOptions, setVirtualCellsOptions] = useState<UseVirtualCellsOptions | null>(null);
 
-  useEffect(() => {
-    async function test_load_sheet_data() {
-      try {
-        const res: TauriApiLoadSheet = await invoke("load_sheet_data", {sheetName: "assd"});
-        const iType = res.type;
-        const iSheetName = res.sheetName
-        const iRowCount = res.rowCount; res.cellHeight; res.cellWidth; res.colCount;
-        // setVC(
-        //   useVirtualCells()
-        // )
-        
-      } catch(error) {
-        console.error(error)
-      }
-    }
+
     
-    test_load_sheet_data();
-  }, [])
 
-  console.log(vc);
+    useEffect(() => {
+        async function loadInitialSheetData() { // 更好的命名
+            try {
+                // 模擬一個 Sheet ID，實際應該從路由或用戶選擇中獲取
+                const sheetIdToLoad = "default_sheet_id"; 
+                const res: TauriApiLoadSheetResponse = await invoke("load_sheet_data", { sheetName: sheetIdToLoad }); // <-- 修正：參數名和類型
 
+                // 從回應中提取數據，構建 UseVirtualCellsOptions
+                const options: UseVirtualCellsOptions = {
+                    iType: res.type, // 來自 metadata
+                    iSheetName: res.sheetName,
+                    iRowCount: res.rowCount,
+                    iColCount: res.colCount,
+                    iCellWidth: res.cellWidth, // 新增
+                    iCellHeight: res.cellHeight, // 新增
+                    iCells: res.cells, // 來自 allCells
+                };
+
+                setVirtualCellsOptions(options);
+            } catch(error) {
+                console.error("Error loading initial sheet data:", error);
+            }
+        }
+        
+        loadInitialSheetData(); // 執行載入數據的函式
+    }, []); // 
+  
+  
   return (
     <FluentProvider theme={webLightTheme}>
     
@@ -65,6 +77,10 @@ function App() {
         {open &&
          <FloatingInputPanel onClose={() => setOpen(false)} />
         }
+
+        {virtualCellsOptions && (
+          <VirtualCellsRenderer options={virtualCellsOptions} />
+        )}
 
 
       </div>

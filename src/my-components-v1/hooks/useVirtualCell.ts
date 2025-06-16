@@ -22,7 +22,7 @@ const _toRC = (key: string): {row: number, col: number} | undefined => {
 // Hook 的選項介面
 // ----------------------------------------------------
 
-interface UseVirtualCellsOptions {
+export interface UseVirtualCellsOptions {
     iType: string;
     iSheetName: string;
     iRowCount: number;
@@ -33,8 +33,9 @@ interface UseVirtualCellsOptions {
 }
 
 
-export const useVirtualCells = (options: UseVirtualCellsOptions) => {
-    const { iType, iSheetName, iCellHeight, iCellWidth, iCells, iRowCount, iColCount, } = options;
+export const useVirtualCells = (options: UseVirtualCellsOptions ) => {
+    const { iType, iSheetName, iCellHeight, iCellWidth, iCells, iRowCount, iColCount } = options;
+    
 
     // ------------------------------------
     // State 管理 (使用 useState)
