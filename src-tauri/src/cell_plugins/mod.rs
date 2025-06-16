@@ -1,9 +1,10 @@
 use serde_json::Value;
 
-use crate::cell_plugins::rendering_config::DrawingCommand;
+use crate::cell_plugins::{cell::BasePayload, rendering_config::DrawingCommand};
 
 // 在 mod.rs 中聲明子模組
-pub mod text_cell; // 引入 TextCellPlugin
+pub mod cell;
+pub mod text_cell; 
 pub mod null_cell;
 
 pub mod registry;  // 稍後會建立這個模組來管理所有插件
@@ -29,9 +30,7 @@ pub trait CellPlugin: Send + Sync {
     ) -> Result<DrawingCommand, String>;
 
     // 用於前端， 定義 default cell 的 初始資料
-    fn default_payload(&self) -> Result<Value, String> {
-        Ok(Value::Null)
-    }
+    fn default_payload(&self) -> Result<BasePayload, String>;
 
     // // 讓 quick edit 模式可以修改的值
     // fn get_value() -> Value;

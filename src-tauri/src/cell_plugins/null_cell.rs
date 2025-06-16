@@ -1,7 +1,9 @@
-use crate::cell_plugins::{rendering_config::DrawingCommand, CellPlugin};
+use std::collections::HashMap;
+
+use crate::cell_plugins::{cell::BasePayload, rendering_config::DrawingCommand, CellPlugin};
 
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 
 
@@ -9,17 +11,9 @@ use serde_json::Value;
 #[serde(rename_all = "camelCase")]
 pub struct NullCellPayload {
     pub value: String,
-    pub label: Option<String>
+    pub label: Option<String>,
 }
 
-impl NullCellPayload {
-    pub fn new() -> Self {
-        Self {
-            value: format!(""),
-            label: None,
-        }
-    }
-}
 
 
 pub struct NullCellPlugin;
@@ -59,11 +53,13 @@ impl CellPlugin for NullCellPlugin {
         Ok(canvas_commads)
     }
 
-    fn default_payload(&self) -> Result<Value, String> {
-        let v = serde_json::to_value(NullCellPayload::new())
-            .map_err(|e| e.to_string())?;
-
-        Ok(v)
+    fn default_payload(&self) -> Result<BasePayload, String> {
+        
+        Ok(BasePayload {
+            value: json!("".to_string()),
+            label: None,
+            extra_fields: HashMap::new()
+        })
     }
 
 }

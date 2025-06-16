@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::cell_plugins::null_cell::NullCellPlugin;
 
 use super::CellPlugin;
 use super::text_cell::TextCellPlugin; // 引入 TextCellPlugin
-
+use super::null_cell::NullCellPlugin;
 
 pub struct CellPluginRegistry {
     // 使用 HashMap 來儲存插件，key 是插件的 type_id，value 是 Arc<dyn CellPlugin>
@@ -26,6 +25,7 @@ impl CellPluginRegistry {
 
     // 註冊插件的方法
     // P 必須實現 CellPlugin trait，並且是 'static 生命周期，表示它在整個程序生命週期內都是有效的
+
     pub fn register<P: CellPlugin + 'static>(&mut self, plugin: P) {
         let type_id = plugin.get_type_id().to_string(); // 獲取插件的類型 ID
         self.plugins.insert(type_id, Arc::new(plugin)); // 將插件儲存到 HashMap 中
@@ -40,8 +40,9 @@ impl CellPluginRegistry {
     fn register_default_plugins(&mut self) {
         self.register(TextCellPlugin); // 註冊 TextCellPlugin
         self.register(NullCellPlugin);
-        
-        // 當你創建更多 CellPlugin 時，你可以在這裡註冊它們
-        // self.register(AnotherCellPlugin);
     }
+
+    // fn register_custom_plugins(&mut self) {
+    //     // 未來提供路徑動態讀取
+    // }
 }

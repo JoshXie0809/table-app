@@ -1,119 +1,47 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import { FluentProvider, webLightTheme, Text } from "@fluentui/react-components";
-import { FloatingInputPanel } from "./my-components/ProtalPanel";
-
-import SheetView01 from "./my-components/sheetView-v0.1/SheetViewV01.tsx";
-
-import { registerBuiltInCellPlugins } from "./my-components/cell/initCellPlugins.ts"
-import { registerBuiltInSheetPlugins } from "./my-components/sheet/initShetPlugin.ts";
-
-import { getSheetPlugin, SheetPluginDefalutTool } from "./my-components/sheet/SheetPluginSystem.ts";
-import { createDefaultCell } from "./my-components/cell/cellPluginSystem.ts";
-
+import { FloatingInputPanel } from "./my-components-v0/ProtalPanel.tsx";
 
 import { invoke } from "@tauri-apps/api/core";
+import { ICell, IVirtualCells } from "./my-components-v1/IVirtualSheet.ts";
+import { useVirtualCells } from "./my-components-v1/hooks/useVirtualCell.ts";
 
-// 只需要定義前端傳送的類型，以及後端回傳的 DrawingCommand
-interface CellRenderRequest {
-  type: string; // 必須是 'type'
-  payload: any;
-  rowIndex: number;
-  colIndex: number;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
+interface TauriApiLoadSheet {
+    type: string;
+    sheetName: string;
+    rowCount: number;
+    colCount: number;
+    cellWidth: number;
+    cellHeight: number;
+    cells?: ICell[]; // 可選的初始 Cell 數據陣列
 }
-
-interface DrawingCommand {
-  bgFillStyle: string;
-  borderStrokeStyle: string;
-  text: string;
-  textFont: string;
-  textColor: string;
-  textAlign: string;
-  textBaseline: string;
-  textX: number;
-  textY: number;
-}
-
-// 測試 get_cell_render_data 命令
-async function testGetCellRenderData() {
-  const requestData: CellRenderRequest = {
-    type: "Text", // 必須是 "Text"，因為 TextCellPlugin 的 type_id 是 "Text"
-    payload: {
-      value: "今天心情好",
-      label: "快速測試",
-    },
-    rowIndex: 0,
-    colIndex: 0,
-    x: 10.0,
-    y: 10.0,
-    width: 100.0,
-    height: 30.0,
-  };
-
-  console.log("前端發送請求:", requestData);
-
-  try {
-    const response: DrawingCommand = await invoke("get_cell_render_data", {
-      request: requestData,
-    });
-    console.log("前端收到成功回應:", response);
-
-    // 您可以在這裡簡單地更新一個 DOM 元素來顯示回傳的文本，以確認成功
-    const resultDiv = document.getElementById("result");
-    if (resultDiv) {
-      resultDiv.innerText = `成功收到數據：${response.text} (背景: ${response.bgFillStyle})`;
-      resultDiv.style.color = "green";
-      resultDiv.style.backgroundColor = response.bgFillStyle
-    }
-  } catch (error) {
-    console.error("前端收到錯誤回應:", error);
-    const resultDiv = document.getElementById("result");
-    if (resultDiv) {
-      resultDiv.innerText = `發生錯誤: ${error}`;
-      resultDiv.style.color = "red";
-    }
-  }
-}
-
-
-
-registerBuiltInCellPlugins();
-registerBuiltInSheetPlugins();
-
 
 
 function App() {
 
-  const plugin = getSheetPlugin("sparse");
-
-  const init_sheet = useMemo(() => {
-    return plugin!.createSheet(12800, 512)
-  }, []) 
-
-  const [sheet, setSheet] = React.useState(init_sheet);
-
   const [open, setOpen] = React.useState(false);
+  const [vc, setVC] = useState<null | IVirtualCells>(null );
 
   useEffect(() => {
-    let nc = createDefaultCell("Text");
-    nc.payload.value = "⚡⚡1234567879";
-    let sheet2 = SheetPluginDefalutTool.updateSheetData(sheet, [
-      [2, null, nc],
-      [null, 2, nc],
-      [5000, 50, nc],
-    ]);
-
-    setSheet(sheet2)
-
-    let res = testGetCellRenderData();
-    console.log(res);
-
+    async function test_load_sheet_data() {
+      try {
+        const res: TauriApiLoadSheet = await invoke("load_sheet_data", {sheetName: "assd"});
+        const iType = res.type;
+        const iSheetName = res.sheetName
+        const iRowCount = res.rowCount; res.cellHeight; res.cellWidth; res.colCount;
+        // setVC(
+        //   useVirtualCells()
+        // )
+        
+      } catch(error) {
+        console.error(error)
+      }
+    }
+    
+    test_load_sheet_data();
   }, [])
 
-  requestAnimationFrame
+  console.log(vc);
 
   return (
     <FluentProvider theme={webLightTheme}>
@@ -138,12 +66,10 @@ function App() {
          <FloatingInputPanel onClose={() => setOpen(false)} />
         }
 
-        <div id="result">err</div>
-
-        <SheetView01 sheet={sheet} setSheet={setSheet} />
 
       </div>
     </main>
+
     <div id="canvas-table-quickEdit-portal-root"/>
     </FluentProvider>
   );

@@ -1,8 +1,10 @@
-use crate::cell_plugins::rendering_config::DrawingCommand;
+use std::collections::HashMap;
+
+use crate::cell_plugins::{cell::BasePayload, rendering_config::DrawingCommand};
 
 use super::CellPlugin;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
+use serde_json::{json, Value};
 
 
 pub struct TextCellPlugin;
@@ -14,14 +16,6 @@ pub struct TextCellPayload {
     pub label: Option<String>
 }
 
-impl TextCellPayload {
-    pub fn new() -> Self {
-        Self {
-            value: format!(""),
-            label: None,
-        }
-    }
-}
 
 
 impl CellPlugin for TextCellPlugin {
@@ -70,11 +64,13 @@ impl CellPlugin for TextCellPlugin {
         Ok(canvas_commads)
     }
 
-    fn default_payload(&self) -> Result<Value, String> {
-        let v = serde_json::to_value(TextCellPayload::new())
-            .map_err(|e| e.to_string())?;
+    fn default_payload(&self) -> Result<BasePayload, String> {
 
-        Ok(v)
+        Ok(BasePayload {
+            value: json!("".to_string()),
+            label: None,
+            extra_fields: HashMap::new(),
+        })
     }
 
 }

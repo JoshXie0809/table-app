@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+// 表格呈現資料的回傳格式
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
