@@ -1,19 +1,22 @@
-export interface IVirtualRowPoolMain {
+export interface IVirtualRowPool {
   top: number;
+  bottom: number;
   rowHeight: number;
   poolSize: number;
   rowPool: IVirtualRow[];
 
+  clearAllRow: (container: HTMLElement) => void;
+
   // 兩者應該結合使用
-  pop_top: () => IVirtualRow | undefined; // 排出最前方的 row
-  push_bottom: (virtualRow: IVirtualRow) => void; // 從最後方推入 row
+  popTop: () => IVirtualRow | undefined; // 排出最前方的 row
+  pushBottom: (virtualRow: IVirtualRow) => void; // 從最後方推入 row
 
   // // 兩者應該結合使用
-  // pop_bottom: () => IVirtualRow; // 排出最後方的 row;
-  // push_top: (virtualRow: IVirtualRow) => void; // 從最前方推入 row
+  popBottom: () => IVirtualRow | undefined; // 排出最後方的 row;
+  pushTop: (virtualRow: IVirtualRow) => void; // 從最前方推入 row
 
-
-  // moveTop: (newTop: number) => void // 移動整個 Main 部分 修改所有 RowPool 的值
+  // moveTop: (newTop: number) => void // 移動整個部分 修改所有 RowPool 的值
+  // 
 }
 
 export interface IVirtualRow {
@@ -23,7 +26,7 @@ export interface IVirtualRow {
 }
 
 
-export class VirtaualRowPool implements IVirtualRowPoolMain {
+export class VirtualRowPool implements IVirtualRowPool {
   top: number = 0;
   bottom: number = 0;
   rowHeight: number = 0; // fixed row height 加速運算
@@ -63,29 +66,62 @@ export class VirtaualRowPool implements IVirtualRowPoolMain {
     }
   }
 
-  public pop_top = (): IVirtualRow | undefined =>  {
+  public popTop = (): IVirtualRow | undefined =>  {
     // 取出第一個 row
     const topEl = this.rowPool.shift();
+    if(!topEl) return undefined;
     this.poolSize -= 1;
 
-    if(!topEl) return undefined;
     // 因為現在第二row 變成第一row 更新
     this.top += this.rowHeight;
     return topEl;
   };
 
-  public push_bottom = (virtualRow: IVirtualRow) : void => {
+
+  public pushBottom = (virtualRow: IVirtualRow) : void => {
     // 改變數據
     // 把這一row位置改到 bottom
     virtualRow.el.style.top = `${this.bottom}px`;
-    virtualRow.sheetRowId += this.poolSize;
-    virtualRow.el.innerText = ` id:${virtualRow.vId}  - row: ${virtualRow.sheetRowId}`;
+    virtualRow.sheetRowId += this.poolSize + 1;
 
     this.rowPool.push(virtualRow);
     this.poolSize += 1
 
     // 更新 bottom 數據
     this.bottom += this.rowHeight
-    
+  };
+
+  public popBottom = () : IVirtualRow | undefined => {
+    // 取出最後一個 row
+    const bottomEl = this.rowPool.pop();
+    if(!bottomEl) return undefined;
+    this.poolSize -= 1
+
+    // 倒數第二 row 變成最後一個，所以底部向上
+    this.bottom -= this.rowHeight;
+    return bottomEl;
+  }
+
+  public pushTop = (virtualRow: IVirtualRow) : void => {
+    // 把這一row位置改到頂部 + row Height
+    virtualRow.el.style.top = `${this.top - this.rowHeight}px`;
+    virtualRow.sheetRowId -= (this.poolSize + 1);
+
+    this.rowPool.unshift(virtualRow);
+    this.poolSize += 1
+
+    // 更新 top 數據
+    this.top -= this.rowHeight
+
+  };
+
+  public clearAllRow = (container: HTMLElement) => {
+    for (let row of this.rowPool) {
+      container.removeChild(row.el);
+    }
+    this.rowPool = [];
+    this.poolSize = 0;
+    this.top = 0;
+    this.bottom = 0;
   };
 }

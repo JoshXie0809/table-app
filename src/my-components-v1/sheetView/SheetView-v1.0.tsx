@@ -1,8 +1,9 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 import { useVirtualCells, UseVirtualCellsOptions } from "../hooks/useVirtualCell";
-import { IVirtualRowPoolMain, VirtaualRowPool } from "./canvas-table-v1.0/IVirtualRowPool";
+import { IVirtualRowPool, VirtualRowPool } from "./canvas-table-v1.0/IVirtualRowPool";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
+import { LayoutEngine } from "./canvas-table-v1.0/ILayoutEngine";
 
 export interface SheetViewProps {
   options: UseVirtualCellsOptions;
@@ -16,15 +17,13 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const virtualCells = useVirtualCells(options);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const virtualRowPoolMainRef = useRef<IVirtualRowPoolMain | null>(null);
+  const virtualRowPoolMainRef = useRef<IVirtualRowPool | null>(null);
+
+  const layoutEngineRef = useRef<LayoutEngine | null>(null);
   const poolSize = 50;
   const prev = useRef(0); 
 
   const containerDim = useContainerDimensions(containerRef);
-
-  useEffect(() => {
-    console.log(containerDim)
-  }, [containerDim])
 
   useEffect(() => {
     const el = containerRef.current;
@@ -35,27 +34,36 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       const scrollTop = el.scrollTop;
       const move = scrollTop - prev.current;
       let nR = Math.floor(move / rowPool.rowHeight);
+
       // 有正位移
       if (nR > 0 ) {
-        // 計算 pool-top 和視窗有多少位置
-        const A = scrollTop - rowPool.top;
-        const ARow = Math.floor(A / rowPool.rowHeight);
-        if(ARow <= 5) {
-          prev.current +=  nR * rowPool.rowHeight;
-          return;
-        }
         
         let bottomSheetRowID = rowPool.rowPool[rowPool.poolSize-1].sheetRowId;
         for (let i = 0; i < nR; i++) {  
           if (bottomSheetRowID === 2999) break;
-          const oldTopRow = rowPool.pop_top();
+          const oldTopRow = rowPool.popTop();
           if (!oldTopRow) break;
-          rowPool.push_bottom(oldTopRow);
+          rowPool.pushBottom(oldTopRow);
           prev.current += rowPool.rowHeight;
           bottomSheetRowID += 1;
-        }  
-        
+        }
       }
+
+      nR = Math.ceil(move / rowPool.rowHeight);
+        
+      if (nR < 0 ) {
+        let topSheetRowID = rowPool.rowPool[0].sheetRowId;
+        for (let i = 0; i < -nR; i++) {  
+          if (topSheetRowID === 0) break;
+          const oldTopRow = rowPool.popBottom();
+          if (!oldTopRow) break;
+          rowPool.pushTop(oldTopRow);
+          prev.current -= rowPool.rowHeight;
+          topSheetRowID -= 1;
+        }
+      
+    }
+
     };
 
     el.addEventListener("scroll", handleScroll);
@@ -72,13 +80,46 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     if (!container) return;
     
     if (!virtualRowPoolMainRef.current) {
-      virtualRowPoolMainRef.current = new VirtaualRowPool(44, poolSize, 112*128, container);
+      virtualRowPoolMainRef.current = new VirtualRowPool(44, poolSize, 112*128, container);
       const rowPool = virtualRowPoolMainRef.current;
       console.log(rowPool)
     }
 
   }, []);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    layoutEngineRef.current = new LayoutEngine(
+      containerDim,
+      4,
+      3000,
+      44,
+      112 * 128, 
+      container,
+    )
+
+    // clear side-effect
+    return () => {
+      // ✅ 清掉 pool 的 row DOM
+      layoutEngineRef.current?.rowPool.clearAllRow(container);
+    };
+
+  }, [containerDim])
+
   
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const container = containerRef.current;
+
+    if(!layoutEngineRef.current) return;
+    const layoutEngine = layoutEngineRef.current;
+    const scrollTop = container.scrollTop;
+    layoutEngine.updateLayout(scrollTop)
+    
+
+  }, [layoutEngineRef.current])
 
   return (
     <div 
