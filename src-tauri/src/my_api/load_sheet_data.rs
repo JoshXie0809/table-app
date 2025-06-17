@@ -22,7 +22,7 @@ pub async fn load_sheet_data(sheet_name: String, state: State::<'_, Arc<CellPlug
     let sheet_type: String = "DefaultGrid".to_string();
     let sheet_name: String = "hello world".to_string();
 
-    let row_count: u32 = 12800;
+    let row_count: u32 = 1280;
     let col_count: u32 = 128;
     let cell_width: u32 = 112;
     let cell_height: u32 =  44;
@@ -30,11 +30,11 @@ pub async fn load_sheet_data(sheet_name: String, state: State::<'_, Arc<CellPlug
     let fields = HashMap::new();
 
 
-    for r in 0..1280_u32 {
+    for r in 0..200_u32 {
         for c in 0..100_u32 {
             if (r + c) % 37 == 0 {
                 let mut pl = plugin.default_payload()?;
-                pl.value = json!("hello-world");
+                pl.value = json!(format!("模擬數據 r: {}, c: {}", r, c));
                 
                 let cell = CellContent {
                     cell_type_id: "Text".to_string(),

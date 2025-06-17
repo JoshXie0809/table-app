@@ -9,6 +9,7 @@ import { drawGrid } from "./draw/drawGrid";
 
 import { CanvasLayoutEngine } from "./cavas-layout-engine/CanvasLayoutEngine";
 import { CanvasContext } from "./CanvasContext";
+import { throttle } from "lodash";
 
 export interface CanvasTableProps {
   layoutEngine: CanvasLayoutEngine,
@@ -48,11 +49,11 @@ export const CanvasTable: React.FC<CanvasTableProps> = ({
 
 
   const animationFrameRef = useRef<number | null>(null);
+
   const [containerDimensions, setContainerDimensions] = useState({
     width: 0,
     height: 0,
   });
-
 
 
   // ✅ ResizeObserver：追蹤容器大小變化
