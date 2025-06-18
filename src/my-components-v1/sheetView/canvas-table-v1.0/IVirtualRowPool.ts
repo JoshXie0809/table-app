@@ -1,4 +1,4 @@
-export interface IVirtualRowPool {
+export interface IVirtualPool {
   top: number;
   bottom: number;
   rowHeight: number;
@@ -21,12 +21,13 @@ export interface IVirtualRowPool {
 
 export interface IVirtualRow {
   el: HTMLElement;
-  sheetRowId: number; // 資料 id
+  sheetRowId: number | null; // 資料 id
   vId: number; // pool id
+  nowId: number;
 }
 
 
-export class VirtualRowPool implements IVirtualRowPool {
+export class VirtualPool implements IVirtualPool {
   top: number = 0;
   bottom: number = 0;
   rowHeight: number = 0; // fixed row height 加速運算
@@ -46,7 +47,16 @@ export class VirtualRowPool implements IVirtualRowPool {
     for(let i = 0; i < this.poolSize; i++) {
       const el = document.createElement("div");
       el.style.position = "absolute";
-      el.style.top = `${this.top + i * this.rowHeight}px`;
+      // 絕對座標法
+      // el.style.top = `${this.top + i * this.rowHeight}px`;
+      
+      // 改使用 transform 法
+      el.style.top = `0px`;
+      el.style.transform = `translateY(${this.top + i * this.rowHeight}px)`; // 使用 translateY
+      // 添加 will-change 屬性，提示瀏覽器這個元素會變動 transform
+      el.style.willChange = "transform"; 
+
+
       el.style.width = `${totalWidth}px`;
 
       el.style.height = `${this.rowHeight}px`;
@@ -58,8 +68,9 @@ export class VirtualRowPool implements IVirtualRowPool {
       container.appendChild(el);
       let row: IVirtualRow = {
         el: el,
-        sheetRowId: i,
         vId: i,
+        nowId: i, // 真實表格的實際位置第幾個 Row
+        sheetRowId: null, // 真實表格的 RowID
       }
 
       this.rowPool.push(row)
@@ -81,8 +92,13 @@ export class VirtualRowPool implements IVirtualRowPool {
   public pushBottom = (virtualRow: IVirtualRow) : void => {
     // 改變數據
     // 把這一row位置改到 bottom
-    virtualRow.el.style.top = `${this.bottom}px`;
-    virtualRow.sheetRowId += this.poolSize + 1;
+
+    // 絕對座標法
+    // virtualRow.el.style.top = `${this.bottom}px`;
+    // transform 法
+    virtualRow.el.style.transform = `translateY(${this.bottom}px)`; // 使用 translateY
+
+    virtualRow.nowId += this.poolSize + 1;
 
     this.rowPool.push(virtualRow);
     this.poolSize += 1
@@ -104,8 +120,14 @@ export class VirtualRowPool implements IVirtualRowPool {
 
   public pushTop = (virtualRow: IVirtualRow) : void => {
     // 把這一row位置改到頂部 + row Height
-    virtualRow.el.style.top = `${this.top - this.rowHeight}px`;
-    virtualRow.sheetRowId -= (this.poolSize + 1);
+
+    // virtualRow.el.style.top = `${this.top - this.rowHeight}px`;
+    
+    const newTopPos = this.top - this.rowHeight;
+    virtualRow.el.style.transform = `translateY(${newTopPos}px)`; // 使用 translateY
+
+
+    virtualRow.nowId -= (this.poolSize + 1);
 
     this.rowPool.unshift(virtualRow);
     this.poolSize += 1

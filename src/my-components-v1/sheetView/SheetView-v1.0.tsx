@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 import { useVirtualCells, UseVirtualCellsOptions } from "../hooks/useVirtualCell";
-import { IVirtualRowPool, VirtualRowPool } from "./canvas-table-v1.0/IVirtualRowPool";
+import { IVirtualPool, VirtualPool } from "./canvas-table-v1.0/IVirtualRowPool";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import { LayoutEngine } from "./canvas-table-v1.0/ILayoutEngine";
 
@@ -17,7 +17,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const virtualCells = useVirtualCells(options);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const virtualRowPoolMainRef = useRef<IVirtualRowPool | null>(null);
+  const virtualRowPoolMainRef = useRef<IVirtualPool | null>(null);
 
   const layoutEngineRef = useRef<LayoutEngine | null>(null);
   const poolSize = 50;
@@ -38,7 +38,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       // 有正位移
       if (nR > 0 ) {
         
-        let bottomSheetRowID = rowPool.rowPool[rowPool.poolSize-1].sheetRowId;
+        let bottomSheetRowID = rowPool.rowPool[rowPool.poolSize-1].nowId;
         for (let i = 0; i < nR; i++) {  
           if (bottomSheetRowID === 2999) break;
           const oldTopRow = rowPool.popTop();
@@ -52,7 +52,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       nR = Math.ceil(move / rowPool.rowHeight);
         
       if (nR < 0 ) {
-        let topSheetRowID = rowPool.rowPool[0].sheetRowId;
+        let topSheetRowID = rowPool.rowPool[0].nowId;
         for (let i = 0; i < -nR; i++) {  
           if (topSheetRowID === 0) break;
           const oldTopRow = rowPool.popBottom();
@@ -80,7 +80,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     if (!container) return;
     
     if (!virtualRowPoolMainRef.current) {
-      virtualRowPoolMainRef.current = new VirtualRowPool(44, poolSize, 112*128, container);
+      virtualRowPoolMainRef.current = new VirtualPool(44, poolSize, 112*128, container);
       const rowPool = virtualRowPoolMainRef.current;
       console.log(rowPool)
     }

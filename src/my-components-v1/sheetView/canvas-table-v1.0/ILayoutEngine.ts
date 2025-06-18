@@ -1,7 +1,7 @@
-import { IVirtualRowPool, VirtualRowPool } from "./IVirtualRowPool";
+import { IVirtualPool, VirtualPool } from "./IVirtualRowPool";
 
 export interface ILayoutEngine {
-  rowPool: IVirtualRowPool;
+  rowPool: IVirtualPool;
   containerDims: {width: number, height: number};
   overScan: number;
   neededRowsToCover: () => number;
@@ -28,7 +28,7 @@ export class LayoutEngine implements ILayoutEngine {
   contentTop: number; 
   contentBottom: number; 
   bottom: number; 
-  rowPool: IVirtualRowPool;
+  rowPool: IVirtualPool;
 
   neededRowsToCover = (): number => {
     const totalHeight = this.rowHeight * this.totalRows;
@@ -64,7 +64,7 @@ export class LayoutEngine implements ILayoutEngine {
     this.rowHeight = rowHeight;
 
     
-    this.rowPool = new VirtualRowPool(
+    this.rowPool = new VirtualPool(
       rowHeight, 
       2 * overScan + this.neededRowsToCover(),
       totalWidth,
