@@ -1,0 +1,117 @@
+import { Cell, CellPool, NestedPool } from "./Cell";
+
+export interface INestedPoolController {
+  pool: NestedPool;
+  fromTopToBottom(): void;
+  fromBottomToTop(): void;
+  // fromLeftToRight(): void;
+  // fromRightToLeft(): void;
+}
+
+
+export class NestedPoolController implements INestedPoolController {
+  pool: NestedPool;
+  rowHeight: number = 44;
+  cellWidth: number = 112;
+
+   /**
+   * Initializes the style and transform for a given cell.
+   * @param cell The Cell object to initialize.
+   * @param _r The row index (unused, but kept for forEach compatibility).
+   * @param _c The column index (unused, but kept for forEach compatibility).
+   */
+  private _initializeCell(cell: Cell): void {
+    // Only apply transform if not already set
+    if (cell.valueRef.transX !== null && cell.valueRef.transY !== null) return;
+
+    const coord = cell.indexPath;
+    const el = cell.valueRef.el;
+
+    el.style.height = `${this.rowHeight}px`;
+    el.style.width = `${this.cellWidth}px`;
+    el.style.boxSizing = "border-box";
+    el.style.border = "1px solid #ddd";
+
+    const row = coord[coord.length - 2];
+    const col = coord[coord.length - 1];
+    const transX = col * this.cellWidth;
+    const transY = row * this.rowHeight;
+
+    // Update transform and cache state
+    el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
+    cell.valueRef.transX = transX;
+    cell.valueRef.transY = transY;
+  }
+
+  initializePosition() {
+    this.pool.forEach((cell, _r, _c) => this._initializeCell(cell));
+  }
+
+  private _updateCellPosition(cell: Cell) {
+    const coord = cell.indexPath;
+    const el = cell.valueRef.el;
+    
+    const row = coord[coord.length - 2];
+    const col = coord[coord.length - 1];
+    const transX = col * this.cellWidth;
+    const transY = row * this.rowHeight;
+    // Update transform and cache state
+    el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
+    cell.valueRef.transX = transX;
+    cell.valueRef.transY = transY;
+  }
+
+  constructor(pool: NestedPool, rowHeight?: number, cellWidth?:number) {
+    this.pool = pool;
+    if(rowHeight ) this.rowHeight = rowHeight;
+    if(cellWidth) this.cellWidth = cellWidth;
+    this.initializePosition();
+  }
+
+  getCell(row: number, col: number): Cell | undefined {
+    if (row < 0 || row >= this.pool.size) return undefined;
+    if (col < 0 || col >= this.pool.innerSize) return undefined;
+    return this.pool.children[row].children[col];
+  }
+
+  resize(newDim: [row: number, col: number], container: HTMLElement) {
+    this.pool.resize(newDim, container);
+    this.initializePosition();
+  }
+
+
+  fromTopToBottom(): void {
+    const lastRowFirstCell: Cell | undefined = this.getCell(this.pool.size - 1, 0);
+    const topRow: CellPool | undefined = this.pool.children.shift();
+    // check CellPool ans Cell Exist 
+    if(!topRow || !lastRowFirstCell) return;
+    // last row first column
+    const lrfc = lastRowFirstCell.indexPath;
+    // lrfc.length-2 is the place of row index
+    const lastRowIndex = lrfc[lrfc.length-2];
+    // update indexPath
+    topRow.forEach(
+      (cell, _i) => { 
+        cell.indexPath[lrfc.length-2] = lastRowIndex + 1; 
+        this._updateCellPosition(cell);
+      }
+    );
+    // put new Row to buttom
+    this.pool.children.push(topRow);
+  }
+
+  fromBottomToTop(): void {
+    const firstRowFirstCell: Cell | undefined = this.getCell(0, 0);
+    const bottomRow: CellPool | undefined = this.pool.children.pop();
+    if(!bottomRow || !firstRowFirstCell) return;
+    const frfc = firstRowFirstCell.indexPath;
+    const firstRowIndex = frfc[frfc.length-2];
+    bottomRow.forEach(
+      (cell, _i) => { 
+        cell.indexPath[frfc.length-2] = firstRowIndex - 1;
+        this._updateCellPosition(cell);
+      }
+    )
+    this.pool.children.unshift(bottomRow);
+  }
+}

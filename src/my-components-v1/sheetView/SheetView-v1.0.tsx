@@ -1,9 +1,9 @@
 import React, { useEffect, useRef } from "react";
 
 import { useVirtualCells, UseVirtualCellsOptions } from "../hooks/useVirtualCell";
-import { IVirtualPool, VirtualPool } from "./canvas-table-v1.0/IVirtualRowPool";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
-import { LayoutEngine } from "./canvas-table-v1.0/ILayoutEngine";
+import { CellPool, NestedPool, Cell } from "./canvas-table-v1.1/Cell";
+import { NestedPoolController } from "./canvas-table-v1.1/PoolController";
 
 export interface SheetViewProps {
   options: UseVirtualCellsOptions;
@@ -15,111 +15,51 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 {
 
   const virtualCells = useVirtualCells(options);
-
   const containerRef = useRef<HTMLDivElement>(null);
-  const virtualRowPoolMainRef = useRef<IVirtualPool | null>(null);
-
-  const layoutEngineRef = useRef<LayoutEngine | null>(null);
-  const poolSize = 50;
+  const containerDim = useContainerDimensions(containerRef);
   const prev = useRef(0); 
 
-  const containerDim = useContainerDimensions(containerRef);
-
   useEffect(() => {
-    const el = containerRef.current;
-    const rowPool = virtualRowPoolMainRef.current;
-    if (!el || !rowPool) return;
+    const container = containerRef.current;
+    const pool = new NestedPool([1, 1]);
+    const pctrl = new NestedPoolController(pool);
+
+    if(!container || !pctrl) return;
+    pool.mount(container);
+    pctrl.resize([5, 3], container);
+    pctrl.fromTopToBottom();
+    pctrl.fromTopToBottom();
 
     const handleScroll = () => {
-      const scrollTop = el.scrollTop;
+      const scrollTop = container.scrollTop;
       const move = scrollTop - prev.current;
-      let nR = Math.floor(move / rowPool.rowHeight);
+      let moveRow = move / pctrl.rowHeight;
 
-      // 有正位移
-      if (nR > 0 ) {
-        
-        let bottomSheetRowID = rowPool.rowPool[rowPool.poolSize-1].nowId;
-        for (let i = 0; i < nR; i++) {  
-          if (bottomSheetRowID === 2999) break;
-          const oldTopRow = rowPool.popTop();
-          if (!oldTopRow) break;
-          rowPool.pushBottom(oldTopRow);
-          prev.current += rowPool.rowHeight;
-          bottomSheetRowID += 1;
-        }
+      if(moveRow > 0) {
+        const int = Math.floor(moveRow);
+        prev.current += int * pctrl.rowHeight;
+        for(let i = 0; i < int; i++) 
+          pctrl.fromTopToBottom();
       }
 
-      nR = Math.ceil(move / rowPool.rowHeight);
-        
-      if (nR < 0 ) {
-        let topSheetRowID = rowPool.rowPool[0].nowId;
-        for (let i = 0; i < -nR; i++) {  
-          if (topSheetRowID === 0) break;
-          const oldTopRow = rowPool.popBottom();
-          if (!oldTopRow) break;
-          rowPool.pushTop(oldTopRow);
-          prev.current -= rowPool.rowHeight;
-          topSheetRowID -= 1;
-        }
-      
+      if(moveRow < 0) {
+        const int = Math.floor(-moveRow);
+        prev.current -= int * pctrl.rowHeight;
+        for(let i = 0; i < int; i++) 
+          pctrl.fromBottomToTop();    
+      }
     }
 
-    };
-
-    el.addEventListener("scroll", handleScroll);
-
+    container.addEventListener("scroll", handleScroll);
     return () => {
-      el.removeEventListener("scroll", handleScroll);
-    };
+      container.removeEventListener("scroll", handleScroll);
+      pool.clear(true, container);
+    }
+    
+
   }, [])
 
-
-  useEffect(() => {
-    // 初始化
-    const container = containerRef.current;
-    if (!container) return;
-    
-    if (!virtualRowPoolMainRef.current) {
-      virtualRowPoolMainRef.current = new VirtualPool(44, poolSize, 112*128, container);
-      const rowPool = virtualRowPoolMainRef.current;
-      console.log(rowPool)
-    }
-
-  }, []);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    layoutEngineRef.current = new LayoutEngine(
-      containerDim,
-      4,
-      3000,
-      44,
-      112 * 128, 
-      container,
-    )
-
-    // clear side-effect
-    return () => {
-      // ✅ 清掉 pool 的 row DOM
-      layoutEngineRef.current?.rowPool.clearAllRow(container);
-    };
-
-  }, [containerDim])
-
   
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const container = containerRef.current;
-
-    if(!layoutEngineRef.current) return;
-    const layoutEngine = layoutEngineRef.current;
-    const scrollTop = container.scrollTop;
-    layoutEngine.updateLayout(scrollTop)
-    
-
-  }, [layoutEngineRef.current])
 
   return (
     <div 
