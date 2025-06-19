@@ -55,6 +55,7 @@ export class CellPool implements Pool<Cell> {
 
   /** 手動掛載 DOM 到容器 */
   mount(container: HTMLElement): void {
+    if(this.children.length === 0) return;
     for (const cell of this.children) {
       // 沒掛上去才掛
       if(!container.contains(cell.valueRef.el)) 

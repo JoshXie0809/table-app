@@ -4,8 +4,8 @@ export interface INestedPoolController {
   pool: NestedPool;
   fromTopToBottom(): void;
   fromBottomToTop(): void;
-  // fromLeftToRight(): void;
-  // fromRightToLeft(): void;
+  fromLeftToRight(): void;
+  fromRightToLeft(): void;
 }
 
 
@@ -113,5 +113,34 @@ export class NestedPoolController implements INestedPoolController {
       }
     )
     this.pool.children.unshift(bottomRow);
+  }
+
+  fromLeftToRight(): void {
+    for(const row of this.pool.children) { 
+      const lastCellIndex = row.children[row.size-1].indexPath;
+      const n = lastCellIndex.length;
+      const lastColIndex = lastCellIndex[n-1];
+      // pop 出第一個
+      const firstCell = row.children.shift();
+      if(!firstCell) return; // 代表後續的都會有問題所以直接 return 不 continue
+      firstCell.indexPath[n-1] = lastColIndex + 1;
+      this._updateCellPosition(firstCell);
+      // 放到最後一個
+      row.children.push(firstCell);
+    }
+  }
+
+  fromRightToLeft(): void {
+    for(const row of this.pool.children) {
+      const firstCellIndex = row.children[0].indexPath;
+      const n = firstCellIndex.length;
+      const firstColIndex = firstCellIndex[n-1];
+      // pop 出最後一個
+      const lastCell = row.children.pop();
+      if(!lastCell) return;
+      lastCell.indexPath[n-1] = firstColIndex - 1;
+      this._updateCellPosition(lastCell);
+      row.children.unshift(lastCell);
+    }
   }
 }
