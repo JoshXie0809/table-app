@@ -34,6 +34,7 @@ export class NestedPoolController implements INestedPoolController {
 
     const row = coord[coord.length - 2];
     const col = coord[coord.length - 1];
+
     const transX = col * this.cellWidth;
     const transY = row * this.rowHeight;
 
@@ -47,15 +48,23 @@ export class NestedPoolController implements INestedPoolController {
     this.pool.forEach((cell, _r, _c) => this._initializeCell(cell));
   }
 
-  private _updateCellPosition(cell: Cell) {
+  _updateCellPosition(cell: Cell) {
     const coord = cell.indexPath;
     const el = cell.valueRef.el;
     
+    if (!el || coord.length < 2) return;
+
     const row = coord[coord.length - 2];
     const col = coord[coord.length - 1];
+
+
     const transX = col * this.cellWidth;
     const transY = row * this.rowHeight;
-    // Update transform and cache state
+
+    // 若位置沒變，不更新 transform
+    if (cell.valueRef.transX === transX && cell.valueRef.transY === transY) return;
+
+    // 更新 transform 與快取
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
@@ -141,6 +150,54 @@ export class NestedPoolController implements INestedPoolController {
       lastCell.indexPath[n-1] = firstColIndex - 1;
       this._updateCellPosition(lastCell);
       row.children.unshift(lastCell);
+    }
+  }
+
+  scrollVerticalBy(n: number) {
+    if (n === 0) return;
+
+    const pool = this.pool;
+    const poolSize = pool.size;
+
+    // 超過 pool 大小就直接整體偏移
+    if (Math.abs(n) >= poolSize) {
+      pool.forEach((cell) => {
+        const idxL = cell.indexPath.length;
+        cell.indexPath[idxL - 2] += n;
+        this._updateCellPosition(cell);
+      });
+      return;
+    }
+
+    // 小範圍平移：使用 pool reuse
+    const moveFn = n > 0 ? this.fromTopToBottom : this.fromBottomToTop;
+    const steps = Math.abs(n);
+    for (let i = 0; i < steps; i++) {
+      moveFn.call(this);
+    }
+  }
+
+  scrollHorizontalBy(n: number) {
+    if (n === 0) return;
+    
+    const pool = this.pool;
+    const poolInnerSize = pool.innerSize;
+
+    // 超過 pool 大小就直接整體偏移
+    if (Math.abs(n) >= poolInnerSize) {
+      pool.forEach((cell) => {
+        const idxL = cell.indexPath.length;
+        cell.indexPath[idxL - 1] += n;
+        this._updateCellPosition(cell);
+      });
+      return;
+    }
+
+    // 小範圍平移：使用 pool reuse
+    const moveFn = n > 0 ? this.fromLeftToRight : this.fromRightToLeft;
+    const steps = Math.abs(n);
+    for (let i = 0; i < steps; i++) {
+      moveFn.call(this);
     }
   }
 }

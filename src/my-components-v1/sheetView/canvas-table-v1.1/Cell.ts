@@ -7,6 +7,7 @@ export interface ValueRef {
 }
 
 export interface Cell {
+  shellId: string,
   indexPath: Coord,
   valueRef: ValueRef,
 }
@@ -15,8 +16,8 @@ export interface Cell {
 export interface Pool<T> {
   size: number,
   children: T[],
-  generate(indexPath: number[]): void;
-  resize(newSize: number, container?: HTMLElement): void
+  generate(indexPath: number[], genId: () =>string): void;
+  resize(newSize: number, genId: ()=>string, container?: HTMLElement): void
   clear(removeDOM?: boolean, container?: HTMLElement): void;
   map<U>(fn: (child: T, index: number) => U): U[];
   forEach(fn: (child: T, index: number) => void): void;
@@ -26,7 +27,7 @@ export interface Pool<T> {
 export class CellPool implements Pool<Cell> {
   size: number;
   children: Cell[] = [];
-
+  
   constructor(size: number) {
     this.size = size;
   }
@@ -38,15 +39,18 @@ export class CellPool implements Pool<Cell> {
     el.style.willChange = "transform";
   }
 
-  generate(indexPath: number[]): void {
+  generate(indexPath: number[], genId: () => string): void {
     this.children = [] 
     this.clear(); // delete all 但不處理 dom 的元素
 
     for(let i = 0; i < this.size; i++) {
       const el = document.createElement("div");
+      const shellId = genId();
       this.setBaseStyle(el);
+      el.dataset.shellId = shellId;
 
       this.children.push({
+        shellId,
         indexPath: [...indexPath, i],
         valueRef: {el, transX: null, transY: null},
       })
@@ -88,7 +92,7 @@ export class CellPool implements Pool<Cell> {
     this.children.forEach(fn);
   }
 
-  resize(newSize: number, container?: HTMLElement): void {
+  resize(newSize: number, genId: () => string, container?: HTMLElement): void {
     if (newSize < 0) return;
     if (newSize === 0) {
       this.clear(true, container); // ✅ 同時清除資料與 DOM
@@ -102,12 +106,14 @@ export class CellPool implements Pool<Cell> {
       const lastIndex = this.children[this.size-1].indexPath;
       for (let i = 0; i < diff; i++) {
         let nowIndex = [...lastIndex];
-        // 修改最後一個
         nowIndex[lastIndex.length-1] += 1 + i;
-
         const el = document.createElement("div");
+        const shellId = genId();
+        el.dataset.shellId = shellId;
+
         this.setBaseStyle(el);
         const cell: Cell = {
+          shellId,
           indexPath: nowIndex,
           valueRef: { el, transX: null, transY: null },
         };
@@ -142,6 +148,9 @@ export class NestedPool {
   innerSize: number;
   children: CellPool[] = [];
 
+  private counter: number = 0;
+  private genId = () => `shell-id-${this.counter++}`
+
   constructor(dims: [row: number, col: number]) {
     this.size = dims[0];
     this.innerSize = dims[1];
@@ -152,7 +161,7 @@ export class NestedPool {
     this.children = [];
     for (let i = 0; i < this.size; i++) {
       const child = new CellPool(this.innerSize);
-      child.generate([...indexPath, i]);
+      child.generate([...indexPath, i], this.genId);
       this.children.push(child);
     }
   }
@@ -198,7 +207,7 @@ export class NestedPool {
 
     // resize col
     for(const row of this.children) {
-      row.resize(newCol, container);
+      row.resize(newCol, this.genId, container);
     }
 
     // resize row
@@ -211,7 +220,7 @@ export class NestedPool {
 
       for(let i = 0; i < rowDiff; i++) {
         const child = new CellPool(newCol);
-        child.generate([lastRowIndex + 1 + i]);
+        child.generate([lastRowIndex + 1 + i], this.genId);
         if(container) child.mount(container)
         for(let j = 0; j < newCol; j++) 
           child.children[j].indexPath[1] += firstColIndex;

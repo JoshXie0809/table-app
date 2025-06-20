@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ICellData } from "../ICellData";
-import { ICell, IVirtualCells } from "../IVirtualSheet";
+import { ICell, IVirtualCells } from "../IVirtualCells";
 
 
 const _toKey = (row: number, col: number) => `${row},${col}`;

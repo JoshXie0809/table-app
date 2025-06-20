@@ -3,9 +3,9 @@ import { FluentProvider, webLightTheme, Text } from "@fluentui/react-components"
 import { FloatingInputPanel } from "./my-components-v0/ProtalPanel.tsx";
 
 import { invoke } from "@tauri-apps/api/core";
-import { ICell, IVirtualCells } from "./my-components-v1/IVirtualSheet.ts";
+import { ICell, IVirtualCells } from "./my-components-v1/IVirtualCells.ts";
 import { useVirtualCells, UseVirtualCellsOptions } from "./my-components-v1/hooks/useVirtualCell.ts";
-import { SheetView11 } from "./my-components-v1/sheetView/SheetView-v1.0.tsx";
+import { SheetView11 } from "./my-components-v1/sheetView/SheetView-v1.tsx";
 
 
 interface TauriApiLoadSheetResponse {
