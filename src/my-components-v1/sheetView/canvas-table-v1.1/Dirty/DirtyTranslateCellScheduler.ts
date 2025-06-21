@@ -15,7 +15,7 @@ export class DirtyTranslateCellScheduler {
     this.externalFlush = external;
   }
 
-  mark(cell: Cell) {
+  markDirty(cell: Cell) {
     this.dirtyCells.add(cell);
 
     // 若非外部控制，則自動進行一次幀排程

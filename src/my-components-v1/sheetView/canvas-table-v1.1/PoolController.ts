@@ -11,71 +11,9 @@ export interface INestedPoolController {
 
 export class NestedPoolController implements INestedPoolController {
   pool: NestedPool;
-  rowHeight: number = 44;
-  cellWidth: number = 112;
-
-   /**
-   * Initializes the style and transform for a given cell.
-   * @param cell The Cell object to initialize.
-   * @param _r The row index (unused, but kept for forEach compatibility).
-   * @param _c The column index (unused, but kept for forEach compatibility).
-   */
-  private _initializeCell(cell: Cell): void {
-    // Only apply transform if not already set
-    if (cell.valueRef.transX !== null && cell.valueRef.transY !== null) return;
-
-    const coord = cell.indexPath;
-    const el = cell.valueRef.el;
-
-    el.style.height = `${this.rowHeight}px`;
-    el.style.width = `${this.cellWidth}px`;
-    el.style.boxSizing = "border-box";
-    el.style.border = "1px solid #ddd";
-    el.style.contain = "static";
-    
-    const row = coord[coord.length - 2];
-    const col = coord[coord.length - 1];
-
-    const transX = col * this.cellWidth;
-    const transY = row * this.rowHeight;
-
-    // Update transform and cache state
-    el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
-    cell.valueRef.transX = transX;
-    cell.valueRef.transY = transY;
-  }
-
-  initializePosition() {
-    this.pool.forEach((cell, _r, _c) => this._initializeCell(cell));
-  }
-
-  _updateCellPosition(cell: Cell) {
-    const coord = cell.indexPath;
-    const el = cell.valueRef.el;
-    
-    if (!el || coord.length < 2) return;
-
-    const row = coord[coord.length - 2];
-    const col = coord[coord.length - 1];
-
-
-    const transX = col * this.cellWidth;
-    const transY = row * this.rowHeight;
-
-    // 若位置沒變，不更新 transform
-    if (cell.valueRef.transX === transX && cell.valueRef.transY === transY) return;
-
-    // 更新 transform 與快取
-    el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
-    cell.valueRef.transX = transX;
-    cell.valueRef.transY = transY;
-  }
-
-  constructor(pool: NestedPool, rowHeight?: number, cellWidth?:number) {
+  
+  constructor(pool: NestedPool) {
     this.pool = pool;
-    if(rowHeight ) this.rowHeight = rowHeight;
-    if(cellWidth) this.cellWidth = cellWidth;
-    this.initializePosition();
   }
 
   getCell(row: number, col: number): Cell | undefined {
@@ -84,9 +22,8 @@ export class NestedPoolController implements INestedPoolController {
     return this.pool.children[row].children[col];
   }
 
-  resize(newDim: [row: number, col: number], container: HTMLElement) {
-    const diff = this.pool.resize(newDim, container);
-    this.initializePosition();
+  resize(newDim: [row: number, col: number]) {
+    const diff = this.pool.resize(newDim);
     return diff;
   }
 
@@ -112,6 +49,10 @@ export class NestedPoolController implements INestedPoolController {
     );
     // put new Row to buttom
     this.pool.children.push(topRow);
+    
+    // 設定 pool 的 startRow 改變
+    this.pool.startRowIndex += 1;
+
     return updatedCells;
   }
 
@@ -132,6 +73,8 @@ export class NestedPoolController implements INestedPoolController {
       }
     )
     this.pool.children.unshift(bottomRow);
+
+    this.pool.startRowIndex -= 1;
     return updatedCells;
   }
 
@@ -150,8 +93,10 @@ export class NestedPoolController implements INestedPoolController {
       updatedCells.push(firstCell);
       // 放到最後一個
       row.children.push(firstCell);
+      row.startColIndex += 1;
     }
 
+    this.pool.startColIndex += 1;
     return updatedCells;
   }
 
@@ -169,8 +114,9 @@ export class NestedPoolController implements INestedPoolController {
       // this._updateCellPosition(lastCell);
       updatedCells.push(lastCell);
       row.children.unshift(lastCell);
+      row.startColIndex -= 1;
     }
-
+    this.pool.startColIndex -= 1;
     return updatedCells;
   }
 
@@ -189,6 +135,7 @@ export class NestedPoolController implements INestedPoolController {
         // this._updateCellPosition(cell);
         updatedCells.push(cell);
       });
+      this.pool.startRowIndex += n;
       return updatedCells;
     }
 
@@ -219,6 +166,9 @@ export class NestedPoolController implements INestedPoolController {
         // this._updateCellPosition(cell);
         updatedCells.push(cell);
       });
+      
+      for(const row of this.pool.children) row.startColIndex += n;      
+      this.pool.startColIndex += n;
       return updatedCells;
     }
 

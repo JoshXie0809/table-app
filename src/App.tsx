@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FluentProvider, webLightTheme, Text } from "@fluentui/react-components";
+import { FluentProvider, webLightTheme, Text, webDarkTheme } from "@fluentui/react-components";
 import { FloatingInputPanel } from "./my-components-v0/ProtalPanel.tsx";
 
 import { invoke } from "@tauri-apps/api/core";
@@ -55,7 +55,7 @@ function App() {
   
   
   return (
-    <FluentProvider theme={webLightTheme}>
+    <FluentProvider theme={webDarkTheme}>
     
     <main>
       <div style={{ 

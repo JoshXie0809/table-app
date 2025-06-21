@@ -3,9 +3,9 @@ import { Root } from "react-dom/client";
 export type Coord = number[];
 
 export interface ValueRef {
-  el: HTMLElement;
   transX: null | number;
   transY: null | number;
+  el?: HTMLElement;
   reactRoot?: Root;
 }
 
@@ -18,9 +18,9 @@ export interface Cell {
 export interface Pool<T> {
   size: number,
   children: T[],
-  generate(indexPath: number[], genId: () =>string): void;
-  resize(newSize: number, genId: ()=>string, container?: HTMLElement): {added: Cell[], deleted: Cell[]}
-  clear(removeDOM?: boolean, container?: HTMLElement): void;
+  generate(indexPath: number[], genId: () =>string ): {added: Cell[], deleted: Cell[]};
+  clear(): Cell[];
+  resize(indexPath: Coord, newSize: number, genId: ()=>string ): {added: Cell[], deleted: Cell[]}
   map<U>(fn: (child: T, index: number) => U): U[];
   forEach(fn: (child: T, index: number) => void): void;
 }
@@ -28,169 +28,129 @@ export interface Pool<T> {
 // one Dimension Pool
 export class CellPool implements Pool<Cell> {
   size: number;
+  startColIndex: number;
   children: Cell[] = [];
-  
-  constructor(size: number) {
+
+  constructor(size: number, startColIndex = 0) {
     this.size = size;
+    this.startColIndex = startColIndex;
   }
 
-  setBaseStyle(el: HTMLElement) {
-    el.style.position = "absolute";
-    el.style.top =  "0px";
-    el.style.left = "0px";
-    el.style.willChange = "transform";
-  }
-
-  generate(indexPath: number[], genId: () => string): void {
-    this.children = [] 
-    this.clear(); // delete all 但不處理 dom 的元素
-
-    for(let i = 0; i < this.size; i++) {
-      const el = document.createElement("div");
-      const shellId = genId();
-      this.setBaseStyle(el);
-      el.dataset.shellId = shellId;
-
-      this.children.push({
-        shellId,
-        indexPath: [...indexPath, i],
-        valueRef: {el, transX: null, transY: null},
-      })
-    }
-  }
-
-  /** 手動掛載 DOM 到容器 */
-  mount(container: HTMLElement): void {
-    if(this.children.length === 0) return;
-    for (const cell of this.children) {
-      // 沒掛上去才掛
-      if(!container.contains(cell.valueRef.el)) 
-        container.appendChild(cell.valueRef.el);
-    }
-  }
-
-
-  /** 清除所有資料與 DOM */
-  clear(removeDOM: boolean = false, container?: HTMLElement): void {
-    if (removeDOM) {
-      for (const cell of this.children) {
-        const el = cell.valueRef?.el;
-        if (el instanceof HTMLElement) {
-          // ✅ 若 container 有給，僅從指定 container 移除
-          if (!container || el.parentNode === container) {
-            el.parentNode?.removeChild(el);
-          }
-        }
-      }
-    }
+  clear(): Cell[] {
+    const deleted: Cell[] = [...this.children];
     this.children = [];
+    return deleted;
   }
 
-  map<U>(fn: (child: Cell, index: number) => U): U[] {
-    return this.children.map(fn);
+  generate(indexPath: number[], genId: () => string): { added: Cell[], deleted: Cell[] } {
+    const added: Cell[] = [];
+    const deleted: Cell[] = this.clear();
+
+    for (let i = 0; i < this.size; i++) {
+      const shellId = genId();
+      const cell: Cell = {
+        shellId,
+        indexPath: [...indexPath, this.startColIndex + i],
+        valueRef: { transX: null, transY: null },
+      };
+
+      added.push(cell);
+      this.children.push(cell);
+    }
+
+    return { added, deleted };
   }
 
-  forEach(fn: (child: Cell, index: number) => void): void {
-    this.children.forEach(fn);
-  }
-
-  resize(newSize: number, genId: () => string, container?: HTMLElement) {
+  resize(indexPath: Coord, newSize: number, genId: () => string): { added: Cell[], deleted: Cell[] } {
     const added: Cell[] = [];
     const deleted: Cell[] = [];
 
-    if (newSize < 0) return {added, deleted};
+    if (newSize < 0) return { added, deleted };
+
     if (newSize === 0) {
-      this.children.forEach((cell) => deleted.push(cell))
-      this.clear(true, container); // ✅ 同時清除資料與 DOM
-      this.size = 0;
-      return {added, deleted};
+      return { added: [], deleted: this.clear() };
     }
 
     const diff = newSize - this.size;
 
     if (diff > 0) {
-      const lastIndex = this.children[this.size-1].indexPath;
-      for (let i = 0; i < diff; i++) {
-        let nowIndex = [...lastIndex];
-        nowIndex[lastIndex.length-1] += 1 + i;
-        const el = document.createElement("div");
+      for (let i = this.size; i < newSize; i++) {
         const shellId = genId();
-        el.dataset.shellId = shellId;
-
-        this.setBaseStyle(el);
+        const colIndex = this.startColIndex + i;
         const cell: Cell = {
           shellId,
-          indexPath: nowIndex,
-          valueRef: { el, transX: null, transY: null },
+          indexPath: [...indexPath, colIndex],
+          valueRef: { transX: null, transY: null },
         };
 
-        // 紀錄新增的 cell;
         added.push(cell);
         this.children.push(cell);
-        // ✅ 如果 container 存在，直接掛載新 DOM
-        if (container) {
-          container.appendChild(el);
-        }
       }
     }
 
     if (diff < 0) {
       for (let i = 0; i < -diff; i++) {
-        // 紀錄刪除的 cell
         const cell = this.children.pop();
-        if(cell) deleted.push(cell);
-        const el = cell?.valueRef?.el;
-        if (el instanceof HTMLElement) {
-          // ✅ 僅從 container 拆除
-          if (!container || el.parentNode === container) {
-            el.parentNode?.removeChild(el);
-          }
-        }
+        if (cell) deleted.push(cell);
       }
     }
 
     this.size = newSize;
-    return {added, deleted}
+    return { added, deleted };
   }
 
+  map<U>(fn: (cell: Cell, index: number) => U): U[] {
+    return this.children.map(fn);
+  }
+
+  forEach(fn: (cell: Cell, index: number) => void): void {
+    this.children.forEach(fn);
+  }
 }
 
 export class NestedPool {
   size: number;
   innerSize: number;
+  startRowIndex: number;
+  startColIndex: number;
   children: CellPool[] = [];
 
   private counter: number = 0;
   private genId = () => `shell-id-${this.counter++}`
 
-  constructor(dims: [row: number, col: number]) {
+  constructor(dims: [row: number, col: number], startRowIndex = 0, startColIndex = 0) {
     this.size = dims[0];
     this.innerSize = dims[1];
+    this.startRowIndex = startRowIndex;
+    this.startColIndex = startColIndex;
     this.generate([]);
   }
 
-  generate(indexPath: number[]) {
+  generate(indexPath: number[]): { added: Cell[], deleted: Cell[] } {
+    const totalAdded: Cell[] = [];
+    const totalDeleted: Cell[] = [];
+
     this.children = [];
     for (let i = 0; i < this.size; i++) {
-      const child = new CellPool(this.innerSize);
-      child.generate([...indexPath, i], this.genId);
+      const globalRowIndex = this.startRowIndex + i;
+      const child = new CellPool(this.innerSize, this.startColIndex); // ✅ 傳入 startColIndex
+      const diff = child.generate([...indexPath, globalRowIndex], this.genId);
+      totalAdded.push(...diff.added);
+      totalDeleted.push(...diff.deleted);
       this.children.push(child);
     }
+
+    return { added: totalAdded, deleted: totalDeleted };
   }
 
-
-  /** 手動掛載 DOM 到容器 */
-  mount(container: HTMLElement): void {
+  clear(): Cell[] {
+    const totalDeleted: Cell[] = [];
     for (const pool of this.children) {
-      pool.mount(container);
+      totalDeleted.push(...pool.clear());
     }
-  }
 
-  clear(removeDOM: boolean = false, container?: HTMLElement): void {
-    for (const pool of this.children) {
-      pool.clear(removeDOM, container);
-    }
     this.children = [];
+    return totalDeleted;
   }
 
   forEach(fn: (cell: Cell, rowIndex: number, colIndex: number) => void) {
@@ -206,66 +166,53 @@ export class NestedPool {
       return rowPool.map((cell, colIndex) => fn(cell, rowIndex, colIndex));
     });
   }
-  
-  resize(newDim: [newRow: number, newCol: number], container?: HTMLElement) 
-  : {totalAdded: Cell[], totalDeleted: Cell[]}
-  {
+
+  resize(newDim: [newRow: number, newCol: number]): { added: Cell[], deleted: Cell[] } {
     const totalAdded: Cell[] = [];
     const totalDeleted: Cell[] = [];
 
     const [newRow, newCol] = newDim;
-    if(newRow < 0 || newCol < 0) return {totalAdded, totalDeleted};
-    
-    if(newRow === 0 || newCol === 0) {
-      this.forEach((cell) => totalDeleted.push(cell));
+    if (newRow < 0 || newCol < 0) return { added: totalAdded, deleted: totalDeleted };
 
-      this.clear(true, container);
+    if (newRow === 0 || newCol === 0) {
+      totalDeleted.push(...this.clear());
       this.size = 0;
       this.innerSize = 0;
-      return {totalAdded, totalDeleted};
+      return { added: totalAdded, deleted: totalDeleted };
     }
 
-    // resize col
-    for(const row of this.children) {
-      const diff = row.resize(newCol, this.genId, container);
-      // 紀錄
+    // Resize existing rows
+    for (let rowIndex = 0; rowIndex < Math.min(newRow, this.children.length); rowIndex++) {
+      const globalRowIndex = this.startRowIndex + rowIndex;
+      const row = this.children[rowIndex];
+      const diff = row.resize([globalRowIndex], newCol, this.genId);
       totalAdded.push(...diff.added);
       totalDeleted.push(...diff.deleted);
     }
 
-    // resize row
-    const rowDiff = newRow - this.size;
-    if(rowDiff > 0) {
-      const lastRowFirstCol: Coord = this.children[this.size-1].children[0].indexPath;
-      
-      const lastRowIndex = lastRowFirstCol[lastRowFirstCol.length-2];
-      const firstColIndex = lastRowFirstCol[lastRowFirstCol.length-1];
-
-      for(let i = 0; i < rowDiff; i++) {
-        const child = new CellPool(newCol);
-        child.generate([lastRowIndex + 1 + i], this.genId);
-        if(container) child.mount(container)
-        for(let j = 0; j < newCol; j++) 
-          child.children[j].indexPath[1] += firstColIndex;
-        
-        // 紀錄新增
-        child.forEach((cell) => totalAdded.push(cell));
-        this.children.push(child);
-
-      }
+    // Add new rows
+    for (let rowIndex = this.size; rowIndex < newRow; rowIndex++) {
+      const globalRowIndex = this.startRowIndex + rowIndex;
+      const newRowPool = new CellPool(newCol, this.startColIndex); // ✅ 傳入 startColIndex
+      const { added } = newRowPool.generate([globalRowIndex], this.genId);
+      totalAdded.push(...added);
+      this.children.push(newRowPool);
     }
-    if(rowDiff < 0){
-      for(let i = 0; i < -rowDiff; i++) {
-        // 紀錄刪除
-        const child = this.children.pop();
-        if(child) child.forEach((cell) => totalDeleted.push(cell));
-        child?.clear(true, container);
+
+    // Remove excess rows
+    if (newRow < this.size) {
+      for (let i = 0; i < this.size - newRow; i++) {
+        const removed = this.children.pop();
+        if (removed) {
+          totalDeleted.push(...removed.clear());
+        }
       }
     }
 
     this.size = newRow;
     this.innerSize = newCol;
 
-    return {totalAdded, totalDeleted};
+    return { added: totalAdded, deleted: totalDeleted };
   }
 }
+

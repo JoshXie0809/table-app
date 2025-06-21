@@ -1,6 +1,5 @@
 import { Cell, NestedPool } from "./Cell";
 import { NestedPoolController } from "./PoolController";
-import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
 
 export interface IVirtualizationManager {
   nplctrler: NestedPoolController; // poolController
@@ -13,15 +12,11 @@ export interface IVirtualizationManager {
   dataTotalCol: number;
   rowHeight: number;
   cellWidth: number;
-  
-  transformScheduler: DirtyTranslateCellScheduler;
 }
 
 export class VManager implements IVirtualizationManager {
   nplctrler: NestedPoolController; // poolController
   cellMap: Map<string, Cell> = new Map();
-
-  transformScheduler: DirtyTranslateCellScheduler;
 
   private _buildCellMap() {
     this.nplctrler.pool.forEach((cell) => {
@@ -47,8 +42,8 @@ export class VManager implements IVirtualizationManager {
 
   dataTotalRow: number;
   dataTotalCol: number;
-  rowHeight: number = 1;
-  cellWidth: number = 1;
+  rowHeight: number = 0;
+  cellWidth: number = 0;
 
   constructor (
     containerDims: {width: number, height: number},
@@ -56,7 +51,6 @@ export class VManager implements IVirtualizationManager {
     dataTotalCol: number,
     rowHeight: number,
     cellWidth: number,
-    container: HTMLElement,
     overScanRow: number = 10,
     overScanCol: number = 2,
   ) {
@@ -70,18 +64,11 @@ export class VManager implements IVirtualizationManager {
 
     const nums = this.numToCover();
     
-    const np = new NestedPool([nums.nRow + 2*this.overScanRow, nums.nCol + 2*this.overScanCol])      
-    np.mount(container);
-
-    this.nplctrler = new NestedPoolController(
-      np,
-      this.rowHeight,
-      this.cellWidth,
-    )
+    const npl = new NestedPool([nums.nRow + 2*this.overScanRow, nums.nCol + 2*this.overScanCol])      
+    this.nplctrler = new NestedPoolController(npl)
 
     this._buildCellMap()
     this.setPoolInfo()
-    this.transformScheduler = new DirtyTranslateCellScheduler(this.rowHeight, this.cellWidth);
   }
 
   numToCover = () => {
@@ -96,33 +83,22 @@ export class VManager implements IVirtualizationManager {
     return ({nRow, nCol})
   };
 
-  setContainerDims(containerDims: {width: number, height: number}, container: HTMLElement) {
+  setContainerDims(containerDims: {width: number, height: number}) {
     this.containerDims = containerDims;
     const nums = this.numToCover();
-    const diff = this.nplctrler.resize([nums.nRow + 2*this.overScanRow, nums.nCol + 2*this.overScanCol], container);
+    const diff = this.nplctrler.resize([nums.nRow + 2*this.overScanRow, nums.nCol + 2*this.overScanCol]);
     this.setPoolInfo()
-    diff.totalAdded.map((cell) => this.cellMap.set(cell.shellId, cell));
-    diff.totalDeleted.map((cell) => this.cellMap.delete(cell.shellId));
+    diff.added.map((cell) => this.cellMap.set(cell.shellId, cell));
+    diff.deleted.map((cell) => this.cellMap.delete(cell.shellId));
+    return diff;
   }
 
   setPoolInfo() {
-    // firstRow-firstCol-Cell
-    const frfcCell = this.nplctrler.getCell(0, 0);
-    if(!frfcCell) return;
-    // lastRow-lastCol-cell
-    const lrlcCell = this.nplctrler.getCell(this.nplctrler.pool.size-1, this.nplctrler.pool.innerSize-1);
-    if(!lrlcCell) return;
-
-    const n = frfcCell.indexPath.length;
-    const firstRowIndex = frfcCell.indexPath[n-2];
-    const firstColIndex = frfcCell.indexPath[n-1];
-    const lastRowIndex  = lrlcCell.indexPath[n-2];
-    const lastColIndex  = lrlcCell.indexPath[n-1];
-    
-    this.topRowIndex = firstRowIndex;
-    this.leftColIndex = firstColIndex;
-    this.bottomRowIndex = lastRowIndex;
-    this.rightColIndex = lastColIndex;
+        
+    this.topRowIndex = this.nplctrler.pool.startRowIndex;
+    this.leftColIndex = this.nplctrler.pool.startColIndex;
+    this.bottomRowIndex = this.topRowIndex + this.nplctrler.pool.size - 1 ;
+    this.rightColIndex = this.leftColIndex + this.nplctrler.pool.innerSize - 1;
 
     this.coverTopRowIndex = this.topRowIndex + this.overScanRow;
     this.coverBottomRowIndex = this.bottomRowIndex - this.overScanRow;
@@ -130,9 +106,6 @@ export class VManager implements IVirtualizationManager {
     this.coverRigthColIndex = this.rightColIndex - this.overScanCol;
   }
 
-  clearDOM(container: HTMLElement) {
-    this.nplctrler.pool.clear(true, container);
-  }
 
   transNum(
     a: number,
@@ -208,7 +181,7 @@ export class VManager implements IVirtualizationManager {
       this.setPoolInfo();
     }
 
-    updatedCells.forEach((cell) => this.transformScheduler.mark(cell) );
+    return updatedCells;
   }
 
 }
