@@ -22,7 +22,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const vmRef = useRef<null | VManager>(null);
 
   const totalRow = 100_000;
-  const totalCol = 22;
+  const totalCol = 256;
 
   useEffect(() => {
     if(!containerRef.current) return;
@@ -35,6 +35,9 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       container, 4, 2);
 
     vmRef.current = vm
+    
+    vm.transformScheduler.setExternalFlushMode(true);
+
     return () => {
       vm.clearDOM(container);
     }
@@ -47,29 +50,6 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     const vm = vmRef.current;
     vm.setContainerDims(containerDim, container);
 
-          // 模擬需要更新的是 第 5 Col
-          const col5: Cell[] = [];
-
-          vm.nplctrler.pool.forEach((cell, _r, c) => {
-            if(c == 5 || c == 9) col5.push(cell);
-          });
-
-          col5.forEach((cell) => {
-            const targetDiv = cell.valueRef.el;
-            let root = cell.valueRef.reactRoot;
-              if (!root) {
-                  root = ReactDOM.createRoot(targetDiv);
-                  cell.valueRef.reactRoot = root; // 將建立的 Root 存起來，下次重複使用
-              }
-
-              const reactNodeToMount = (
-                  <Text style={{textWrap: "nowrap"}}>{`${cell.indexPath[0]}-${cell.indexPath[1]}: hello world`}</Text>
-              );
-
-              // d. 命令 React 在這個根上進行渲染或更新
-              // React 會自動比對差異，只做必要的更新
-              root.render(reactNodeToMount);
-          })
 
   }, [containerDim, containerRef.current])
 
@@ -90,24 +70,10 @@ export const SheetView11: React.FC<SheetViewProps> = ({
           // 在這裡，我們可以存取最新的 scrollTop 和 scrollLeft
           const scrollTop = container.scrollTop;
           const scrollLeft = container.scrollLeft;
-
-          // Y 軸邏輯
-          const transRow = vm.solveRowTrans(scrollTop);
-          if (transRow !== 0) { // 只有在需要移動時才呼叫
-              vm.nplctrler.scrollVerticalBy(transRow);
-          }
-
-          // X 軸邏輯
-          const transCol = vm.solveColTrans(scrollLeft);
-          if (transCol !== 0) { // 只有在需要移動時才呼叫
-              vm.nplctrler.scrollHorizontalBy(transCol);
-          }
           
-          // setPoolInfo 可能也應該只在有變動時呼叫
-          if (transRow !== 0 || transCol !== 0) {
-              vm.setPoolInfo();
-          }
-          
+          vm.scrollBy(scrollTop, scrollLeft);
+          vm.transformScheduler.flush()
+         
           // --- 邏輯執行完畢 ---
           // 解開鎖，允許下一次滾動事件請求新的動畫幀
           ticking = false;

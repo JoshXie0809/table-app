@@ -2,10 +2,10 @@ import { Cell, CellPool, NestedPool } from "./Cell";
 
 export interface INestedPoolController {
   pool: NestedPool;
-  fromTopToBottom(): void;
-  fromBottomToTop(): void;
-  fromLeftToRight(): void;
-  fromRightToLeft(): void;
+  fromTopToBottom(): Cell[];
+  fromBottomToTop(): Cell[];
+  fromLeftToRight(): Cell[];
+  fromRightToLeft(): Cell[];
 }
 
 
@@ -32,7 +32,7 @@ export class NestedPoolController implements INestedPoolController {
     el.style.boxSizing = "border-box";
     el.style.border = "1px solid #ddd";
     el.style.contain = "static";
-    el.style.contentVisibility = "auto";
+    
     const row = coord[coord.length - 2];
     const col = coord[coord.length - 1];
 
@@ -49,7 +49,7 @@ export class NestedPoolController implements INestedPoolController {
     this.pool.forEach((cell, _r, _c) => this._initializeCell(cell));
   }
 
-  private _updateCellPosition(cell: Cell) {
+  _updateCellPosition(cell: Cell) {
     const coord = cell.indexPath;
     const el = cell.valueRef.el;
     
@@ -67,7 +67,6 @@ export class NestedPoolController implements INestedPoolController {
 
     // 更新 transform 與快取
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
-    cell.valueRef.el.innerText = `${cell.indexPath[0]} --- ${cell.indexPath[1]}`
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
   }
@@ -92,11 +91,13 @@ export class NestedPoolController implements INestedPoolController {
   }
 
 
-  fromTopToBottom(): void {
+  fromTopToBottom(): Cell[] {
     const lastRowFirstCell: Cell | undefined = this.getCell(this.pool.size - 1, 0);
     const topRow: CellPool | undefined = this.pool.children.shift();
+    const updatedCells: Cell[] = [];
+
     // check CellPool ans Cell Exist 
-    if(!topRow || !lastRowFirstCell) return;
+    if(!topRow || !lastRowFirstCell) return updatedCells;
     // last row first column
     const lrfc = lastRowFirstCell.indexPath;
     // lrfc.length-2 is the place of row index
@@ -105,59 +106,77 @@ export class NestedPoolController implements INestedPoolController {
     topRow.forEach(
       (cell, _i) => { 
         cell.indexPath[lrfc.length-2] = lastRowIndex + 1; 
-        this._updateCellPosition(cell);
+        // this._updateCellPosition(cell);  // 改成統一由 sceduler 處理
+        updatedCells.push(cell);
       }
     );
     // put new Row to buttom
     this.pool.children.push(topRow);
+    return updatedCells;
   }
 
-  fromBottomToTop(): void {
+  fromBottomToTop(): Cell[] {
+    const updatedCells: Cell[] = [];
+
     const firstRowFirstCell: Cell | undefined = this.getCell(0, 0);
     const bottomRow: CellPool | undefined = this.pool.children.pop();
-    if(!bottomRow || !firstRowFirstCell) return;
+    if(!bottomRow || !firstRowFirstCell) return updatedCells;
+
     const frfc = firstRowFirstCell.indexPath;
     const firstRowIndex = frfc[frfc.length-2];
     bottomRow.forEach(
       (cell, _i) => { 
         cell.indexPath[frfc.length-2] = firstRowIndex - 1;
-        this._updateCellPosition(cell);
+        // this._updateCellPosition(cell);
+        updatedCells.push(cell);
       }
     )
     this.pool.children.unshift(bottomRow);
+    return updatedCells;
   }
 
-  fromLeftToRight(): void {
+  fromLeftToRight(): Cell[] {
+    const updatedCells: Cell[] = [];
+
     for(const row of this.pool.children) { 
       const lastCellIndex = row.children[row.size-1].indexPath;
       const n = lastCellIndex.length;
       const lastColIndex = lastCellIndex[n-1];
       // pop 出第一個
       const firstCell = row.children.shift();
-      if(!firstCell) return; // 代表後續的都會有問題所以直接 return 不 continue
+      if(!firstCell) return updatedCells; // 代表後續的都會有問題所以直接 return 不 continue
       firstCell.indexPath[n-1] = lastColIndex + 1;
-      this._updateCellPosition(firstCell);
+      // this._updateCellPosition(firstCell);
+      updatedCells.push(firstCell);
       // 放到最後一個
       row.children.push(firstCell);
     }
+
+    return updatedCells;
   }
 
-  fromRightToLeft(): void {
+  fromRightToLeft(): Cell[] {
+    const updatedCells: Cell[] = [];
+
     for(const row of this.pool.children) {
       const firstCellIndex = row.children[0].indexPath;
       const n = firstCellIndex.length;
       const firstColIndex = firstCellIndex[n-1];
       // pop 出最後一個
       const lastCell = row.children.pop();
-      if(!lastCell) return;
+      if(!lastCell) return updatedCells;
       lastCell.indexPath[n-1] = firstColIndex - 1;
-      this._updateCellPosition(lastCell);
+      // this._updateCellPosition(lastCell);
+      updatedCells.push(lastCell);
       row.children.unshift(lastCell);
     }
+
+    return updatedCells;
   }
 
-  scrollVerticalBy(n: number) {
-    if (n === 0) return;
+  scrollVerticalBy(n: number): Cell[] {
+    const updatedCells: Cell[] = [];
+    if (n === 0) return updatedCells;
 
     const pool = this.pool;
     const poolSize = pool.size;
@@ -167,22 +186,28 @@ export class NestedPoolController implements INestedPoolController {
       pool.forEach((cell) => {
         const idxL = cell.indexPath.length;
         cell.indexPath[idxL - 2] += n;
-        this._updateCellPosition(cell);
+        // this._updateCellPosition(cell);
+        updatedCells.push(cell);
       });
-      return;
+      return updatedCells;
     }
 
     // 小範圍平移：使用 pool reuse
     const moveFn = n > 0 ? this.fromTopToBottom : this.fromBottomToTop;
     const steps = Math.abs(n);
     for (let i = 0; i < steps; i++) {
-      moveFn.call(this);
+      const uCells = moveFn.call(this);
+      updatedCells.push(...uCells);
     }
+
+    return updatedCells;
   }
 
-  scrollHorizontalBy(n: number) {
-    if (n === 0) return;
-    
+  scrollHorizontalBy(n: number): Cell[] {
+    const updatedCells: Cell[] = [];
+
+    if (n === 0) return updatedCells;
+
     const pool = this.pool;
     const poolInnerSize = pool.innerSize;
 
@@ -191,16 +216,20 @@ export class NestedPoolController implements INestedPoolController {
       pool.forEach((cell) => {
         const idxL = cell.indexPath.length;
         cell.indexPath[idxL - 1] += n;
-        this._updateCellPosition(cell);
+        // this._updateCellPosition(cell);
+        updatedCells.push(cell);
       });
-      return;
+      return updatedCells;
     }
 
     // 小範圍平移：使用 pool reuse
     const moveFn = n > 0 ? this.fromLeftToRight : this.fromRightToLeft;
     const steps = Math.abs(n);
     for (let i = 0; i < steps; i++) {
-      moveFn.call(this);
+      const uCells = moveFn.call(this);
+      updatedCells.push(...uCells);
     }
+    
+    return updatedCells;
   }
 }

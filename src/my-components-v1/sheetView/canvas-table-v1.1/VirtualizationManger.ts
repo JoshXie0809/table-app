@@ -1,5 +1,6 @@
 import { Cell, NestedPool } from "./Cell";
 import { NestedPoolController } from "./PoolController";
+import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
 
 export interface IVirtualizationManager {
   nplctrler: NestedPoolController; // poolController
@@ -12,11 +13,16 @@ export interface IVirtualizationManager {
   dataTotalCol: number;
   rowHeight: number;
   cellWidth: number;
+  
+  transformScheduler: DirtyTranslateCellScheduler;
 }
 
 export class VManager implements IVirtualizationManager {
   nplctrler: NestedPoolController; // poolController
   cellMap: Map<string, Cell> = new Map();
+
+  transformScheduler: DirtyTranslateCellScheduler;
+
   private _buildCellMap() {
     this.nplctrler.pool.forEach((cell) => {
       this.cellMap.set(cell.shellId, cell);
@@ -75,6 +81,7 @@ export class VManager implements IVirtualizationManager {
 
     this._buildCellMap()
     this.setPoolInfo()
+    this.transformScheduler = new DirtyTranslateCellScheduler(this.rowHeight, this.cellWidth);
   }
 
   numToCover = () => {
@@ -178,6 +185,30 @@ export class VManager implements IVirtualizationManager {
                               this.dataTotalCol-1, this.overScanCol)
 
     return ans;
+  }
+
+  scrollBy(scrollTop: number, scrollLeft: number) {
+    const updatedCells: Cell[] = [];
+    // Y 軸邏輯
+    const transRow = this.solveRowTrans(scrollTop);
+    if (transRow !== 0) { // 只有在需要移動時才呼叫
+      const uCells = this.nplctrler.scrollVerticalBy(transRow);
+      updatedCells.push(...uCells);
+    }
+
+    // X 軸邏輯
+    const transCol = this.solveColTrans(scrollLeft);
+    if (transCol !== 0) { // 只有在需要移動時才呼叫
+      const uCells = this.nplctrler.scrollHorizontalBy(transCol);
+      updatedCells.push(...uCells);
+    }
+    
+    // setPoolInfo 可能也應該只在有變動時呼叫
+    if (transRow !== 0 || transCol !== 0) {
+      this.setPoolInfo();
+    }
+
+    updatedCells.forEach((cell) => this.transformScheduler.mark(cell) );
   }
 
 }
