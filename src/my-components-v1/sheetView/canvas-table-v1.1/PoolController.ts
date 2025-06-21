@@ -31,7 +31,8 @@ export class NestedPoolController implements INestedPoolController {
     el.style.width = `${this.cellWidth}px`;
     el.style.boxSizing = "border-box";
     el.style.border = "1px solid #ddd";
-
+    el.style.contain = "static";
+    el.style.contentVisibility = "auto";
     const row = coord[coord.length - 2];
     const col = coord[coord.length - 1];
 
@@ -48,7 +49,7 @@ export class NestedPoolController implements INestedPoolController {
     this.pool.forEach((cell, _r, _c) => this._initializeCell(cell));
   }
 
-  _updateCellPosition(cell: Cell) {
+  private _updateCellPosition(cell: Cell) {
     const coord = cell.indexPath;
     const el = cell.valueRef.el;
     
@@ -66,6 +67,7 @@ export class NestedPoolController implements INestedPoolController {
 
     // 更新 transform 與快取
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
+    cell.valueRef.el.innerText = `${cell.indexPath[0]} --- ${cell.indexPath[1]}`
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
   }
@@ -84,8 +86,9 @@ export class NestedPoolController implements INestedPoolController {
   }
 
   resize(newDim: [row: number, col: number], container: HTMLElement) {
-    this.pool.resize(newDim, container);
+    const diff = this.pool.resize(newDim, container);
     this.initializePosition();
+    return diff;
   }
 
 

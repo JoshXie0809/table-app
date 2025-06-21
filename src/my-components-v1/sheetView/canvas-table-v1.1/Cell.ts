@@ -1,9 +1,12 @@
+import { Root } from "react-dom/client";
+
 export type Coord = number[];
 
 export interface ValueRef {
   el: HTMLElement;
   transX: null | number;
   transY: null | number;
+  reactRoot?: Root;
 }
 
 export interface Cell {
@@ -12,12 +15,11 @@ export interface Cell {
   valueRef: ValueRef,
 }
 
-
 export interface Pool<T> {
   size: number,
   children: T[],
   generate(indexPath: number[], genId: () =>string): void;
-  resize(newSize: number, genId: ()=>string, container?: HTMLElement): void
+  resize(newSize: number, genId: ()=>string, container?: HTMLElement): {added: Cell[], deleted: Cell[]}
   clear(removeDOM?: boolean, container?: HTMLElement): void;
   map<U>(fn: (child: T, index: number) => U): U[];
   forEach(fn: (child: T, index: number) => void): void;
@@ -92,12 +94,16 @@ export class CellPool implements Pool<Cell> {
     this.children.forEach(fn);
   }
 
-  resize(newSize: number, genId: () => string, container?: HTMLElement): void {
-    if (newSize < 0) return;
+  resize(newSize: number, genId: () => string, container?: HTMLElement) {
+    const added: Cell[] = [];
+    const deleted: Cell[] = [];
+
+    if (newSize < 0) return {added, deleted};
     if (newSize === 0) {
+      this.children.forEach((cell) => deleted.push(cell))
       this.clear(true, container); // ✅ 同時清除資料與 DOM
       this.size = 0;
-      return;
+      return {added, deleted};
     }
 
     const diff = newSize - this.size;
@@ -117,6 +123,9 @@ export class CellPool implements Pool<Cell> {
           indexPath: nowIndex,
           valueRef: { el, transX: null, transY: null },
         };
+
+        // 紀錄新增的 cell;
+        added.push(cell);
         this.children.push(cell);
         // ✅ 如果 container 存在，直接掛載新 DOM
         if (container) {
@@ -127,7 +136,9 @@ export class CellPool implements Pool<Cell> {
 
     if (diff < 0) {
       for (let i = 0; i < -diff; i++) {
+        // 紀錄刪除的 cell
         const cell = this.children.pop();
+        if(cell) deleted.push(cell);
         const el = cell?.valueRef?.el;
         if (el instanceof HTMLElement) {
           // ✅ 僅從 container 拆除
@@ -139,6 +150,7 @@ export class CellPool implements Pool<Cell> {
     }
 
     this.size = newSize;
+    return {added, deleted}
   }
 
 }
@@ -195,19 +207,30 @@ export class NestedPool {
     });
   }
   
-  resize(newDim: [newRow: number, newCol: number], container?: HTMLElement): void {
+  resize(newDim: [newRow: number, newCol: number], container?: HTMLElement) 
+  : {totalAdded: Cell[], totalDeleted: Cell[]}
+  {
+    const totalAdded: Cell[] = [];
+    const totalDeleted: Cell[] = [];
+
     const [newRow, newCol] = newDim;
-    if(newRow < 0 || newCol < 0) return;
+    if(newRow < 0 || newCol < 0) return {totalAdded, totalDeleted};
+    
     if(newRow === 0 || newCol === 0) {
+      this.forEach((cell) => totalDeleted.push(cell));
+
       this.clear(true, container);
       this.size = 0;
       this.innerSize = 0;
-      return;
+      return {totalAdded, totalDeleted};
     }
 
     // resize col
     for(const row of this.children) {
-      row.resize(newCol, this.genId, container);
+      const diff = row.resize(newCol, this.genId, container);
+      // 紀錄
+      totalAdded.push(...diff.added);
+      totalDeleted.push(...diff.deleted);
     }
 
     // resize row
@@ -224,18 +247,25 @@ export class NestedPool {
         if(container) child.mount(container)
         for(let j = 0; j < newCol; j++) 
           child.children[j].indexPath[1] += firstColIndex;
-
+        
+        // 紀錄新增
+        child.forEach((cell) => totalAdded.push(cell));
         this.children.push(child);
+
       }
     }
     if(rowDiff < 0){
       for(let i = 0; i < -rowDiff; i++) {
+        // 紀錄刪除
         const child = this.children.pop();
+        if(child) child.forEach((cell) => totalDeleted.push(cell));
         child?.clear(true, container);
       }
     }
 
     this.size = newRow;
     this.innerSize = newCol;
+
+    return {totalAdded, totalDeleted};
   }
 }
