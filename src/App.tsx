@@ -55,7 +55,7 @@ function App() {
   
   
   return (
-    <FluentProvider theme={webDarkTheme}>
+    <FluentProvider theme={webLightTheme}>
     
     <main>
       <div style={{ 

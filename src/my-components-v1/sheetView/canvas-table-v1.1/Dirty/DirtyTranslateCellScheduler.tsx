@@ -1,3 +1,4 @@
+import { Text } from "@fluentui/react-components";
 import { Cell } from "../Cell";
 
 export class DirtyTranslateCellScheduler {
@@ -43,14 +44,26 @@ export class DirtyTranslateCellScheduler {
     const row = coord[coord.length - 2];
     const col = coord[coord.length - 1];
 
-    const transX = col * this.cellWidth;
-    const transY = row * this.rowHeight;
+    const transX = Math.round(col * this.cellWidth);
+    const transY = Math.round(row * this.rowHeight);
 
     if (cell.valueRef.transX === transX && cell.valueRef.transY === transY) {
       return;
     }
 
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
+
+    // const root = cell.valueRef.reactRoot;
+    // if(!root) return;
+    
+    // const r = cell.indexPath[0];
+    // const c = cell.indexPath[1];
+    // const bgc = r % 2 === 0 ? "#ffffff" : "#f7f7f7";
+    // el.style.backgroundColor = bgc;
+    // root.render(
+    //   <Text size={500} weight="semibold" font="monospace" align="center" wrap={false}>{`r${r}:c${c}`}</Text>
+    // );
+
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
   }

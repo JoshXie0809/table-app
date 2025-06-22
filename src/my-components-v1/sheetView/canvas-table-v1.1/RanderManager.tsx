@@ -1,7 +1,7 @@
 import { Cell } from "./Cell";
 import { createRoot } from "react-dom/client";
 import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
-import { Text, webDarkTheme } from "@fluentui/react-components";
+import { Text } from "@fluentui/react-components";
 
 // render-manager
 export class RManager {
@@ -29,10 +29,10 @@ export class RManager {
     el.style.border = "1px solid #ddd";       // 可拿掉或改由 CSS 控制
     el.style.contain = "strict";              
     el.style.overflow = "hidden";             // 防止內容溢出
-    el.style.background = webDarkTheme.colorNeutralBackground1
     el.style.willChange = "transform";
     el.style.top = "0px";
     el.style.left = "0px";
+    el.style.textRendering = "geometricPrecision";
   }
 
   mountCell(cell: Cell) {
@@ -51,8 +51,9 @@ export class RManager {
 
     // rendeer 還沒做
     const r = cell.indexPath[0];
+    const c = cell.indexPath[1];
     root.render(
-        <Text size={300} weight="semibold">{`r: ${r} ⚡ c: ${cell.indexPath[1]}`}</Text>
+      <Text size={500} weight="semibold" font="monospace" align="center" wrap={false}>{`r${r}-c${c}`}</Text>    
     );
     cell.valueRef.reactRoot = root;
     
@@ -93,7 +94,11 @@ export class RManager {
       const root = cell.valueRef.reactRoot;
       if(!root) continue;
       
-      // root.render(<Text style={{backgroundColor: bg}}>{`r: ${r} ⚡ c: ${cell.indexPath[1]}`}</Text>);
+      const r = cell.indexPath[0];
+      const c = cell.indexPath[1];
+      root.render(
+        <Text size={300} weight="semibold" font="monospace" align="center" wrap={false}>{`${189*r+179*c}`}</Text>
+      );
     }
 
     this.dirtyCells.clear();
