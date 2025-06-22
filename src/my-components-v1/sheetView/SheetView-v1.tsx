@@ -17,21 +17,22 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 
   const virtualCells = useVirtualCells(options);
   const containerRef = useRef<HTMLDivElement>(null);
+  const gridsRef = useRef<HTMLDivElement>(null);
   const containerDim = useContainerDimensions(containerRef);
   const vmRef = useRef<null | VManager>(null);
   const rmRef = useRef<null | RManager>(null);
 
 
 
-  const totalRow = 2560 ;
-  const totalCol = 256;
+  const totalRow = 102400 ;
+  const totalCol = 128;
   const rowHeight = 44;
   const cellWidth = 152;
 
 
   useEffect(() => {
-    if(!containerRef.current) return;
-    const container = containerRef.current;
+    if(!gridsRef.current) return;
+    const container = gridsRef.current;
 
     const vm = new VManager(
       containerDim,
@@ -41,8 +42,9 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       2, 2);
 
     const rm = new RManager(rowHeight, cellWidth, container);
-    vmRef.current = vm ;   
-    rmRef.current = rm;
+
+    vmRef.current = vm ;
+    rmRef.current = rm; 
     
     // mount init cell
     const cells = vm.nplctrler.pool.map((cell) => cell).flat();
@@ -122,7 +124,7 @@ useEffect(() => {
   let animating = false;
 
   const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-  const baseDuration = 750;
+  const baseDuration = 800;
 
   // 加速系統
   let lastScrollTime = 0;
@@ -185,7 +187,7 @@ useEffect(() => {
 
     // 加速倍率
     const accel = Math.pow(accelerationFactor, scrollTick);
-    const dx = Math.sign(rawDx) * cellWidth * 1.2 * accel;
+    const dx = Math.sign(rawDx) * cellWidth * 0.6 * accel;
     const dy = Math.sign(rawDy) * rowHeight * 1.0 * accel;
 
     // --- ⛔ 反方向滾動時清空 queue、停止動畫與慣性 ---
@@ -274,7 +276,10 @@ useEffect(() => {
           border: "1px solid #ddd",
         }}
       >
-        <div id="sizer" style={{ width: cellWidth * totalCol, height: rowHeight * totalRow }} />
+        <div id="sizer" style={{ width: cellWidth * (totalCol + 1), height: rowHeight * (totalRow + 1) }} />
+        <div id="vtable-content-grid" ref={gridsRef} 
+          style={{ position: "absolute", top: `${rowHeight}px`, left: `${cellWidth}px`, willChange: "transform"}}
+        />
       </div>
   );
 }
