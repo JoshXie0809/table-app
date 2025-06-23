@@ -1,22 +1,28 @@
 use std::{collections::HashMap, sync::Arc};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use tauri::State;
+use ts_rs::TS;
 
 use crate::cell_plugins::{cell::CellContent, registry::CellPluginRegistry};
+use super::base::ApiResponse;
+
 
 #[tauri::command]
-pub async fn load_sheet_data(sheet_name: String, state: State::<'_, Arc<CellPluginRegistry>>) 
-    -> Result<FrontedSheetData, String> 
+pub fn load_sheet_data(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegistry>>) 
+    -> ApiResponse<FrontedSheetData> 
 {
-
-    let _ = sheet_name; // 正常流程要到資料庫尋找資料
+    let _ = arg.sheet_name; // 正常流程要到資料庫尋找資料
 
     let plugin = state.get_plugin("Text");
     let plugin = match plugin {
         Some(p) => p,
-        None => return Err("can not get Text plugin".to_string())
+        None => return ApiResponse{
+            success: false, 
+            data: None,
+            error: Some("can not get Text plugin".to_string()) 
+        }
     };
 
     let sheet_type: String = "DefaultGrid".to_string();
@@ -33,9 +39,18 @@ pub async fn load_sheet_data(sheet_name: String, state: State::<'_, Arc<CellPlug
     for r in 0..200_u32 {
         for c in 0..100_u32 {
             if (r + c) % 37 == 0 {
-                let mut pl = plugin.default_payload()?;
+
+                let pl = plugin.default_payload();
+                let mut pl = match pl {
+                    Ok(bp) => bp,
+                    Err(err) => return ApiResponse {
+                        success: false,
+                        data: None,
+                        error: Some(err),
+                    },
+                };
+
                 pl.value = json!(format!("模擬數據 r: {}, c: {}", r, c));
-                
                 let cell = CellContent {
                     cell_type_id: "Text".to_string(),
                     payload: pl
@@ -46,23 +61,25 @@ pub async fn load_sheet_data(sheet_name: String, state: State::<'_, Arc<CellPlug
         }
     }
 
-    Ok(
-        FrontedSheetData {
-            sheet_type,
-            sheet_name,
-            row_count,
-            col_count,
-            cell_width,
-            cell_height,
-            cells,
-            fields,
-        }
-    )
+    // 先將您準備好的資料組合成一個 FrontedSheetData 實例
+    let sheet_data = FrontedSheetData {
+        sheet_type,
+        sheet_name,
+        row_count,
+        col_count,
+        cell_width,
+        cell_height,
+        cells,
+        fields,
+    };
+
+    ApiResponse {success: true, data: Some(sheet_data), error: None}
 }
 
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize, TS)]
 #[serde(rename_all="camelCase")]
+#[ts(export)]
 pub struct FrontedSheetData 
 {
     #[serde(rename = "type")]
@@ -73,13 +90,22 @@ pub struct FrontedSheetData
     pub cell_width: u32,
     pub cell_height: u32,
     pub cells: Vec<ICell>,
+    #[ts(type = "Record<string, any>")]
     pub fields: HashMap<String, Value>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Serialize, TS)]
 #[serde(rename_all="camelCase")]
 pub struct ICell {
     row: u32,
     col: u32,
     cell_data: CellContent
+}
+
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct LoadSheetRequest {
+    pub sheet_name: String,
 }

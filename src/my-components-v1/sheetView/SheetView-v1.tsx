@@ -1,266 +1,174 @@
 import React, { useEffect, useRef } from "react";
-
 import { useVirtualCells, UseVirtualCellsOptions } from "../hooks/useVirtualCell";
-import { useContainerDimensions } from "../hooks/useContainerDimensions";
-
-import { VManager } from "./canvas-table-v1.1/VirtualizationManger";
-import { RManager } from "./canvas-table-v1.1/RanderManager";
+import { GridContent } from "./GridContent";
 
 export interface SheetViewProps {
-  options: UseVirtualCellsOptions;
+  // options: UseVirtualCellsOptions;
 }
 
 export const SheetView11: React.FC<SheetViewProps> = ({
-  options
+  // options
 }) =>
 {
-
-  const virtualCells = useVirtualCells(options);
+  
+  // const virtualCells = useVirtualCells(options);
   const containerRef = useRef<HTMLDivElement>(null);
-  const gridsRef = useRef<HTMLDivElement>(null);
-  const containerDim = useContainerDimensions(containerRef);
-  const vmRef = useRef<null | VManager>(null);
-  const rmRef = useRef<null | RManager>(null);
-
-
+  const gridRef = useRef<HTMLDivElement>(null);
 
   const totalRow = 102400 ;
   const totalCol = 128;
   const rowHeight = 44;
   const cellWidth = 152;
 
-
-  useEffect(() => {
-    if(!gridsRef.current) return;
-    const container = gridsRef.current;
-
-    const vm = new VManager(
-      containerDim,
-      totalRow,
-      totalCol,
-      rowHeight, cellWidth, 
-      2, 2);
-
-    const rm = new RManager(rowHeight, cellWidth, container);
-
-    vmRef.current = vm ;
-    rmRef.current = rm; 
-    
-    // mount init cell
-    const cells = vm.nplctrler.pool.map((cell) => cell).flat();
-    cells.forEach(cell => rm.mountCell(cell));
-    rm.transformScheduler.setExternalFlushMode(true);
-    rm.transformScheduler.flush();
-
-    return () => {
-      queueMicrotask(() => {
-        rm.transformScheduler.flush();
-        const cells = vm.nplctrler.pool.map((cell) => cell).flat();
-        cells.forEach(cell => rm.unmountCell(cell));
-      });
-    };
-
-  }, [])
-
-  useEffect(() => {
-    if(!vmRef.current || !rmRef.current) return;
-    if(!containerRef.current) return;
-    const vm = vmRef.current;
-    const rm = rmRef.current;
-    const diff = vm.setContainerDims(containerDim);
-    diff.added.forEach(cell => rm.mountCell(cell));
-    queueMicrotask(() => {
-      diff.deleted.forEach(cell => rm.unmountCell(cell));
-    });
-    rm.transformScheduler.flush()
-  }, [containerDim])
-
   useEffect(() => {
     const container = containerRef.current;
-    const vm = vmRef.current;
-    const rm = rmRef.current;
+    if (!container) return;
 
-    if (!container || !vm || !rm) return;
+    type ScrollJob = {
+      dx: number;
+      dy: number;
+      start: number;
+      duration: number;
+      lastProgress: number;
+    };
 
-    let ticking = false;
+    const jobs: ScrollJob[] = [];
+    let animating = false;
 
-    const handleScroll = () => {
+    const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
+    const baseDuration = 800;
 
+    // 加速系統
+    let lastScrollTime = 0;
+    let scrollTick = 0;
+    const maxTick = 24;
+    const accelerationFactor = 1.2;
 
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
+    // 慣性系統
+    let lastDx = 0;
+    let lastDy = 0;
+    let inertiaTimeout: number | null = null;
+    const inertiaDelay = 100;
+    const inertiaMultiplier = 0.25;
 
-          const ScrollTop = container.scrollTop;
-          const scrollLeft = container.scrollLeft;
-          const updatedCells = vm.scrollBy(ScrollTop, scrollLeft);
-          updatedCells.forEach(cell => rm.markDirty(cell));
-          rm.transformScheduler.flush();
+    const animate = () => {
+      const now = performance.now();
+      let needNextFrame = false;
 
-          ticking = false;
-        });
+      for (const job of jobs) {
+        const t = Math.min((now - job.start) / job.duration, 1);
+        const progress = easeOutCubic(t);
+        const deltaProgress = progress - job.lastProgress;
 
-        ticking = true;
+        container.scrollLeft += job.dx * deltaProgress;
+        container.scrollTop += job.dy * deltaProgress;
+
+        job.lastProgress = progress;
+
+        if (t < 1) {
+          needNextFrame = true;
+        }
+      }
+
+      while (jobs.length > 0 && jobs[0].lastProgress >= 1) {
+        jobs.shift();
+      }
+
+      if (jobs.length > 0 || needNextFrame) {
+        requestAnimationFrame(animate);
+      } else {
+        animating = false;
       }
     };
 
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
+    const handleWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.deltaMode !== 0) return;
+      event.preventDefault();
 
+      const now = performance.now();
+      const dt = now - lastScrollTime;
 
-useEffect(() => {
-  const container = containerRef.current;
-  if (!container) return;
+      // 判斷是否重置加速
+      if (dt > 150) scrollTick = 0;
+      scrollTick = Math.min(scrollTick + 1, maxTick);
+      lastScrollTime = now;
 
-  type ScrollJob = {
-    dx: number;
-    dy: number;
-    start: number;
-    duration: number;
-    lastProgress: number;
-  };
+      // 原始 delta 處理
+      const rawDx = event.deltaX || (Math.abs(event.deltaY) < 1 ? event.deltaY : 0);
+      const rawDy = event.deltaY;
 
-  const jobs: ScrollJob[] = [];
-  let animating = false;
+      // 加速倍率
+      const accel = Math.pow(accelerationFactor, scrollTick);
+      const dx = Math.sign(rawDx) * cellWidth * 0.6 * accel;
+      const dy = Math.sign(rawDy) * rowHeight * 1.0 * accel;
 
-  const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
-  const baseDuration = 800;
+      // --- ⛔ 反方向滾動時清空 queue、停止動畫與慣性 ---
+      if (jobs.length > 0) {
+        const lastJob = jobs[jobs.length - 1];
+        const reversedX = lastJob.dx !== 0 && Math.sign(dx) !== Math.sign(lastJob.dx);
+        const reversedY = lastJob.dy !== 0 && Math.sign(dy) !== Math.sign(lastJob.dy);
 
-  // 加速系統
-  let lastScrollTime = 0;
-  let scrollTick = 0;
-  const maxTick = 20;
-  const accelerationFactor = 1.2;
+        if (reversedX || reversedY) {
+          jobs.length = 0;
+          animating = false;
 
-  // 慣性系統
-  let lastDx = 0;
-  let lastDy = 0;
-  let inertiaTimeout: number | null = null;
-  const inertiaDelay = 100;
-  const inertiaMultiplier = 0.25;
-
-  const animate = () => {
-    const now = performance.now();
-    let needNextFrame = false;
-
-    for (const job of jobs) {
-      const t = Math.min((now - job.start) / job.duration, 1);
-      const progress = easeOutCubic(t);
-      const deltaProgress = progress - job.lastProgress;
-
-      container.scrollLeft += job.dx * deltaProgress;
-      container.scrollTop += job.dy * deltaProgress;
-
-      job.lastProgress = progress;
-
-      if (t < 1) {
-        needNextFrame = true;
+          if (inertiaTimeout) {
+            clearTimeout(inertiaTimeout);
+            inertiaTimeout = null;
+          }
+        }
       }
-    }
 
-    while (jobs.length > 0 && jobs[0].lastProgress >= 1) {
-      jobs.shift();
-    }
 
-    if (jobs.length > 0 || needNextFrame) {
-      requestAnimationFrame(animate);
-    } else {
+      // 推入動畫任務
+      jobs.push({
+        dx,
+        dy,
+        start: performance.now(),
+        duration: baseDuration,
+        lastProgress: 0,
+      });
+
+      if (!animating) {
+        animating = true;
+        requestAnimationFrame(animate);
+      }
+
+      // ---- 慣性系統 ----
+      lastDx = dx;
+      lastDy = dy;
+
+      if (inertiaTimeout) clearTimeout(inertiaTimeout);
+      inertiaTimeout = window.setTimeout(() => {
+        const inertiaDx = lastDx * inertiaMultiplier;
+        const inertiaDy = lastDy * inertiaMultiplier;
+
+        if (inertiaDx !== 0 || inertiaDy !== 0) {
+          jobs.push({
+            dx: inertiaDx,
+            dy: inertiaDy,
+            start: performance.now(),
+            duration: baseDuration,
+            lastProgress: 0,
+          });
+
+          if (!animating) {
+            animating = true;
+            requestAnimationFrame(animate);
+          }
+        }
+      }, inertiaDelay);
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: false });
+
+    return () => {
+      container.removeEventListener("wheel", handleWheel);
+      jobs.length = 0;
       animating = false;
-    }
-  };
-
-  const handleWheel = (event: WheelEvent) => {
-    if (event.ctrlKey || event.deltaMode !== 0) return;
-    event.preventDefault();
-
-    const now = performance.now();
-    const dt = now - lastScrollTime;
-
-    // 判斷是否重置加速
-    if (dt > 150) scrollTick = 0;
-    scrollTick = Math.min(scrollTick + 1, maxTick);
-    lastScrollTime = now;
-
-    // 原始 delta 處理
-    const rawDx = event.deltaX || (Math.abs(event.deltaY) < 1 ? event.deltaY : 0);
-    const rawDy = event.deltaY;
-
-    // 加速倍率
-    const accel = Math.pow(accelerationFactor, scrollTick);
-    const dx = Math.sign(rawDx) * cellWidth * 0.6 * accel;
-    const dy = Math.sign(rawDy) * rowHeight * 1.0 * accel;
-
-    // --- ⛔ 反方向滾動時清空 queue、停止動畫與慣性 ---
-    if (jobs.length > 0) {
-      const lastJob = jobs[jobs.length - 1];
-      const reversedX = lastJob.dx !== 0 && Math.sign(dx) !== Math.sign(lastJob.dx);
-      const reversedY = lastJob.dy !== 0 && Math.sign(dy) !== Math.sign(lastJob.dy);
-
-      if (reversedX || reversedY) {
-        jobs.length = 0;
-        animating = false;
-
-        if (inertiaTimeout) {
-          clearTimeout(inertiaTimeout);
-          inertiaTimeout = null;
-        }
-      }
-    }
-
-
-    // 推入動畫任務
-    jobs.push({
-      dx,
-      dy,
-      start: performance.now(),
-      duration: baseDuration,
-      lastProgress: 0,
-    });
-
-    if (!animating) {
-      animating = true;
-      requestAnimationFrame(animate);
-    }
-
-    // ---- 慣性系統 ----
-    lastDx = dx;
-    lastDy = dy;
-
-    if (inertiaTimeout) clearTimeout(inertiaTimeout);
-    inertiaTimeout = window.setTimeout(() => {
-      const inertiaDx = lastDx * inertiaMultiplier;
-      const inertiaDy = lastDy * inertiaMultiplier;
-
-      if (inertiaDx !== 0 || inertiaDy !== 0) {
-        jobs.push({
-          dx: inertiaDx,
-          dy: inertiaDy,
-          start: performance.now(),
-          duration: baseDuration,
-          lastProgress: 0,
-        });
-
-        if (!animating) {
-          animating = true;
-          requestAnimationFrame(animate);
-        }
-      }
-    }, inertiaDelay);
-  };
-
-  container.addEventListener("wheel", handleWheel, { passive: false });
-
-  return () => {
-    container.removeEventListener("wheel", handleWheel);
-    jobs.length = 0;
-    animating = false;
-    if (inertiaTimeout) clearTimeout(inertiaTimeout);
-  };
-}, [rowHeight, cellWidth]);
-
-
-
-
+      if (inertiaTimeout) clearTimeout(inertiaTimeout);
+    };
+  }, [rowHeight, cellWidth]);
 
   
   return (
@@ -277,9 +185,11 @@ useEffect(() => {
         }}
       >
         <div id="sizer" style={{ width: cellWidth * (totalCol + 1), height: rowHeight * (totalRow + 1) }} />
-        <div id="vtable-content-grid" ref={gridsRef} 
+        <div id="vtable-content-grid" ref={gridRef} 
           style={{ position: "absolute", top: `${rowHeight}px`, left: `${cellWidth}px`, willChange: "transform"}}
         />
+
+        <GridContent gridRef={gridRef} containerRef={containerRef} />
       </div>
   );
 }

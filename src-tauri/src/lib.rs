@@ -4,14 +4,15 @@ use crate::{cell_plugins::{registry::CellPluginRegistry}, sheet_plugins::registr
 
 mod cell_plugins;
 mod sheet_plugins;
-mod my_api;
+mod api;
+mod export_types;
 
-
-use crate::my_api::load_sheet_data::load_sheet_data;
+use crate::api::load_sheet_data::load_sheet_data;
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    export_types::export_ts();
 
     let registry_cell: Arc<CellPluginRegistry> = Arc::new(CellPluginRegistry::new());
     let registry_sheet: Arc<SheetPluginRegistry> = Arc::new(SheetPluginRegistry::new());
