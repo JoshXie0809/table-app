@@ -5,14 +5,13 @@ use crate::{cell_plugins::{registry::CellPluginRegistry}, sheet_plugins::registr
 mod cell_plugins;
 mod sheet_plugins;
 mod api;
-mod export_types;
+pub mod export_types;
 
 use crate::api::load_sheet::load_sheet;
 use crate::api::load_cell_plugin_css_map::load_cell_plugin_css_map;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    export_types::export_ts();
 
     let registry_cell: Arc<CellPluginRegistry> = Arc::new(CellPluginRegistry::new());
     let registry_sheet: Arc<SheetPluginRegistry> = Arc::new(SheetPluginRegistry::new());
