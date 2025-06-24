@@ -6,6 +6,7 @@ import { SheetView11 } from "./my-components-v1/sheetView/SheetView-v1.tsx";
 import { loadSheet } from "./tauri-api/loadSheet.ts";
 import { LoadSheetRequest } from "./tauri-api/types/LoadSheetRequest.ts";
 import { loadCellPluginCssMap, injectCellPluginCSS } from "./tauri-api/loadAllCssMap.ts";
+import { createVirtualCellsFromBackend } from "./my-components-v1/createVirtualCells.ts";
 
 function App() {
 
@@ -16,7 +17,12 @@ function App() {
       async function fetch() {
         const arg: LoadSheetRequest = {sheetName: "test-test"};
         const test = await loadSheet(arg);
-        console.log(test.data!.cells[2].cellData.payload.displayValue);
+        
+        if(test.success){
+          let vc = createVirtualCellsFromBackend(test.data!);
+          console.log(vc);
+        }
+
         const css_map = await loadCellPluginCssMap();
         console.log(css_map)
 

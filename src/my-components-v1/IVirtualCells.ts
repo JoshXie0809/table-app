@@ -1,3 +1,4 @@
+import { CellContent } from "../tauri-api/types/CellContent";
 import { ICell } from "../tauri-api/types/ICell";
 // 假設你用的是這個型別，或 CellContent / SheetCell 之類
 
@@ -12,12 +13,12 @@ export interface IVirtualCells {
   /**
    * 用於從後端傳來的 cell 資料建立快取 Map
    */
-  setCell(row: number, col: number, cell: ICell): void;
+  setCell(cell: ICell): void;
 
   /**
    * 取得某格資料，未載入可能為 undefined
    */
-  getCell(row: number, col: number): ICell | undefined;
+  getCell(row: number, col: number): CellContent | undefined;
 
   /**
    * 是否存在指定格子（邊界檢查用）
