@@ -49,7 +49,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     let lastDy = 0;
     let inertiaTimeout: number | null = null;
     const inertiaDelay = 100;
-    const inertiaMultiplier = 0.25;
+    const inertiaMultiplier = 0.5;
 
     const animate = () => {
       const now = performance.now();
@@ -100,7 +100,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       // 加速倍率
       const accel = Math.pow(accelerationFactor, scrollTick);
       const dx = Math.sign(rawDx) * cellWidth * 0.6 * accel;
-      const dy = Math.sign(rawDy) * rowHeight * 1.0 * accel;
+      const dy = Math.sign(rawDy) * rowHeight * 0.8 * accel;
 
       // --- ⛔ 反方向滾動時清空 queue、停止動畫與慣性 ---
       if (jobs.length > 0) {

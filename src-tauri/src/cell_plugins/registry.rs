@@ -45,4 +45,16 @@ impl CellPluginRegistry {
     // fn register_custom_plugins(&mut self) {
     //     // 未來提供路徑動態讀取
     // }
+
+    pub fn get_all_css(&self) -> HashMap<String, String> 
+    {
+        let mut css_map = HashMap::new();
+
+        for (type_id, plugin) in &self.plugins 
+        {
+            css_map.insert(type_id.clone(), plugin.get_css());
+        }
+
+        css_map
+    }
 }

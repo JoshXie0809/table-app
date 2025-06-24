@@ -2,24 +2,10 @@ import React, { useEffect, useState } from "react";
 import { FluentProvider, webLightTheme, Text, webDarkTheme } from "@fluentui/react-components";
 import { FloatingInputPanel } from "./my-components-v0/ProtalPanel.tsx";
 
-import { invoke } from "@tauri-apps/api/core";
-import { ICell, IVirtualCells } from "./my-components-v1/IVirtualCells.ts";
-import { useVirtualCells, UseVirtualCellsOptions } from "./my-components-v1/hooks/useVirtualCell.ts";
 import { SheetView11 } from "./my-components-v1/sheetView/SheetView-v1.tsx";
-import { loadSheetData } from "./tauri-api/loadSheetData.ts";
+import { loadSheet } from "./tauri-api/loadSheet.ts";
 import { LoadSheetRequest } from "./tauri-api/types/LoadSheetRequest.ts";
-
-
-interface TauriApiLoadSheetResponse {
-    type: string;
-    sheetName: string;
-    rowCount: number;
-    colCount: number;
-    cellWidth: number;
-    cellHeight: number;
-    cells?: ICell[]; // 可選的初始 Cell 數據陣列
-}
-
+import { loadCellPluginCssMap, injectCellPluginCSS } from "./tauri-api/loadAllCssMap.ts";
 
 function App() {
 
@@ -29,10 +15,13 @@ function App() {
       
       async function fetch() {
         const arg: LoadSheetRequest = {sheetName: "test-test"};
-        const prev = performance.now();
-        const test = await loadSheetData(arg);
-        console.log(performance.now() - prev)
-        console.log(test);
+        const test = await loadSheet(arg);
+        console.log(test.data!.cells[2].cellData.payload.displayValue);
+        const css_map = await loadCellPluginCssMap();
+        console.log(css_map)
+
+        if(css_map.data)
+          injectCellPluginCSS(css_map.data)
       }
 
       fetch();

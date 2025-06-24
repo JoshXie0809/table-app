@@ -33,6 +33,9 @@ export class RManager {
     el.style.top = "0px";
     el.style.left = "0px";
     el.style.textRendering = "geometricPrecision";
+    el.style.display = "flex";
+    el.style.alignItems ='center';
+    el.style.justifyContent = 'center'; 
   }
 
   mountCell(cell: Cell) {
@@ -48,15 +51,7 @@ export class RManager {
 
     if(cell.valueRef.reactRoot) return;
     const root = createRoot(el);
-
-    // rendeer 還沒做
-    const r = cell.indexPath[0];
-    const c = cell.indexPath[1];
-    root.render(
-      <Text size={500} weight="semibold" font="monospace" align="center" wrap={false}>{`r${r}-c${c}`}</Text>    
-    );
-    cell.valueRef.reactRoot = root;
-    
+    cell.valueRef.reactRoot = root;    
     this.transformScheduler.markDirty(cell);
   }
 

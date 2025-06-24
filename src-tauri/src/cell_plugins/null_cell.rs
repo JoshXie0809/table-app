@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
-use crate::cell_plugins::{cell::BasePayload, rendering_config::DrawingCommand, CellPlugin};
+use crate::cell_plugins::{cell::BasePayload, CellPlugin};
 
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde_json::{json};
 
 
 
@@ -22,44 +22,31 @@ impl CellPlugin for NullCellPlugin {
 
     fn get_display_name(&self) -> &str { "空-Null" }
 
-    fn render_cell(
-        &self, 
-        row_index: i64, 
-        _col_index: i64,
-        _x: f32,                  // Cell 在整個 Canvas 上的絕對 X 座標 (由前端 Layout Engine 計算)
-        _y: f32,                  // Cell 在整個 Canvas 上的絕對 Y 座標 (由前端 Layout Engine 計算)
-        _width: f32,              // Cell 的實際寬度 (由前端 Layout Engine 計算)
-        _height: f32,             // Cell 的實際高度 (由前端 Layout Engine 計算)
-        _payload: &Value,
-    ) -> Result<DrawingCommand, String>
-    
-    {
-        let mut canvas_commads = DrawingCommand::new();
-
-        // #ffffff (255, 255, 255)
-        // #f9f9f9 (249, 249, 249)
-
-        // 繪製 Cell 背景 (白色)
-        if row_index % 2 != 0 {
-            canvas_commads.bg_fill_style = format!("#f9f9f9");
-        }
-
-        // 繪製 Cell 邊框 (#ddd)
-
-        
-        // 繪製文字內容
-        
-
-        Ok(canvas_commads)
-    }
-
     fn default_payload(&self) -> Result<BasePayload, String> {
         
         Ok(BasePayload {
             value: json!("".to_string()),
-            label: None,
+            display_value: None,
+            display_style: Some(None),
             extra_fields: HashMap::new()
         })
+    }
+
+    fn display_cell(&self, payload: BasePayload) -> String {
+        let val = payload.value;
+        return val.to_string();       
+    }
+
+    fn get_css(&self) -> String {
+        ".cell-plugin-null {
+            font-size: 14px;
+            font-family: monospace;
+            color: #aaa;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }"
+        .to_string()
     }
 
 }

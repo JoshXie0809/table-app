@@ -1,30 +1,51 @@
-import { ICellData } from "./ICellData";
-
-export interface ICell {
-    row: number;
-    col: number;
-    cellData: ICellData;
-}
+import { ICell } from "../tauri-api/types/ICell";
+// 假設你用的是這個型別，或 CellContent / SheetCell 之類
 
 export interface IVirtualCells {
-    readonly type: string;
+  readonly sheetName: string;
+  readonly gridType: string;
 
-    sheetName: string,
+  readonly sheetSize: { nRow: number; nCol: number };
+  readonly cellWidth: number;
+  readonly cellHeight: number;
 
-    cellsMap: Map<string, ICellData>;
-    fields: Map<string, any>;
-    
-    sheetSize: {nRow: number, nCol:number};
-    cellWidth: number;
-    cellHeight: number;
+  /**
+   * 用於從後端傳來的 cell 資料建立快取 Map
+   */
+  setCell(row: number, col: number, cell: ICell): void;
 
-    toKey: (row: number, col: number) => string | undefined;
-    toRC:  (key: string) => { row: number, col: number } | undefined;
+  /**
+   * 取得某格資料，未載入可能為 undefined
+   */
+  getCell(row: number, col: number): ICell | undefined;
 
-    setCellData: (cell:ICell) => void;
-    setCellDataBoundaryCheck: (cell:ICell) => boolean;
+  /**
+   * 是否存在指定格子（邊界檢查用）
+   */
+  hasCell(row: number, col: number): boolean;
 
-    getCellData: (row: number, col: number) => ICellData | undefined;
-    getCellDataBoundaryCheck: (row: number, col: number) => ICellData | null;
+  /**
+   * 標記格子 dirty
+   */
+  markDirty(row: number, col: number): void;
 
+  /**
+   * 回傳所有 dirty cell 的座標 key（"row:col"）
+   */
+  getDirtyKeys(): string[];
+
+  /**
+   * 清空 dirty 記錄，通常在 render 完後執行
+   */
+  clearDirty(): void;
+
+  /**
+   * 將 row, col 座標轉為 key，用於 Map 存取
+   */
+  toKey(row: number, col: number): string;
+
+  /**
+   * 將 key 還原成 row, col
+   */
+  toRC(key: string): { row: number; col: number };
 }

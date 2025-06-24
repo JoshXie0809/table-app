@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
-use crate::cell_plugins::{cell::BasePayload, rendering_config::DrawingCommand};
+use crate::cell_plugins::{cell::BasePayload};
 
 use super::CellPlugin;
 use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
-
+use serde_json::{json};
 
 pub struct TextCellPlugin;
 
@@ -23,54 +22,32 @@ impl CellPlugin for TextCellPlugin {
 
     fn get_display_name(&self) -> &str { "文字-Text" }
 
-    fn render_cell(
-        &self, 
-        row_index: i64, 
-        _col_index: i64,
-        x: f32,                  // Cell 在整個 Canvas 上的絕對 X 座標 (由前端 Layout Engine 計算)
-        y: f32,                  // Cell 在整個 Canvas 上的絕對 Y 座標 (由前端 Layout Engine 計算)
-        width: f32,              // Cell 的實際寬度 (由前端 Layout Engine 計算)
-        height: f32,             // Cell 的實際高度 (由前端 Layout Engine 計算)
-        payload: &Value,
-    ) -> Result<DrawingCommand, String>
-    
-    {
-        let data: TextCellPayload = serde_json::from_value(payload.clone())
-            .map_err(|e| e.to_string())?;
-
-        let display_text = match data.label {
-            Some(label_str) => label_str,
-            None => data.value,
-        };
-
-        let mut canvas_commads = DrawingCommand::new();
-
-        // #ffffff (255, 255, 255)
-        // #f9f9f9 (249, 249, 249)
-
-        // 繪製 Cell 背景 (白色)
-        if row_index % 2 != 0 {
-            canvas_commads.bg_fill_style = format!("#f9f9f9");
-        }
-
-        // 繪製 Cell 邊框 (#ddd)
-
-        
-        // 繪製文字內容
-        canvas_commads.text = display_text;
-        canvas_commads.text_x = 4.0 + x + width * 0.5;
-        canvas_commads.text_y = y + height * 0.5;
-
-        Ok(canvas_commads)
-    }
+    fn display_cell(&self, payload: BasePayload) -> String {
+        let val = payload.value;
+        return val.to_string();       
+    }    
 
     fn default_payload(&self) -> Result<BasePayload, String> {
 
         Ok(BasePayload {
             value: json!("".to_string()),
-            label: None,
+            display_style: None,
+            display_value: Some(None),
             extra_fields: HashMap::new(),
         })
+    }
+
+    fn get_css(&self) -> String {
+        ".cell-plugin-text {
+            font-size: 14px;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
+            color: #222;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }"
+        .to_string()
     }
 
 }

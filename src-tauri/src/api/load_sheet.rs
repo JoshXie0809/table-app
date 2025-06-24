@@ -10,7 +10,7 @@ use super::base::ApiResponse;
 
 
 #[tauri::command]
-pub fn load_sheet_data(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegistry>>) 
+pub fn load_sheet(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegistry>>) 
     -> ApiResponse<FrontedSheetData> 
 {
     let _ = arg.sheet_name; // 正常流程要到資料庫尋找資料

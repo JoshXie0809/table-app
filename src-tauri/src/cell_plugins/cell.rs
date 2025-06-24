@@ -9,6 +9,7 @@ use ts_rs::TS;
 pub struct CellContent {
     #[serde(rename = "type")] // 前端的 key 是 "type"，這裡需要指定
     pub cell_type_id: String, // 將前端的 "type" 映射到 Rust 的 cell_type_id
+
     pub payload: BasePayload,       // 前端的 "payload"
 }
 
@@ -17,10 +18,19 @@ pub struct CellContent {
 pub struct BasePayload {
     #[ts(type="any")]
     pub value: Value, // value 字段可以是任何類型，所以用 Value
-    pub label: Option<String>, // label 字段必須是 String
+    #[serde(skip_serializing_if = "skip_if_outer_none")]
+    #[ts(type = "string | null | undefined")]
+    pub display_value: Option<Option<String>>, 
+    #[serde(skip_serializing_if = "skip_if_outer_none")]
+    #[ts(type = "string | null | undefined")]
+    pub display_style: Option<Option<String>>, // 回傳 css-class
 
     // 都收集到 'extra_fields' 這個 HashMap 中。
     // 這保留了 payload 的彈性，允許不同 CellType 有不同的額外字段。
     #[ts(type="Record<string, any>")]
     pub extra_fields: HashMap<String, Value>,
+}
+
+fn skip_if_outer_none<T>(value: &Option<Option<T>>) -> bool {
+    value.is_none()
 }

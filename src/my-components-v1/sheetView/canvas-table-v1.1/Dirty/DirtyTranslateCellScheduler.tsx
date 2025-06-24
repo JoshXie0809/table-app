@@ -1,5 +1,6 @@
 import { Text } from "@fluentui/react-components";
 import { Cell } from "../Cell";
+import { SimpleCellSkeleton } from "./simpleSkeloton";
 
 export class DirtyTranslateCellScheduler {
   private dirtyCells = new Set<Cell>();
@@ -52,18 +53,6 @@ export class DirtyTranslateCellScheduler {
     }
 
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
-
-    const root = cell.valueRef.reactRoot;
-    if(!root) return;
-    
-    const r = cell.indexPath[0];
-    const c = cell.indexPath[1];
-    const bgc = r % 2 === 0 ? "#ffffff" : "#f7f7f7";
-    el.style.backgroundColor = bgc;
-    root.render(
-      <Text size={500} weight="semibold" font="monospace" align="center" wrap={false}>{`r${r}:c${c}`}</Text>
-    );
-
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
   }
