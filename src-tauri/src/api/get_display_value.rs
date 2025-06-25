@@ -1,39 +1,57 @@
 use std::sync::Arc;
 
+use rayon::prelude::*;
 use serde::{Deserialize, Serialize};
 use tauri::{command, State};
 use ts_rs::TS;
 
-use crate::{api::{base::ApiResponse, load_sheet::ICell}, cell_plugins::registry::CellPluginRegistry};
+use crate::{
+    api::{base::ApiResponse, load_sheet::ICell},
+    cell_plugins::registry::CellPluginRegistry,
+};
 
 #[command]
-pub fn get_display_value(arg: GetDisplayValueRequest, state: State::<'_, Arc<CellPluginRegistry>>) 
-    -> ApiResponse<DisplayValues>
-{
-    let cells = arg.cells;
-    let mut ret: DisplayValues = DisplayValues(vec![]);
+pub fn get_display_value(
+    arg: GetDisplayValueRequest,
+    state: State<'_, Arc<CellPluginRegistry>>,
+) -> ApiResponse<DisplayCellResults> {
+    let plugin_registry = state.clone();
 
-    for cell in cells.into_iter() {
-        let c = cell.cell_data;
-        let plugin = state.get_plugin(&c.cell_type_id);
+    let results: Vec<DisplayCellResult> = arg
+        .cells
+        .into_par_iter()
+        .map(|cell| {
+            let cell_data = &cell.cell_data;
+            match plugin_registry.get_plugin(&cell_data.cell_type_id) {
+                Some(plugin) => {
+                    let display = plugin.display_cell(cell_data.payload.clone());
+                    DisplayCellResult {
+                        row: cell.row,
+                        col: cell.col,
+                        ok: true,
+                        display_value: Some(display),
+                        error: None,
+                    }
+                }
+                None => DisplayCellResult {
+                    row: cell.row,
+                    col: cell.col,
+                    ok: false,
+                    display_value: None,
+                    error: Some(format!(
+                        "r:{}, c:{}, unknown plugin `{}`",
+                        cell.row, cell.col, cell_data.cell_type_id
+                    )),
+                },
+            }
+        })
+        .collect();
 
-        let plugin = match plugin {
-            Some(p) => p,
-            None => return ApiResponse {
-                success: false, 
-                data: None, 
-                error: Some(format!("r:{}, c:{}, cell-type error", cell.row, cell.col))
-            },
-        };
-
-        let dv = plugin.display_cell(c.payload);
-        ret.0.push(DisplayValue {row: cell.row, col: cell.col, display_value: dv });
+    ApiResponse {
+        success: true,
+        data: Some(DisplayCellResults(results)),
+        error: None,
     }
-    ApiResponse{
-            success: true,
-            data: Some(ret),
-            error: None,
-        }
 }
 
 #[derive(Deserialize, TS)]
@@ -44,17 +62,18 @@ pub struct GetDisplayValueRequest {
 }
 
 
+
 #[derive(Serialize, TS)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
-pub struct DisplayValue {
-    row: u32,
-    col: u32,
-    display_value: String
+pub struct DisplayCellResult {
+    pub row: u32,
+    pub col: u32,
+    pub ok: bool,
+    pub display_value: Option<String>,
+    pub error: Option<String>,
 }
 
 #[derive(Serialize, TS)]
 #[ts(export)]
-pub struct DisplayValues(pub Vec<DisplayValue>);
-
-
+pub struct DisplayCellResults(pub Vec<DisplayCellResult>);

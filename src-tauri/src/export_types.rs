@@ -2,7 +2,7 @@ use std::process::Command;
 
 use ts_rs::TS;
 use crate::api::{
-    get_display_value::{DisplayValues, GetDisplayValueRequest}, load_cell_plugin_css_map::CssMap, load_sheet::{FrontedSheetData, LoadSheetRequest}
+    get_display_value::{DisplayCellResults, GetDisplayValueRequest}, load_cell_plugin_css_map::CssMap, load_sheet::{FrontedSheetData, LoadSheetRequest}
 };
 
 pub fn export_ts() 
@@ -29,7 +29,7 @@ pub fn export_ts()
         export_all_to(&out_dir)
         .unwrap();
 
-    DisplayValues::
+    DisplayCellResults::
         export_all_to(&out_dir)
         .unwrap();
     
