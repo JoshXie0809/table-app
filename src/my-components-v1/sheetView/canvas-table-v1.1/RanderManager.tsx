@@ -1,7 +1,8 @@
 import { Cell } from "./Cell";
 import { createRoot } from "react-dom/client";
 import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
-import { Text } from "@fluentui/react-components";
+import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
+import { VirtualCells } from "../../VirtualCells";
 
 // render-manager
 export class RManager {
@@ -10,15 +11,16 @@ export class RManager {
   private container: HTMLElement;
 
   private domPool: Map<string, HTMLElement> = new Map();
-  private dirtyCells = new Set<Cell>() ;
 
   transformScheduler: DirtyTranslateCellScheduler;
+  contentScheduler: DirtyCellContentScheduler;
 
-  constructor(rowHeight: number, cellWidth: number, container: HTMLElement) {
+  constructor(rowHeight: number, cellWidth: number, container: HTMLElement, vc: VirtualCells) {
     this.cellWidth = cellWidth;
     this.rowHeight = rowHeight;
     this.container = container;
     this.transformScheduler = new DirtyTranslateCellScheduler(this.rowHeight, this.cellWidth);
+    this.contentScheduler = new DirtyCellContentScheduler(vc);
   }
 
   private initCellStyle(el: HTMLElement, cellWidth: number, rowHeight: number) {
@@ -53,6 +55,7 @@ export class RManager {
     const root = createRoot(el);
     cell.valueRef.reactRoot = root;    
     this.transformScheduler.markDirty(cell);
+    this.contentScheduler.markDirty(cell);
   }
 
   /** 卸載：清除 DOM 與 ReactRoot */
@@ -69,34 +72,12 @@ export class RManager {
   }
 
   markDirty(cell: Cell): void {
-    this.dirtyCells.add(cell);
     this.transformScheduler.markDirty(cell);
+    this.contentScheduler.markDirty(cell);
   }
 
-  flush(): void {
-    for (const cell of this.dirtyCells) {
-      const el = cell.valueRef.el;
-      if (!el) continue;
+  flush(): void {    
 
-      const row = cell.indexPath[cell.indexPath.length - 2];
-      const col = cell.indexPath[cell.indexPath.length - 1];
-      
-      el.style.transform = `translate3d(${col * this.cellWidth}px, ${row * this.rowHeight}px, 0)`;
-      el.style.width = `${this.cellWidth}px`;
-      el.style.height = `${this.rowHeight}px`;
-      el.style.boxSizing = "border-box";
-      
-      const root = cell.valueRef.reactRoot;
-      if(!root) continue;
-      
-      const r = cell.indexPath[0];
-      const c = cell.indexPath[1];
-      root.render(
-        <Text size={300} weight="semibold" font="monospace" align="center" wrap={false}>{`${189*r+179*c}`}</Text>
-      );
-    }
-
-    this.dirtyCells.clear();
   }
 
 }

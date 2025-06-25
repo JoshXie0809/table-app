@@ -20,6 +20,9 @@ export interface IVirtualCells {
    */
   getCell(row: number, col: number): CellContent | undefined;
 
+
+  getCellDisplayValue(row: number, col: number): string | null;
+
   /**
    * 是否存在指定格子（邊界檢查用）
    */

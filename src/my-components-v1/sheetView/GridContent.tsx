@@ -4,17 +4,20 @@ import React, { RefObject, useEffect, useRef } from "react"
 import { VManager } from "./canvas-table-v1.1/VirtualizationMangaer";
 import { RManager } from "./canvas-table-v1.1/RanderManager";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
+import { VirtualCells } from "../VirtualCells";
 
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
   gridRef: RefObject<HTMLDivElement>;
+  vcRef: RefObject<VirtualCells>;
 }
 
 
 export const GridContent : React.FC<GridContentProps> = ({
   containerRef,
   gridRef,
+  vcRef,
 }) => {
 
   const vmRef = useRef<null | VManager>(null);
@@ -27,8 +30,9 @@ export const GridContent : React.FC<GridContentProps> = ({
   const cellWidth = 152;  
 
   useEffect(() => {
-    if(!gridRef.current) return;
+    if(!gridRef.current || !vcRef.current) return;
     const container = gridRef.current;
+    const vc = vcRef.current;
 
     const vm = new VManager(
       containerDim,
@@ -37,7 +41,7 @@ export const GridContent : React.FC<GridContentProps> = ({
       rowHeight, cellWidth, 
       2, 2);
 
-    const rm = new RManager(rowHeight, cellWidth, container);
+    const rm = new RManager(rowHeight, cellWidth, container, vc);
 
     vmRef.current = vm ;
     rmRef.current = rm; 
@@ -46,11 +50,15 @@ export const GridContent : React.FC<GridContentProps> = ({
     const cells = vm.nplctrler.pool.map((cell) => cell).flat();
     cells.forEach(cell => rm.mountCell(cell));
     rm.transformScheduler.setExternalFlushMode(true);
+    rm.contentScheduler.setExternalFlushMode(true);
+
     rm.transformScheduler.flush();
+    rm.contentScheduler.flush();
 
     return () => {
       queueMicrotask(() => {
         rm.transformScheduler.flush();
+        rm.contentScheduler.flush();
         const cells = vm.nplctrler.pool.map((cell) => cell).flat();
         cells.forEach(cell => rm.unmountCell(cell));
       });
@@ -68,7 +76,10 @@ export const GridContent : React.FC<GridContentProps> = ({
     queueMicrotask(() => {
       diff.deleted.forEach(cell => rm.unmountCell(cell));
     });
+
     rm.transformScheduler.flush()
+    rm.contentScheduler.flush();
+
   }, [containerDim])
 
 
@@ -89,6 +100,7 @@ export const GridContent : React.FC<GridContentProps> = ({
           const updatedCells = vm.scrollBy(ScrollTop, scrollLeft);
           updatedCells.forEach(cell => rm.markDirty(cell));
           rm.transformScheduler.flush();
+          rm.contentScheduler.flush();
 
           ticking = false;
         });

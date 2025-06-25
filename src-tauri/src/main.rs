@@ -4,8 +4,9 @@
 use table_lib::export_types::export_ts;
 
 fn main() {
+    
     let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 && args[1] == "export-ts" {
+    if args.get(1).map(|s| s.as_str()) == Some("export-ts") {
         export_ts();
         return;
     }

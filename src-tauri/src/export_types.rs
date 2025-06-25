@@ -2,12 +2,17 @@ use std::process::Command;
 
 use ts_rs::TS;
 use crate::api::{
-    load_cell_plugin_css_map::CssMap, load_sheet::{FrontedSheetData, LoadSheetRequest}
+    get_display_value::{DisplayValues, GetDisplayValueRequest}, load_cell_plugin_css_map::CssMap, load_sheet::{FrontedSheetData, LoadSheetRequest}
 };
 
 pub fn export_ts() 
 {
-    let out_dir = "../src/tauri-api/types".to_string();
+    let out_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent().unwrap() // 回到 React 專案根
+        .join("src")
+        .join("tauri-api")
+        .join("types");
+
     FrontedSheetData::
         export_all_to(&out_dir)
         .unwrap();
@@ -20,10 +25,19 @@ pub fn export_ts()
         export_all_to(&out_dir)
         .unwrap();
 
-    let _ = Command::new("npx.cmd")
-        .args(["prettier", "--write", &format!("{}/**/*.ts", out_dir)])
+    GetDisplayValueRequest::
+        export_all_to(&out_dir)
+        .unwrap();
+
+    DisplayValues::
+        export_all_to(&out_dir)
+        .unwrap();
+    
+    let npx = if cfg!(target_os = "windows") { "npx.cmd" } else { "npx" };
+    let _ = Command::new(npx)
+        .args(["prettier", "--write", &format!("{}/**/*.ts", out_dir.to_string_lossy())])
         .status()
         .expect("failed to format with prettier");
 
-    println!("✅ TypeScript generated to `{}`", out_dir);
+    println!("✅ TypeScript generated to `{}`", out_dir.to_string_lossy());
 }

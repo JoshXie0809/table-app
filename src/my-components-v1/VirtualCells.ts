@@ -39,6 +39,26 @@ export class VirtualCells implements IVirtualCells {
     return this.cellsMap.get(this.toKey(row, col));
   }
 
+  getCellDisplayValue(row: number, col: number): string | null {
+    const cell = this.getCell(row, col);
+    // 暫定邏輯 要改成去取得 textCell default value
+    if(cell === undefined) return "";
+
+    
+    if(cell.payload.displayValue)
+      return cell.payload.displayValue;
+    // display Value 邏輯
+    // 如果是 null 要向後端請求 or AST 邏輯發起請求
+    else if(cell.payload.displayValue === null) 
+      return null;
+    // request ...
+    // 代表這個 cell-type 沒有 displayValue 這個欄位邏輯 約定直接用 value 代替
+    else if(cell.payload.displayStyle === undefined)
+      return String(cell.payload.value);
+    
+    return "";
+  }
+
   hasCell(row: number, col: number): boolean {
     return this.cellsMap.has(this.toKey(row, col));
   }

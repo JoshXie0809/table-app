@@ -50,7 +50,7 @@ pub fn load_sheet(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegist
                     },
                 };
 
-                pl.value = json!(format!("模擬數據 r: {}, c: {}", r, c));
+                pl.value = json!(format!("模擬數據 r: {}, c: {} ⚡⚡", r, c));
                 let cell = CellContent {
                     cell_type_id: "Text".to_string(),
                     payload: pl
@@ -94,12 +94,12 @@ pub struct FrontedSheetData
     pub fields: HashMap<String, Value>,
 }
 
-#[derive(Serialize, TS)]
+#[derive(Deserialize, Serialize, TS)]
 #[serde(rename_all="camelCase")]
 pub struct ICell {
-    row: u32,
-    col: u32,
-    cell_data: CellContent
+    pub row: u32,
+    pub col: u32,
+    pub cell_data: CellContent
 }
 
 

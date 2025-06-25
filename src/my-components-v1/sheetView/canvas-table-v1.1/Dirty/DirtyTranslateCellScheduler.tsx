@@ -1,6 +1,4 @@
-import { Text } from "@fluentui/react-components";
 import { Cell } from "../Cell";
-import { SimpleCellSkeleton } from "./simpleSkeloton";
 
 export class DirtyTranslateCellScheduler {
   private dirtyCells = new Set<Cell>();
@@ -55,5 +53,6 @@ export class DirtyTranslateCellScheduler {
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
+    
   }
 }

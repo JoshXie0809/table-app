@@ -32,7 +32,7 @@ impl CellPlugin for TextCellPlugin {
         Ok(BasePayload {
             value: json!("".to_string()),
             display_style: None,
-            display_value: Some(None),
+            display_value: None,
             extra_fields: HashMap::new(),
         })
     }

@@ -1,17 +1,17 @@
-import React, { useEffect, useRef } from "react";
-import { useVirtualCells, UseVirtualCellsOptions } from "../hooks/useVirtualCell";
+import React, { RefObject, useEffect, useRef } from "react";
 import { GridContent } from "./GridContent";
+import { VirtualCells } from "../VirtualCells";
 
 export interface SheetViewProps {
-  // options: UseVirtualCellsOptions;
+  vcRef: RefObject<VirtualCells>
 }
 
 export const SheetView11: React.FC<SheetViewProps> = ({
-  // options
+  vcRef,
 }) =>
 {
   
-  // const virtualCells = useVirtualCells(options);
+  console.log(vcRef)
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +111,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
         if (reversedX || reversedY) {
           jobs.length = 0;
           animating = false;
+          scrollTick = 0;
 
           if (inertiaTimeout) {
             clearTimeout(inertiaTimeout);
@@ -189,7 +190,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
           style={{ position: "absolute", top: `${rowHeight}px`, left: `${cellWidth}px`, willChange: "transform"}}
         />
 
-        <GridContent gridRef={gridRef} containerRef={containerRef} />
+        <GridContent gridRef={gridRef} containerRef={containerRef} vcRef={vcRef}/>
       </div>
   );
 }
