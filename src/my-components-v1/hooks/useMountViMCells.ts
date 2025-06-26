@@ -9,6 +9,8 @@ export interface UseMountVMCellsProps {
   vcRef: RefObject<VirtualCells>;
   vmRef: MutableRefObject<null | VManager>;
   rmRef: MutableRefObject<null | RManager>;
+  overScanRow?: number;
+  overScanCol?: number;
 }
 
 export function useMountVMCells({
@@ -17,6 +19,8 @@ export function useMountVMCells({
   vcRef,
   vmRef,
   rmRef,
+  overScanRow = 2,
+  overScanCol = 2,
 }: UseMountVMCellsProps) {
   useEffect(() => {
     console.log("🟢 useMountVMCells mounted", { vm: vmRef.current, rm: rmRef.current });
@@ -41,8 +45,8 @@ export function useMountVMCells({
       dataTotalCol,
       rowHeight,
       cellWidth,
-      2,
-      2
+      overScanRow,
+      overScanCol,
     );
 
     rmRef.current = new RManager(

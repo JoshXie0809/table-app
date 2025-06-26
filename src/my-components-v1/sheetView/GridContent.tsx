@@ -5,6 +5,8 @@ import { RManager } from "./canvas-table-v1.1/RanderManager";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import { VirtualCells } from "../VirtualCells";
 import { useMountVMCells } from "../hooks/useMountViMCells";
+import { usePolling } from "../hooks/usePolling";
+import { useSyncContainerDimes } from "../hooks/useSyncContainerDims";
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -18,135 +20,39 @@ export const GridContent: React.FC<GridContentProps> = ({
   vcRef,
 }) => {
 
-
+  // 時刻監聽 container 變化
   const containerDims = useContainerDimensions(containerRef);
-  const pollingRef = useRef<number | null>(null); // request loop timer
-  const scrollStopTimer = useRef<number | null>(null); // scroll debounce
 
   const vmRef = useRef<null | VManager>(null);
   const rmRef = useRef<null | RManager>(null);
+  const scrollStopTimer = useRef<number | null>(null); 
 
+
+  const {stopPolling, startPollingIfDirty} = usePolling(vcRef, rmRef);
+
+  // 初始化 managers
   useMountVMCells({
-    containerRef: gridRef,
+    containerRef: gridRef, // 這裡我們要將 grid content 掛上去
     containerDims,
     vcRef,
     vmRef,
     rmRef,
   });
 
+  // 初始化後就開始檢查
+  if(vmRef.current && rmRef.current) startPollingIfDirty();
 
-
-  const stopPolling = () => {
-    if (pollingRef.current !== null) {
-      clearTimeout(pollingRef.current);
-      pollingRef.current = null;
-    } else {
-    }
-  };
-
-  const startPollingIfDirty = () => {
-    // 每次啟動前，都先嘗試停止一次，確保狀態正確
-    // 這會將 pollingRef.current 設為 null，避免 'if (pollingRef.current !== null) return;' 阻擋後續啟動
-    stopPolling(); 
-
-    // 定義輪詢執行函數
-    const run = async () => {
-      if (!vcRef.current) {
-        stopPolling(); // 如果 vcRef.current 不存在，則停止輪詢 (組件可能已卸載)
-        return;
-      }
-
-      if(!rmRef.current) return;
-      // 只有在有髒數據時才請求更新
-      if (rmRef.current.contentScheduler.dirtyCells.size > 0) {
-        rmRef.current?.contentScheduler.flush(); // 刷新渲染管理器
-      }
-
-      // 不論是否有髒數據，都排程下一次輪詢
-      pollingRef.current = window.setTimeout(run, 50); // 約 20 fps
-    };
-
-    // 立即啟動第一次輪詢
-    pollingRef.current = window.setTimeout(run, 50);
-  };
-
-  // const totalRow = vcRef.current!.sheetSize.nRow ;
-  // const totalCol = vcRef.current!.sheetSize.nCol;
-  // const rowHeight = 44;
-  // const cellWidth = 152;
-
-  // // 初始化階段 (類似 componentDidMount)
-  // useEffect(() => {
-  //   if (!gridRef.current || !vcRef.current) return;
-  //   const container = gridRef.current;
-  //   const vc = vcRef.current;
-
-  //   const vm = new VManager(
-  //     containerDims,
-  //     totalRow,
-  //     totalCol,
-  //     rowHeight,
-  //     cellWidth,
-  //     2,
-  //     2
-  //   );
-
-  //   const rm = new RManager(rowHeight, cellWidth, container, vcRef);
-
-  //   vmRef.current = vm;
-  //   rmRef.current = rm;
-
-  //   // mount init cell
-  //   const cells = vm.nplctrler.pool.map((cell) => cell).flat();
-  //   cells.forEach((cell) => rm.mountCell(cell));
-  //   rm.transformScheduler.setExternalFlushMode(true);
-  //   rm.contentScheduler.setExternalFlushMode(true);
-
-  //   rm.flush();
-
-  //   // 首次載入時也需要請求顯示值
-  //   vc.requestDisplayValueAndUpdate();
-
-  //   // 首次載入後啟動輪詢
-  //   startPollingIfDirty();
-
-  //   // 清理階段 (類似 componentWillUnmount)
-  //   return () => {
-  //     // 確保在組件卸載前清理所有排程和單元格
-  //     stopPolling(); // 停止所有輪詢
-  //     if (scrollStopTimer.current !== null) {
-  //       clearTimeout(scrollStopTimer.current);
-  //     }
-  //     queueMicrotask(() => {
-  //       rm.clear();
-  //       const cellsToUnmount = vm.getAllCells();
-  //       cellsToUnmount.forEach((cell) => rm.unmountCell(cell));
-  //     });
-  //   };
-  // }, []); // 空依賴陣列表示只在組件 mount 和 unmount 時執行
-
-
-  // 容器尺寸變化時
-  useEffect(() => {
-    if (!containerRef.current) return;
-    if (!vmRef.current || !rmRef.current || !vcRef.current) return;
-    const vm = vmRef.current;
-    const rm = rmRef.current;
-    const vc = vcRef.current;
-
-    const diff = vm.setContainerDims(containerDims);
-    diff.added.forEach((cell) => rm.mountCell(cell));
-    
-    queueMicrotask(() => diff.deleted.forEach((cell) => rm.unmountCell(cell)));
-
-    rm.transformScheduler.flush();
-    rm.contentScheduler.flush();
-    vc.requestDisplayValueAndUpdate();
-
-    // 尺寸變化後也啟動輪詢 (確保輪詢在任何情況下都能重新啟動或保持運行)
-    startPollingIfDirty();
-  }, [containerDims]); // 依賴 containerDim，當尺寸變化時執行
-
+  // 監聽尺寸變化事件
+  useSyncContainerDimes(
+    containerRef,
+    containerDims,
+    vcRef,
+    vmRef,
+    rmRef,
+    stopPolling,
+    startPollingIfDirty,
+  )
+  
   // 滾動事件處理
   useEffect(() => {
     if(!containerRef.current) return;
