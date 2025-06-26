@@ -28,10 +28,10 @@ pub fn load_sheet(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegist
     let sheet_type: String = "DefaultGrid".to_string();
     let sheet_name: String = "hello world".to_string();
 
-    let row_count: u32 = 1280;
-    let col_count: u32 = 128;
-    let cell_width: u32 = 112;
-    let cell_height: u32 =  44;
+    let row_count: u32 = 12800;
+    let col_count: u32 = 1280;
+    let cell_width: u32 = 160;
+    let cell_height: u32 =  56;
     let mut cells: Vec<ICell> = vec![];
     let fields = HashMap::new();
 

@@ -80,7 +80,14 @@ export class RManager {
   }
 
   flush(): void {    
+    // 移動要最先
+    this.transformScheduler.flush();
+    this.contentScheduler.flush();
+  }
 
+  clear(): void {
+    this.transformScheduler.clear();
+    this.contentScheduler.clear();
   }
 
 }

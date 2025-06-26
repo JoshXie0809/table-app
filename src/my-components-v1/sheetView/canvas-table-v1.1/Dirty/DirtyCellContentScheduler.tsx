@@ -49,7 +49,8 @@ export class DirtyCellContentScheduler {
     const displayText = vc.getCellDisplayValue(row, col);
 
     if(displayText === null) {
-      this.markDirty(cell);
+      // 不刪除即可
+      // this.markDirty(cell);
       root.render(<SimpleCellSkeleton />);
     }
     else {

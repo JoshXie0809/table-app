@@ -4,6 +4,7 @@ import { VManager } from "./canvas-table-v1.1/VirtualizationMangaer";
 import { RManager } from "./canvas-table-v1.1/RanderManager";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import { VirtualCells } from "../VirtualCells";
+import { useMountVMCells } from "../hooks/useMountViMCells";
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -16,11 +17,24 @@ export const GridContent: React.FC<GridContentProps> = ({
   gridRef,
   vcRef,
 }) => {
-  const vmRef = useRef<null | VManager>(null);
-  const rmRef = useRef<null | RManager>(null);
-  const containerDim = useContainerDimensions(containerRef);
+
+
+  const containerDims = useContainerDimensions(containerRef);
   const pollingRef = useRef<number | null>(null); // request loop timer
   const scrollStopTimer = useRef<number | null>(null); // scroll debounce
+
+  const vmRef = useRef<null | VManager>(null);
+  const rmRef = useRef<null | RManager>(null);
+
+  useMountVMCells({
+    containerRef: gridRef,
+    containerDims,
+    vcRef,
+    vmRef,
+    rmRef,
+  });
+
+
 
   const stopPolling = () => {
     if (pollingRef.current !== null) {
@@ -37,7 +51,6 @@ export const GridContent: React.FC<GridContentProps> = ({
 
     // 定義輪詢執行函數
     const run = async () => {
-
       if (!vcRef.current) {
         stopPolling(); // 如果 vcRef.current 不存在，則停止輪詢 (組件可能已卸載)
         return;
@@ -48,7 +61,6 @@ export const GridContent: React.FC<GridContentProps> = ({
       if (rmRef.current.contentScheduler.dirtyCells.size > 0) {
         rmRef.current?.contentScheduler.flush(); // 刷新渲染管理器
       }
-      
 
       // 不論是否有髒數據，都排程下一次輪詢
       pollingRef.current = window.setTimeout(run, 50); // 約 20 fps
@@ -58,61 +70,61 @@ export const GridContent: React.FC<GridContentProps> = ({
     pollingRef.current = window.setTimeout(run, 50);
   };
 
-  const totalRow = 102400;
-  const totalCol = 128;
-  const rowHeight = 44;
-  const cellWidth = 152;
+  // const totalRow = vcRef.current!.sheetSize.nRow ;
+  // const totalCol = vcRef.current!.sheetSize.nCol;
+  // const rowHeight = 44;
+  // const cellWidth = 152;
 
-  // 初始化階段 (類似 componentDidMount)
-  useEffect(() => {
-    if (!gridRef.current || !vcRef.current) return;
-    const container = gridRef.current;
-    const vc = vcRef.current;
+  // // 初始化階段 (類似 componentDidMount)
+  // useEffect(() => {
+  //   if (!gridRef.current || !vcRef.current) return;
+  //   const container = gridRef.current;
+  //   const vc = vcRef.current;
 
-    const vm = new VManager(
-      containerDim,
-      totalRow,
-      totalCol,
-      rowHeight,
-      cellWidth,
-      2,
-      2
-    );
+  //   const vm = new VManager(
+  //     containerDims,
+  //     totalRow,
+  //     totalCol,
+  //     rowHeight,
+  //     cellWidth,
+  //     2,
+  //     2
+  //   );
 
-    const rm = new RManager(rowHeight, cellWidth, container, vcRef);
+  //   const rm = new RManager(rowHeight, cellWidth, container, vcRef);
 
-    vmRef.current = vm;
-    rmRef.current = rm;
+  //   vmRef.current = vm;
+  //   rmRef.current = rm;
 
-    // mount init cell
-    const cells = vm.nplctrler.pool.map((cell) => cell).flat();
-    cells.forEach((cell) => rm.mountCell(cell));
-    rm.transformScheduler.setExternalFlushMode(true);
-    rm.contentScheduler.setExternalFlushMode(true);
+  //   // mount init cell
+  //   const cells = vm.nplctrler.pool.map((cell) => cell).flat();
+  //   cells.forEach((cell) => rm.mountCell(cell));
+  //   rm.transformScheduler.setExternalFlushMode(true);
+  //   rm.contentScheduler.setExternalFlushMode(true);
 
-    rm.transformScheduler.flush();
-    rm.contentScheduler.flush();
-    // 首次載入時也需要請求顯示值
-    vc.requestDisplayValueAndUpdate();
+  //   rm.flush();
 
-    // 首次載入後啟動輪詢
-    startPollingIfDirty();
+  //   // 首次載入時也需要請求顯示值
+  //   vc.requestDisplayValueAndUpdate();
 
-    // 清理階段 (類似 componentWillUnmount)
-    return () => {
-      // 確保在組件卸載前清理所有排程和單元格
-      stopPolling(); // 停止所有輪詢
-      if (scrollStopTimer.current !== null) {
-        clearTimeout(scrollStopTimer.current);
-      }
-      queueMicrotask(() => {
-        rm.transformScheduler.flush();
-        rm.contentScheduler.clear();
-        const cellsToUnmount = vm.nplctrler.pool.map((cell) => cell).flat();
-        cellsToUnmount.forEach((cell) => rm.unmountCell(cell));
-      });
-    };
-  }, []); // 空依賴陣列表示只在組件 mount 和 unmount 時執行
+  //   // 首次載入後啟動輪詢
+  //   startPollingIfDirty();
+
+  //   // 清理階段 (類似 componentWillUnmount)
+  //   return () => {
+  //     // 確保在組件卸載前清理所有排程和單元格
+  //     stopPolling(); // 停止所有輪詢
+  //     if (scrollStopTimer.current !== null) {
+  //       clearTimeout(scrollStopTimer.current);
+  //     }
+  //     queueMicrotask(() => {
+  //       rm.clear();
+  //       const cellsToUnmount = vm.getAllCells();
+  //       cellsToUnmount.forEach((cell) => rm.unmountCell(cell));
+  //     });
+  //   };
+  // }, []); // 空依賴陣列表示只在組件 mount 和 unmount 時執行
+
 
   // 容器尺寸變化時
   useEffect(() => {
@@ -122,7 +134,7 @@ export const GridContent: React.FC<GridContentProps> = ({
     const rm = rmRef.current;
     const vc = vcRef.current;
 
-    const diff = vm.setContainerDims(containerDim);
+    const diff = vm.setContainerDims(containerDims);
     diff.added.forEach((cell) => rm.mountCell(cell));
     
     queueMicrotask(() => diff.deleted.forEach((cell) => rm.unmountCell(cell)));
@@ -130,24 +142,25 @@ export const GridContent: React.FC<GridContentProps> = ({
     rm.transformScheduler.flush();
     rm.contentScheduler.flush();
     vc.requestDisplayValueAndUpdate();
-    
 
     // 尺寸變化後也啟動輪詢 (確保輪詢在任何情況下都能重新啟動或保持運行)
     startPollingIfDirty();
-  }, [containerDim]); // 依賴 containerDim，當尺寸變化時執行
+  }, [containerDims]); // 依賴 containerDim，當尺寸變化時執行
 
   // 滾動事件處理
   useEffect(() => {
-    const container = containerRef.current;
-    const vm = vmRef.current;
-    const rm = rmRef.current;
-    if (!container || !vm || !rm ) return;
+    if(!containerRef.current) return;
 
     let ticking = false; // 這裡定義的 ticking 變數是每個 useEffect 實例獨有的
 
     const handleScroll = () => {
+      const container = containerRef.current;
       const vc = vcRef.current;
-      if(!vc) return;
+      const vm = vmRef.current;
+      const rm = rmRef.current;
+
+      if(!vc) return;    
+      if (!vm || !rm || !container) return;
       // 如果已經在排程 requestAnimationFrame，則不重複排程
       if (!ticking) {
         ticking = true; // 立即設定為 true，表示已排程一個幀
@@ -157,7 +170,6 @@ export const GridContent: React.FC<GridContentProps> = ({
           const scrollLeft = container.scrollLeft;
           const updatedCells = vm.scrollBy(scrollTop, scrollLeft);
           updatedCells.forEach((cell) => rm.markDirty(cell));
-
           rm.transformScheduler.flush();
           rm.contentScheduler.flush();
           // 在滾動過程中也要請求顯示值，因為可視區域內的單元格變化了
@@ -179,16 +191,17 @@ export const GridContent: React.FC<GridContentProps> = ({
       }, 120);
     };
 
-    container.addEventListener("scroll", handleScroll);
+    containerRef.current.addEventListener("scroll", handleScroll);
 
     // 清理函數：在組件卸載或依賴變化時移除事件監聽器
     return () => {
-        container.removeEventListener("scroll", handleScroll);
-        // 在 cleanup 中也確保清除 scrollStopTimer，以防萬一
-        if (scrollStopTimer.current !== null) {
-            clearTimeout(scrollStopTimer.current);
-            scrollStopTimer.current = null;
-        }
+      if(!containerRef.current) return;
+      containerRef.current.removeEventListener("scroll", handleScroll);
+      // 在 cleanup 中也確保清除 scrollStopTimer，以防萬一
+      if (scrollStopTimer.current !== null) {
+          clearTimeout(scrollStopTimer.current);
+          scrollStopTimer.current = null;
+      }
     };
   }, []); // 空依賴陣列表示只在組件 mount 和 unmount 時執行
 

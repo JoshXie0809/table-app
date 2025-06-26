@@ -14,8 +14,8 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
-  const totalRow = 102400 ;
-  const totalCol = 128;
+  const totalRow = vcRef.current!.sheetSize.nRow ;
+  const totalCol = vcRef.current!.sheetSize.nCol;
   const rowHeight = 44;
   const cellWidth = 152;
 
@@ -182,6 +182,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
           position: "relative",
           boxSizing: "border-box",
           border: "1px solid #ddd",
+          borderRadius: "4px",
         }}
       >
         <div id="sizer" style={{ width: cellWidth * (totalCol + 1), height: rowHeight * (totalRow + 1) }} />

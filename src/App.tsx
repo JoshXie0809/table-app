@@ -60,9 +60,9 @@ function App() {
         <main className={styles.content}>
           <Text size={500}> Hello world </Text>
 
-          <div>
+          {/* <div>
             <button onClick={() => setOpen(true)}>open</button>
-          </div>
+          </div> */}
 
           {open && <FloatingInputPanel onClose={() => setOpen(false)} />}
           {virtualCellsReady && <SheetView11 vcRef={vcRef} />}

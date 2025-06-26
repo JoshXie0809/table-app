@@ -183,5 +183,8 @@ export class VManager implements IVirtualizationManager {
 
     return updatedCells;
   }
-
+  
+  getAllCells() {
+    return this.nplctrler.pool.map((cell) => cell).flat();
+  }
 }

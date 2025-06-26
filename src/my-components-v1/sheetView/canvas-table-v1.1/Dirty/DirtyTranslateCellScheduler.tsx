@@ -31,7 +31,10 @@ export class DirtyTranslateCellScheduler {
     }
     this.dirtyCells.clear();
     this.scheduled = false;
+  }
 
+  clear() {
+    this.dirtyCells.clear();
   }
 
   private _updateTransformIfNeeded(cell: Cell) {
