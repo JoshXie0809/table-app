@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
 import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
 import { VirtualCells } from "../../VirtualCells";
+import { RefObject } from "react";
 
 // render-manager
 export class RManager {
@@ -15,12 +16,12 @@ export class RManager {
   transformScheduler: DirtyTranslateCellScheduler;
   contentScheduler: DirtyCellContentScheduler;
 
-  constructor(rowHeight: number, cellWidth: number, container: HTMLElement, vc: VirtualCells) {
+  constructor(rowHeight: number, cellWidth: number, container: HTMLElement, vcRef: RefObject<VirtualCells> ) {
     this.cellWidth = cellWidth;
     this.rowHeight = rowHeight;
     this.container = container;
     this.transformScheduler = new DirtyTranslateCellScheduler(this.rowHeight, this.cellWidth);
-    this.contentScheduler = new DirtyCellContentScheduler(vc);
+    this.contentScheduler = new DirtyCellContentScheduler(vcRef);
   }
 
   private initCellStyle(el: HTMLElement, cellWidth: number, rowHeight: number) {
@@ -69,6 +70,8 @@ export class RManager {
     this.domPool.delete(cell.shellId);
     cell.valueRef.el = undefined;
     cell.valueRef.reactRoot = undefined;
+    // dirtyContent 也要清除
+    this.contentScheduler.dirtyCells.delete(cell);
   }
 
   markDirty(cell: Cell): void {

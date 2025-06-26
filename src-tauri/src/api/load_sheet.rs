@@ -38,7 +38,7 @@ pub fn load_sheet(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegist
 
     for r in 0..200_u32 {
         for c in 0..100_u32 {
-            if (r + c) % 37 == 0 {
+            if (r + c) % 1 == 0 {
 
                 let pl = plugin.default_payload();
                 let mut pl = match pl {
@@ -50,7 +50,7 @@ pub fn load_sheet(arg: LoadSheetRequest, state: State::<'_, Arc<CellPluginRegist
                     },
                 };
 
-                pl.value = json!(format!("模擬數據 r: {}, c: {} ⚡⚡", r, c));
+                pl.value = json!(format!("mock r: {}, c: {} ⚡⚡", r, c));
                 let cell = CellContent {
                     cell_type_id: "Text".to_string(),
                     payload: pl

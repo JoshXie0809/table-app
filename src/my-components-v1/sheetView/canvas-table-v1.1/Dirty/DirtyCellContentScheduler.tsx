@@ -1,13 +1,15 @@
 import { Text } from "@fluentui/react-components";
 import { VirtualCells } from "../../../VirtualCells";
 import { Cell } from "../Cell";
+import { SimpleCellSkeleton } from "./simpleSkeloton";
+import { RefObject } from "react";
 
 export class DirtyCellContentScheduler {
-  private dirtyCells: Set<Cell> = new Set();
+  dirtyCells: Set<Cell> = new Set();
   private scheduled: boolean = false;
   private externalFlush = false; // 是否改為由外部控制 flush
 
-  constructor (private vc: VirtualCells) {}
+  constructor(private vcRef: RefObject<VirtualCells>) {}
 
   /** 設定是否由外部控制排程邏輯（true 則不自動 requestAnimationFrame） */
   setExternalFlushMode(external: boolean) {
@@ -23,11 +25,16 @@ export class DirtyCellContentScheduler {
   }
 
   flush() {
+
     for(const cell of this.dirtyCells) {
       this._updateCellContentIfNeeded(cell)
     }
-    this.dirtyCells.clear();
+
     this.scheduled = false;
+  }
+
+  clear() {
+    this.dirtyCells.clear();
   }
 
   private _updateCellContentIfNeeded(cell: Cell) {
@@ -36,9 +43,21 @@ export class DirtyCellContentScheduler {
     const col = cell.indexPath[n-1];
 
     const root = cell.valueRef.reactRoot;
-    if(!root) return; // 代表還沒有建立 React.root
+    const vc = this.vcRef.current;
+    if(!root || !vc) return; 
+    
+    const displayText = vc.getCellDisplayValue(row, col);
 
-    const displayText =  this.vc.getCellDisplayValue(row, col);
-    root.render(<Text className="cell-plugin-text">{`${displayText}`}</Text>)
+    if(displayText === null) {
+      this.markDirty(cell);
+      root.render(<SimpleCellSkeleton />);
+    }
+    else {
+      root.render(<Text className="cell-plugin-text">{`${displayText}`}</Text>)
+      // 更新完取消 dirty 狀態
+      this.dirtyCells.delete(cell);
+    }   
   }
+
+
 }

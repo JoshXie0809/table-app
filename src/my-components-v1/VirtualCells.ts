@@ -1,9 +1,12 @@
+import { getDisplayValue } from "../tauri-api/getDisplayValue";
 import { CellContent } from "../tauri-api/types/CellContent";
+import { DisplayCellResult } from "../tauri-api/types/DisplayCellResult";
 import { ICell } from "../tauri-api/types/ICell";
 import { IVirtualCells } from "./IVirtualCells";
 
+
 export class VirtualCells implements IVirtualCells {
-  private cellsMap: Map<string, CellContent> = new Map();
+  cellsMap: Map<string, CellContent> = new Map();
   private dirtyCells: Set<string> = new Set();
 
   constructor(
@@ -42,20 +45,21 @@ export class VirtualCells implements IVirtualCells {
   getCellDisplayValue(row: number, col: number): string | null {
     const cell = this.getCell(row, col);
     // 暫定邏輯 要改成去取得 textCell default value
-    if(cell === undefined) return "";
+    if (!cell) return "";
 
-    
-    if(cell.payload.displayValue)
-      return cell.payload.displayValue;
-    // display Value 邏輯
-    // 如果是 null 要向後端請求 or AST 邏輯發起請求
-    else if(cell.payload.displayValue === null) 
+    const { displayValue, value } = cell.payload;
+
+    if (displayValue !== undefined && displayValue !== null)
+      return displayValue;
+
+    if (displayValue === null) {
+      this.markDirty(row, col);
       return null;
-    // request ...
-    // 代表這個 cell-type 沒有 displayValue 這個欄位邏輯 約定直接用 value 代替
-    else if(cell.payload.displayStyle === undefined)
-      return String(cell.payload.value);
-    
+    }
+
+    if (displayValue === undefined)
+      return String(value);
+
     return "";
   }
 
@@ -79,5 +83,29 @@ export class VirtualCells implements IVirtualCells {
 
   clearDirty(): void {
     this.dirtyCells.clear();
+  }
+
+  async requestDisplayValueAndUpdate() {
+    const cells: ICell[] = []
+    this.dirtyCells.forEach((v) => {
+      const {row, col} = this.toRC(v);
+      const cellData = this.getCell(row, col);
+      if(!cellData) return;
+      cells.push({row, col, cellData});
+    })
+
+    const res = await getDisplayValue({cells});
+    if(!res.success) return;
+    res.data!.forEach(d => this.applyDisplayResult(d))
+  }
+  
+  private applyDisplayResult(result: DisplayCellResult): void {
+    const { row, col, ok, displayValue, error } = result;
+    const cell = this.getCell(row, col);
+    if (!cell) return;
+
+    cell.payload.displayValue = ok ? displayValue : error;
+    this.setCell({ row, col, cellData: cell });
+    this.dirtyCells.delete(this.toKey(row, col));
   }
 }

@@ -11,7 +11,6 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 }) =>
 {
   
-  console.log(vcRef)
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
