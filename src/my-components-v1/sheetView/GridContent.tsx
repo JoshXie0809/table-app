@@ -6,7 +6,7 @@ import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import { VirtualCells } from "../VirtualCells";
 import { useMountVMCells } from "../hooks/useMountViMCells";
 import { usePolling } from "../hooks/usePolling";
-import { useSyncContainerDimes } from "../hooks/useSyncContainerDims";
+import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -43,7 +43,7 @@ export const GridContent: React.FC<GridContentProps> = ({
   if(vmRef.current && rmRef.current) startPollingIfDirty();
 
   // 監聽尺寸變化事件
-  useSyncContainerDimes(
+  useSyncContainerDims(
     containerRef,
     containerDims,
     vcRef,

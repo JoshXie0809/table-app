@@ -3,7 +3,7 @@ import { VirtualCells } from "../VirtualCells";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
 import { RManager } from "../sheetView/canvas-table-v1.1/RanderManager";
 
-export function useSyncContainerDimes(
+export function useSyncContainerDims(
   containerRef: RefObject<HTMLElement>,
   containerDims: {width: number, height: number},
   vcRef: RefObject<VirtualCells>,
