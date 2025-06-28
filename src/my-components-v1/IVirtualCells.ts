@@ -52,4 +52,6 @@ export interface IVirtualCells {
    * 將 key 還原成 row, col
    */
   toRC(key: string): { row: number; col: number };
+
+  requestDisplayValueAndUpdate: () => Promise<void>;
 }

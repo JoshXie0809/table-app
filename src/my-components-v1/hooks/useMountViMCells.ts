@@ -2,11 +2,12 @@ import { MutableRefObject, RefObject, useEffect } from "react";
 import { VirtualCells } from "../VirtualCells";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
 import { RManager } from "../sheetView/canvas-table-v1.1/RanderManager";
+import { IVirtualCells } from "../IVirtualCells";
 
 export interface UseMountVMCellsProps {
   containerRef: RefObject<HTMLElement>;
   containerDims: { width: number; height: number };
-  vcRef: RefObject<VirtualCells>;
+  vcRef: RefObject<IVirtualCells>;
   vmRef: MutableRefObject<null | VManager>;
   rmRef: MutableRefObject<null | RManager>;
   overScanRow?: number;

@@ -1,15 +1,15 @@
 import { Text } from "@fluentui/react-components";
-import { VirtualCells } from "../../../VirtualCells";
 import { Cell } from "../Cell";
 import { SimpleCellSkeleton } from "./simpleSkeloton";
 import { RefObject } from "react";
+import { IVirtualCells } from "../../../IVirtualCells";
 
 export class DirtyCellContentScheduler {
   dirtyCells: Set<Cell> = new Set();
   private scheduled: boolean = false;
   private externalFlush = false; // 是否改為由外部控制 flush
 
-  constructor(private vcRef: RefObject<VirtualCells>) {}
+  constructor(private vcRef: RefObject<IVirtualCells>) {}
 
   /** 設定是否由外部控制排程邏輯（true 則不自動 requestAnimationFrame） */
   setExternalFlushMode(external: boolean) {
@@ -54,7 +54,7 @@ export class DirtyCellContentScheduler {
       root.render(<SimpleCellSkeleton />);
     }
     else {
-      root.render(<Text className="cell-plugin-text">{`${displayText}`}</Text>)
+      root.render(<Text className="cell-plugin-text">{displayText}</Text>)
       // 更新完取消 dirty 狀態
       this.dirtyCells.delete(cell);
     }   

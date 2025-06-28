@@ -2,8 +2,8 @@ import { Cell } from "./Cell";
 import { createRoot } from "react-dom/client";
 import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
 import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
-import { VirtualCells } from "../../VirtualCells";
 import { RefObject } from "react";
+import { IVirtualCells } from "../../IVirtualCells";
 
 // render-manager
 export class RManager {
@@ -16,7 +16,7 @@ export class RManager {
   transformScheduler: DirtyTranslateCellScheduler;
   contentScheduler: DirtyCellContentScheduler;
 
-  constructor(rowHeight: number, cellWidth: number, container: HTMLElement, vcRef: RefObject<VirtualCells> ) {
+  constructor(rowHeight: number, cellWidth: number, container: HTMLElement, vcRef: RefObject<IVirtualCells> ) {
     this.cellWidth = cellWidth;
     this.rowHeight = rowHeight;
     this.container = container;

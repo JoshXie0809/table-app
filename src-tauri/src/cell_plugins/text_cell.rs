@@ -24,7 +24,7 @@ impl CellPlugin for TextCellPlugin {
 
     fn display_cell(&self, payload: BasePayload) -> String {
         let val = payload.value;
-        return val.to_string();       
+        val.as_str().unwrap_or("").to_string()
     }    
 
     fn default_payload(&self) -> Result<BasePayload, String> {

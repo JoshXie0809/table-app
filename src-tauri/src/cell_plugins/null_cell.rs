@@ -34,7 +34,7 @@ impl CellPlugin for NullCellPlugin {
 
     fn display_cell(&self, payload: BasePayload) -> String {
         let val = payload.value;
-        return val.to_string();       
+        val.as_str().unwrap_or("").to_string()
     }
 
     fn get_css(&self) -> String {
