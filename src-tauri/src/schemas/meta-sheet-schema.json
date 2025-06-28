@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "meta-sheet-schema",
+  "title": "Meta Schema for Sheet Plugin Json Schema",
+  "description": "這是給 sheet plugin 所使用的規範",
+  "required": ["type", "properties"],
+  
+  "type": "object",
+
+  "properties": 
+  { 
+    "type": {
+      "type": "string",
+      "const": "object"
+    },
+    
+    "sheetName": {"type": "string"}
+  }
+
+}
