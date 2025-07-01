@@ -1,4 +1,6 @@
 use schemars::Schema;
+
+use crate::sheet_plugins::stored_sheet::{StoredSheetData, StoredSheetMeta};
 pub mod base_sheet;
 pub mod stored_sheet;
 
@@ -7,6 +9,9 @@ pub trait SheetPlugin: Send + Sync {
     fn get_type_id(&self) -> &str;
 
     fn get_schema(&self) -> Schema;
+
+    fn to_meta_and_data(&self, sheet_config: &serde_json::Value) 
+        -> Result<(StoredSheetMeta, StoredSheetData), String> ;
 
 }
 

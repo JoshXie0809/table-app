@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct BaseSheet {
     pub sheet_id: String,
-    pub sheet_size: [u32; 2],
     pub sheet_type: String,
     pub sheet_name: String,
     pub row_count: u32,

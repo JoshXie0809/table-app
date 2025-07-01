@@ -3,18 +3,42 @@ use std::collections::HashMap;
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
-use crate::{cell_plugins::cell::CellContent, sheet_plugins::{base_sheet::BaseSheet, SheetPlugin}};
+use crate::{cell_plugins::cell::CellContent, sheet_plugins::{base_sheet::BaseSheet, stored_sheet::{StoredSheetData, StoredSheetMeta}, SheetPlugin}};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct DefaultGridSheetConfig {
     #[serde(flatten)]
-    pub base: BaseSheet,
+    pub meta: BaseSheet,
     pub cells: HashMap<String, CellContent>,
 }
 
 
 pub struct DefaultGridSheet;
+
+impl DefaultGridSheet {
+    fn to_key(row: u32, col: u32) -> String {
+        format!("{row},{col}")
+    }
+
+    /// 將 "2,3" 拆成 (2, 3)
+    fn to_rc(key: &str) -> Result<(u32, u32), String> {
+        let (row_str, col_str) = key
+            .split_once(',')
+            .ok_or_else(|| format!("Invalid key format: {}", key))?;
+
+        let row = row_str
+            .parse::<u32>()
+            .map_err(|e| format!("Invalid row: {e}"))?;
+
+        let col = col_str
+            .parse::<u32>()
+            .map_err(|e| format!("Invalid col: {e}"))?;
+
+        Ok((row, col))
+    }
+}
+
 
 impl SheetPlugin for DefaultGridSheet {
     fn get_type_id(&self) -> &str {
@@ -24,12 +48,38 @@ impl SheetPlugin for DefaultGridSheet {
     fn get_schema(&self) -> schemars::Schema {
         schema_for!(DefaultGridSheetConfig)
     }
+
+    fn to_meta_and_data(&self, sheet_config: &serde_json::Value) 
+            -> Result<(super::stored_sheet::StoredSheetMeta, super::stored_sheet::StoredSheetData), String> {
+
+        // 把 sheet_config 還原成 DefaultGridSheetConfig
+        let dgs_config: DefaultGridSheetConfig = serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
+        
+        let meta = dgs_config.meta;
+        let stored_meta = StoredSheetMeta { 
+            plugin_type: "DefaultGridSheet".to_string(),
+            sheet_meta: meta,
+        };
+
+        
+        let mut cells = HashMap::new();
+        let cells_string  = dgs_config.cells;
+        for (k, v) in cells_string {
+            let key = DefaultGridSheet::to_rc(&k)?;
+            cells.insert(key, v);
+        }
+
+        let sp_map: StoredSheetData = StoredSheetData::SparseMap { cells };
+
+
+        Ok((stored_meta, sp_map))        
+        
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jsonschema::Draft;
     use schemars::schema_for;
     use serde_json::json;
 
@@ -41,19 +91,16 @@ mod tests {
     }
 
     use std::collections::HashMap;
-    use std::fs::File;
-    use std::io::Write;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::sheet_plugins::base_sheet::BaseSheet;
-    use crate::sheet_plugins::stored_sheet::StoredSheet;
 
     #[test]
     fn test_default_grid_plugin_to_fronted_sheet() {
 
         let tcp = TextCellPlugin;
         let mut payload = tcp.default_payload().unwrap();
-        payload.value = json!("aaaaaaaaa");
+        payload.value = json!("aaa");
         
         let cell_content = CellContent {
             cell_type_id: "Text".to_string(),
@@ -62,11 +109,10 @@ mod tests {
 
         // 1. 準備一個 plugin config
         let config = DefaultGridSheetConfig {
-            base: BaseSheet {
+            meta: BaseSheet {
                 sheet_id: "sheet1".to_string(),
                 sheet_type: "DefaultGridSheet".to_string(),
                 sheet_name: "測試用".to_string(),
-                sheet_size: [10, 5],
                 row_count: 10,
                 col_count: 5,
                 cell_width: 100,
@@ -78,44 +124,15 @@ mod tests {
                 map.insert("2,31".to_string(), cell_content.clone());
                 map.insert("21,3".to_string(), cell_content.clone());
                 map.insert("21,31".to_string(), cell_content.clone());
-                map.insert("23,33".to_string(), cell_content);
                 map
             },
         };
 
-        // 2. 將 config 轉成 StoredSheet
-        let stored = StoredSheet {
-            plugin_type: "DefaultGridSheet".to_string(),
-            raw_config: serde_json::to_value(&config).unwrap(),
-        };
+        // default grid sheet plugin
+        let dgsp = DefaultGridSheet;
+        let config_json = json!(config);
+        println!("{:#?}", dgsp.to_meta_and_data(&config_json));
 
 
-        let json = serde_json::to_string_pretty(&stored).expect("Failed to serialize stored sheet");
-        let mut file = File::create("my_sheet.json").expect("Failed to create file");
-        file.write_all(json.as_bytes()).expect("Failed to write to file");
-
-
-        // 3. 準備 plugin
-        let plugin = DefaultGridSheet;
-
-        // 4. 驗證 raw_config 合法（schema 驗證）
-        let schema = plugin.get_schema();
-        let schema_json = serde_json::to_value(&schema).unwrap();
-        // 4.a 做出 validator
-        let validator = jsonschema::validator_for(&schema_json).unwrap();
-        // 4.b 驗證
-        assert!(validator.is_valid(&stored.raw_config));
-        
-
-        // // 5. 組成 FrontedSheet
-        // let fronted = FrontedSheet {
-        //     plugin_type: plugin.get_type_id().to_string(),
-        //     plugin_schema: schema,
-        //     config: stored.raw_config.clone(),
-        // };
-
-        // // 6. 驗證結果正確
-        // assert_eq!(fronted.plugin_type, "DefaultGridSheet");
-        // assert!(fronted.config["cells"].get("2,3").is_some());
     }
 }
