@@ -9,5 +9,5 @@ export type FrontedSheetData = {
   cellWidth: number;
   cellHeight: number;
   cells: Array<ICell>;
-  fields: Record<string, any>;
+  fields: Map<string, any>;
 };

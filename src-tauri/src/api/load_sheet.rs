@@ -90,7 +90,7 @@ pub struct FrontedSheetData
     pub cell_width: u32,
     pub cell_height: u32,
     pub cells: Vec<ICell>,
-    #[ts(type = "Record<string, any>")]
+    #[ts(type = "Map<string, any>")]
     pub fields: HashMap<String, Value>,
 }
 

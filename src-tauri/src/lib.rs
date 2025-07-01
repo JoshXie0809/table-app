@@ -6,6 +6,7 @@ mod cell_plugins;
 mod sheet_plugins;
 mod api;
 pub mod export_types;
+pub mod export_json_schema;
 
 use crate::api::load_sheet::load_sheet;
 use crate::api::load_cell_plugin_css_map::load_cell_plugin_css_map;

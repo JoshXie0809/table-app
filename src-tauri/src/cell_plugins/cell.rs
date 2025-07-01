@@ -1,10 +1,11 @@
 use std::collections::HashMap;
+use schemars::JsonSchema;
 use serde_json::Value; // 確保導入 serde_json::Value
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 // 這個結構體代表前端傳來的 { type, payload } 部分
-#[derive(Debug, Deserialize, Serialize, Clone, TS)]
+#[derive(Debug, Deserialize, Serialize, Clone, TS, JsonSchema)]
 #[serde(rename_all = "camelCase")] // 前端可能是 camelCase，例如 cellType, cellPayload
 pub struct CellContent {
     #[serde(rename = "type")] // 前端的 key 是 "type"，這裡需要指定
@@ -13,7 +14,7 @@ pub struct CellContent {
     pub payload: BasePayload,       // 前端的 "payload"
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS, JsonSchema)]
 #[serde(rename_all = "camelCase")] // 自動處理 camelCase 命名
 pub struct BasePayload {
     #[ts(type="any")]
@@ -27,7 +28,7 @@ pub struct BasePayload {
 
     // 都收集到 'extra_fields' 這個 HashMap 中。
     // 這保留了 payload 的彈性，允許不同 CellType 有不同的額外字段。
-    #[ts(type="Record<string, any>")]
+    #[ts(type="Map<string, any>")]
     pub extra_fields: HashMap<String, Value>,
 }
 

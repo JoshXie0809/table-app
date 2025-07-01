@@ -5,15 +5,12 @@ use crate::cell_plugins::{cell::BasePayload, CellPlugin};
 use serde::{Deserialize, Serialize};
 use serde_json::{json};
 
-
-
 #[derive(Debug, Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct NullCellPayload {
     pub value: String,
     pub label: Option<String>,
 }
-
 
 
 pub struct NullCellPlugin;

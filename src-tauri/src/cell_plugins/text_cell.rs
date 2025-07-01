@@ -16,7 +16,6 @@ pub struct TextCellPayload {
 }
 
 
-
 impl CellPlugin for TextCellPlugin {
     fn get_type_id(&self) -> &str { "Text" }
 
