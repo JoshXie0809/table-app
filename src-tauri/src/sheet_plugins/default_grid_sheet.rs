@@ -29,6 +29,7 @@ impl SheetPlugin for DefaultGridSheet {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use jsonschema::Draft;
     use schemars::schema_for;
     use serde_json::json;
 
@@ -52,7 +53,7 @@ mod tests {
 
         let tcp = TextCellPlugin;
         let mut payload = tcp.default_payload().unwrap();
-        payload.value = json!("12345");
+        payload.value = json!("aaaaaaaaa");
         
         let cell_content = CellContent {
             cell_type_id: "Text".to_string(),
@@ -94,14 +95,17 @@ mod tests {
         file.write_all(json.as_bytes()).expect("Failed to write to file");
 
 
+        // 3. 準備 plugin
+        let plugin = DefaultGridSheet;
 
-        // // 3. 準備 plugin
-        // let plugin = DefaultGridSheet;
-
-        // // 4. 驗證 raw_config 合法（schema 驗證）
-        // let schema = plugin.get_schema();
-        // let compiled = JsonSchema::compile(&schema.schema).unwrap();
-        // assert!(compiled.is_valid(&stored.raw_config));
+        // 4. 驗證 raw_config 合法（schema 驗證）
+        let schema = plugin.get_schema();
+        let schema_json = serde_json::to_value(&schema).unwrap();
+        // 4.a 做出 validator
+        let validator = jsonschema::validator_for(&schema_json).unwrap();
+        // 4.b 驗證
+        assert!(validator.is_valid(&stored.raw_config));
+        
 
         // // 5. 組成 FrontedSheet
         // let fronted = FrontedSheet {
