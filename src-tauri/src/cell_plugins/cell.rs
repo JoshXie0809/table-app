@@ -10,7 +10,6 @@ use ts_rs::TS;
 pub struct CellContent {
     #[serde(rename = "type")] // 前端的 key 是 "type"，這裡需要指定
     pub cell_type_id: String, // 將前端的 "type" 映射到 Rust 的 cell_type_id
-
     pub payload: BasePayload,       // 前端的 "payload"
 }
 

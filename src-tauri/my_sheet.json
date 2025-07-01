@@ -1,0 +1,58 @@
+{
+  "plugin_type": "DefaultGridSheet",
+  "raw_config": {
+    "cellHeight": 40,
+    "cellWidth": 100,
+    "cells": {
+      "2,3": {
+        "payload": {
+          "displayValue": null,
+          "extraFields": {},
+          "value": "12345"
+        },
+        "type": "Text"
+      },
+      "2,31": {
+        "payload": {
+          "displayValue": null,
+          "extraFields": {},
+          "value": "12345"
+        },
+        "type": "Text"
+      },
+      "21,3": {
+        "payload": {
+          "displayValue": null,
+          "extraFields": {},
+          "value": "12345"
+        },
+        "type": "Text"
+      },
+      "21,31": {
+        "payload": {
+          "displayValue": null,
+          "extraFields": {},
+          "value": "12345"
+        },
+        "type": "Text"
+      },
+      "23,33": {
+        "payload": {
+          "displayValue": null,
+          "extraFields": {},
+          "value": "12345"
+        },
+        "type": "Text"
+      }
+    },
+    "colCount": 5,
+    "rowCount": 10,
+    "sheetId": "sheet1",
+    "sheetName": "測試用",
+    "sheetSize": [
+      10,
+      5
+    ],
+    "sheetType": "DefaultGridSheet"
+  }
+}

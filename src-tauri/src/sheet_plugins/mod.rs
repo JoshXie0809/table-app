@@ -1,6 +1,6 @@
 use schemars::Schema;
-
 pub mod base_sheet;
+pub mod stored_sheet;
 
 pub trait SheetPlugin: Send + Sync {
     // 回傳 Sheet 的型態
