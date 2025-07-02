@@ -4,6 +4,8 @@ use crate::{cell_plugins::{registry::CellPluginRegistry}, sheet_plugins::registr
 
 mod cell_plugins;
 mod sheet_plugins;
+mod io;
+
 mod api;
 pub mod export_types;
 pub mod export_json_schema;

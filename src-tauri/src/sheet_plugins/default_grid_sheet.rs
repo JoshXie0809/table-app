@@ -57,8 +57,9 @@ impl SheetPlugin for DefaultGridSheet {
         
         let meta = dgs_config.meta;
         let stored_meta = StoredSheetMeta { 
-            plugin_type: "DefaultGridSheet".to_string(),
+            plugin_type: "SheetPlugin",
             sheet_meta: meta,
+            data_format: "SparseMap",
         };
 
         
@@ -80,7 +81,6 @@ impl SheetPlugin for DefaultGridSheet {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use duckdb::ffi::duckdb_query;
     use schemars::schema_for;
     use serde_json::json;
 
@@ -88,18 +88,16 @@ mod tests {
     fn test_get_schema() {
         let schema = schema_for!(DefaultGridSheetConfig); 
         println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-        
     }
 
     use std::collections::HashMap;
-    use std::path;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
+    use crate::io::saver::save_to_zip_file;
     use crate::sheet_plugins::base_sheet::BaseSheet;
-    use crate::sheet_plugins::stored_sheet::{save_data, save_meta, save_to_zip_file};
 
     #[test]
-    fn test_default_grid_plugin_to_fronted_sheet() 
+    fn test_default_grid_plugin_to_file() 
         -> Result<(), String>
     {
 
@@ -118,16 +116,23 @@ mod tests {
                 sheet_id: "sheet1".to_string(),
                 sheet_type: "DefaultGridSheet".to_string(),
                 sheet_name: "測試用".to_string(),
+                has_col_header: true,
+                has_row_header: true,
                 row_count: 10,
                 col_count: 5,
                 cell_width: 100,
                 cell_height: 40,
+                default_cell_content: cell_content.clone(),
             },
             cells: {
                 let mut map = HashMap::new();
                 map.insert("2,3".to_string(), cell_content.clone());
+                map.insert("20,3".to_string(), cell_content.clone());
+                map.insert("2,30".to_string(), cell_content.clone());
                 map.insert("2,31".to_string(), cell_content.clone());
                 map.insert("21,3".to_string(), cell_content.clone());
+                map.insert("22,3".to_string(), cell_content.clone());
+                map.insert("21,32".to_string(), cell_content.clone());
                 map.insert("21,31".to_string(), cell_content.clone());
                 map
             },
@@ -151,27 +156,4 @@ mod tests {
         Ok(())
     }
 
-    #[test]
-    fn read_db() -> Result<(), String> {
-        let conn = duckdb::Connection::open("./test_data.duckdb")
-            .map_err(|err| err.to_string())?;
-        
-        let mut stmt = conn.prepare("select * from cells")
-            .map_err(|err| err.to_string())?;
-
-        let mut rows = stmt.query([])
-            .map_err(|err| err.to_string())?;
-        
-        while let Some(row) = rows.next().map_err(|err| err.to_string())? {
-            let col_count = 5;    
-            let mut values = Vec::new();
-            for i in 0..col_count {
-                let value: duckdb::types::ValueRef = row.get_ref_unwrap(i);
-                values.push(format!("{:?}", value));
-            }
-            println!("{:?}", values);
-        }
-
-        Ok(())
-    }
 }
