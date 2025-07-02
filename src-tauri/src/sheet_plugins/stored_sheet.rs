@@ -1,9 +1,12 @@
-use std::{collections::HashMap, fs::File, io::Write};
+use std::{collections::HashMap, fs::{self, File}, io::{Read, Write}, path::PathBuf};
 
 use serde::{Deserialize, Serialize};
 
 use duckdb::{params, Connection, Result as DResult};
 use serde_json::json;
+use tempfile::NamedTempFile;
+use uuid::Uuid;
+use zip::{write::FileOptions, ZipWriter};
 
 use crate::{cell_plugins::cell::CellContent, sheet_plugins::base_sheet::BaseSheet};
 
@@ -27,6 +30,41 @@ pub enum StoredSheetData {
 
 }
 
+pub fn save_to_zip_file(meta: &StoredSheetMeta, data: &StoredSheetData, path: &str) 
+    -> Result<(), String>
+{
+    let zip_file = File::create(path).map_err(|err| err.to_string())?;
+    let mut zip_writer = ZipWriter::new(zip_file);
+    
+    // 不壓縮
+    let options = FileOptions::<()>::default().compression_method(zip::CompressionMethod::Stored);
+
+    let temp_meta = NamedTempFile::new().map_err(|err| err.to_string())?;
+    let meta_path = temp_meta.into_temp_path();
+    let meta_path_str = meta_path.to_str().ok_or("Invalid meta path")?;
+    save_meta(meta, meta_path_str).map_err(|err| err.to_string())?;
+
+    let meta_buf = fs::read(meta_path_str).map_err(|e| e.to_string())?;
+    zip_writer.start_file("meta.json", options).map_err(|e| e.to_string())?;
+    zip_writer.write_all(&meta_buf).map_err(|e| e.to_string())?;
+
+
+    let duckdb_path = new_duckdb_temp_path();
+    let data_path = duckdb_path.to_str().unwrap();
+    save_data(data, data_path).map_err(|err| err.to_string())?;
+    
+    let data_buf = fs::read(&duckdb_path).map_err(|e| e.to_string())?;    
+    zip_writer.start_file("data.duckdb", options).map_err(|e| e.to_string())?;
+    zip_writer.write_all(&data_buf).map_err(|e| e.to_string())?;
+
+    std::fs::remove_file(&duckdb_path).map_err(|e| e.to_string())?;
+
+
+    zip_writer.finish().map_err(|e| e.to_string())?;
+
+    Ok(())
+}
+
 
 
 pub fn save_meta(meta: &StoredSheetMeta, path: &str) 
@@ -42,6 +80,7 @@ pub fn save_meta(meta: &StoredSheetMeta, path: &str)
 pub fn save_data(data: &StoredSheetData, path: &str)
     -> DResult<()>
 {
+
     let mut conn = Connection::open(path)?;
     // 如果該 path 之前已經存在 cells table，先清掉
     conn.execute("Drop Table If Exists cells", [])?;
@@ -78,8 +117,10 @@ pub fn save_data(data: &StoredSheetData, path: &str)
         let other_payload_str = other_payload.to_string();
 
         stmt.execute(params![row as i64, col as i64, cell.cell_type_id, value_str, other_payload_str])?;
+
         Ok(())
     };
+
 
     match data {
         StoredSheetData::SparseMap { cells } => {
@@ -99,6 +140,13 @@ pub fn save_data(data: &StoredSheetData, path: &str)
         }
     }
 
+
     tx.commit()?;
+
     Ok(())
+}
+
+/// 產生一個乾淨的 DuckDB 檔案路徑（尚未建立）
+pub fn new_duckdb_temp_path() -> PathBuf {
+    std::env::temp_dir().join(format!("{}.duckdb", uuid::Uuid::new_v4() ))
 }

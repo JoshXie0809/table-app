@@ -92,10 +92,11 @@ mod tests {
     }
 
     use std::collections::HashMap;
+    use std::path;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::sheet_plugins::base_sheet::BaseSheet;
-    use crate::sheet_plugins::stored_sheet::{save_data, save_meta};
+    use crate::sheet_plugins::stored_sheet::{save_data, save_meta, save_to_zip_file};
 
     #[test]
     fn test_default_grid_plugin_to_fronted_sheet() 
@@ -137,11 +138,15 @@ mod tests {
         let config_json = json!(config);
         let (meta, data) = dgsp.to_meta_and_data(&config_json)?;
 
-        let path = "./test_meta.json";
-        // 測試 save_meta
-        save_meta(&meta, &path).map_err(|err| err.to_string())?;
-        let path = "./test_data.duckdb";
-        save_data(&data, &path).map_err(|err| err.to_string())?;
+        // // 測試 save_meta 和 save_date
+        // let path = "./test_meta.json";
+        // save_meta(&meta, &path).map_err(|err| err.to_string())?;
+        // let path = "./test_data.duckdb";
+        // save_data(&data, &path).map_err(|err| err.to_string())?;
+
+        // 測試 save_to_zip_file
+        let path = "test.sheetpkg.zip";
+        save_to_zip_file(&meta, &data, path)?;
         
         Ok(())
     }
