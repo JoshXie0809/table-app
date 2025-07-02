@@ -80,6 +80,7 @@ impl SheetPlugin for DefaultGridSheet {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use duckdb::ffi::duckdb_query;
     use schemars::schema_for;
     use serde_json::json;
 
@@ -94,9 +95,12 @@ mod tests {
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::sheet_plugins::base_sheet::BaseSheet;
+    use crate::sheet_plugins::stored_sheet::{save_data, save_meta};
 
     #[test]
-    fn test_default_grid_plugin_to_fronted_sheet() {
+    fn test_default_grid_plugin_to_fronted_sheet() 
+        -> Result<(), String>
+    {
 
         let tcp = TextCellPlugin;
         let mut payload = tcp.default_payload().unwrap();
@@ -131,8 +135,38 @@ mod tests {
         // default grid sheet plugin
         let dgsp = DefaultGridSheet;
         let config_json = json!(config);
-        println!("{:#?}", dgsp.to_meta_and_data(&config_json));
+        let (meta, data) = dgsp.to_meta_and_data(&config_json)?;
 
+        let path = "./test_meta.json";
+        // 測試 save_meta
+        save_meta(&meta, &path).map_err(|err| err.to_string())?;
+        let path = "./test_data.duckdb";
+        save_data(&data, &path).map_err(|err| err.to_string())?;
+        
+        Ok(())
+    }
 
+    #[test]
+    fn read_db() -> Result<(), String> {
+        let conn = duckdb::Connection::open("./test_data.duckdb")
+            .map_err(|err| err.to_string())?;
+        
+        let mut stmt = conn.prepare("select * from cells")
+            .map_err(|err| err.to_string())?;
+
+        let mut rows = stmt.query([])
+            .map_err(|err| err.to_string())?;
+        
+        while let Some(row) = rows.next().map_err(|err| err.to_string())? {
+            let col_count = 5;    
+            let mut values = Vec::new();
+            for i in 0..col_count {
+                let value: duckdb::types::ValueRef = row.get_ref_unwrap(i);
+                values.push(format!("{:?}", value));
+            }
+            println!("{:?}", values);
+        }
+
+        Ok(())
     }
 }
