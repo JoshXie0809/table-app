@@ -57,9 +57,9 @@ impl SheetPlugin for DefaultGridSheet {
         
         let meta = dgs_config.meta;
         let stored_meta = StoredSheetMeta { 
-            plugin_type: "SheetPlugin",
+            plugin_type: "SheetPlugin".to_string(),
             sheet_meta: meta,
-            data_format: "SparseMap",
+            data_format: "SparseMap".to_string(),
         };
 
         

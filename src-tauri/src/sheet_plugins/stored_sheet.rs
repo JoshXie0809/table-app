@@ -7,9 +7,9 @@ use crate::{cell_plugins::cell::CellContent, sheet_plugins::base_sheet::BaseShee
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct StoredSheetMeta {
-    pub plugin_type: &'static str,
+    pub plugin_type: String,
     pub sheet_meta: BaseSheet,
-    pub data_format: &'static str,
+    pub data_format: String,
 }
 
 
