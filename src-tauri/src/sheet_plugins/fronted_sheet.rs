@@ -11,13 +11,16 @@ use crate::{cell_plugins::cell::CellContent, sheet_plugins::base_sheet::BaseShee
 pub struct FrontedSheet {
     #[serde(flatten)]
     pub meta: BaseSheet,
-    // (row: u32, col: u32) => "row,col"
-    pub cells: HashMap<String, CellContent>,
+
+    // string "row,col": eg => "1,1", "100,1001"
+    pub cells: Vec<(String, CellContent)>, // ✅ 可直接轉成 Map
+
+    // string "row": eg => "1", "100"
     #[serde(skip_serializing_if = "Option::is_none")]
-    // (row: u32) => "row"
-    pub row_header: Option<HashMap<String, CellContent>>, 
-    
+    pub row_header: Option<Vec<(String, CellContent)>>,
+
+    // string "col": eg => "2", "101"
     #[serde(skip_serializing_if = "Option::is_none")]
-    // (col: u32) => "col"
-    pub col_header: Option<HashMap<String, CellContent>>,
+    pub col_header: Option<Vec<(String, CellContent)>>,
 }
+

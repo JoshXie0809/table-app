@@ -2,9 +2,9 @@
 import type { CellContent } from "./CellContent";
 
 export type FrontedSheet = {
-  cells: { [key in string]?: CellContent };
-  rowHeader: { [key in string]?: CellContent } | null;
-  colHeader: { [key in string]?: CellContent } | null;
+  cells: Array<[string, CellContent]>;
+  rowHeader: Array<[string, CellContent]> | null;
+  colHeader: Array<[string, CellContent]> | null;
   sheetId: string;
   sheetType: string;
   sheetName: string;

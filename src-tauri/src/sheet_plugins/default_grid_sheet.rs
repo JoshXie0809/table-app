@@ -115,7 +115,12 @@ impl SheetPlugin for DefaultGridSheet {
             .map_err(|err| err.to_string())?;
 
         let meta = dgs_config.meta;
-        let cells =  dgs_config.cells;
+        let mut cells = vec![];
+        
+        for (k, v) in dgs_config.cells.into_iter()
+        {
+            cells.push((k, v));
+        }
 
         let fronted_sheet = FrontedSheet {
             meta,
@@ -171,8 +176,8 @@ mod tests {
                 has_row_header: true,
                 row_count: 100,
                 col_count: 50,
-                cell_width: 100,
-                cell_height: 40,
+                cell_width: 160,
+                cell_height: 52,
                 default_cell_content: "Text".to_string(),
             },
             cells: {

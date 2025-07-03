@@ -1,10 +1,10 @@
 import { VirtualCells } from "./VirtualCells";
-import type { FrontedSheetData } from "../tauri-api/types/FrontedSheetData";
+import type { FrontedSheet } from "../tauri-api/types/FrontedSheet";
 
-export function createVirtualCellsFromBackend(data: FrontedSheetData): VirtualCells {
+export function createVirtualCellsFromBackend(data: FrontedSheet): VirtualCells {
   return new VirtualCells(
     data.sheetName,
-    data.type, // 這裡是 gridType
+    data.sheetType, // 這裡是 gridType
     { nRow: data.rowCount, nCol: data.colCount },
     data.cellWidth,
     data.cellHeight,

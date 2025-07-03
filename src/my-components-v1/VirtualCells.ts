@@ -15,9 +15,9 @@ export class VirtualCells implements IVirtualCells {
     readonly sheetSize: { nRow: number; nCol: number },
     readonly cellWidth: number,
     readonly cellHeight: number,
-    cells: ICell[],
+    cells: [string, CellContent][]
   ) {
-    cells.forEach((cell) => this.setCell(cell));
+    cells.forEach(cell => this.cellsMap.set(cell[0], cell[1]));
   }
 
   toKey(row: number, col: number): string {

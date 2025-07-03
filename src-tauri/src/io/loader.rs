@@ -124,7 +124,7 @@ pub fn load_data_of_zip_file(path: &str, meta: &StoredSheetMeta)
 
 #[cfg(test)]
 mod tests {
-    use crate::io::loader::{load_data_of_zip_file, load_meta_of_zip_file, load_zip_file};
+    use crate::io::loader::load_zip_file;
 
 
     #[test]
