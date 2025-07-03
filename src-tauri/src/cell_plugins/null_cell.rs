@@ -24,7 +24,7 @@ impl CellPlugin for NullCellPlugin {
         Ok(BasePayload {
             value: json!("".to_string()),
             display_value: None,
-            display_style: Some(None),
+            display_style: None,
             extra_fields: HashMap::new()
         })
     }

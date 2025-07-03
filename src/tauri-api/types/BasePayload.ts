@@ -2,7 +2,7 @@
 
 export type BasePayload = {
   value: any;
-  displayValue: string | null | undefined;
-  displayStyle: string | null | undefined;
+  displayValue: string | null;
+  displayStyle: string | null;
   extraFields: Map<string, any>;
 };

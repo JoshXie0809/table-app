@@ -18,12 +18,12 @@ pub struct CellContent {
 pub struct BasePayload {
     #[ts(type="any")]
     pub value: Value, // value 字段可以是任何類型，所以用 Value
-    #[serde(skip_serializing_if = "skip_if_outer_none")]
-    #[ts(type = "string | null | undefined")]
-    pub display_value: Option<Option<String>>, 
-    #[serde(skip_serializing_if = "skip_if_outer_none")]
-    #[ts(type = "string | null | undefined")]
-    pub display_style: Option<Option<String>>, // 回傳 css-class
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "string | null")]
+    pub display_value: Option<String>, 
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[ts(type = "string | null")]
+    pub display_style: Option<String>, // 回傳 css-class
 
     // 都收集到 'extra_fields' 這個 HashMap 中。
     // 這保留了 payload 的彈性，允許不同 CellType 有不同的額外字段。
@@ -31,6 +31,3 @@ pub struct BasePayload {
     pub extra_fields: HashMap<String, Value>,
 }
 
-fn skip_if_outer_none<T>(value: &Option<Option<T>>) -> bool {
-    value.is_none()
-}
