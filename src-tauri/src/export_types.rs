@@ -1,9 +1,10 @@
 use std::process::Command;
 
 use ts_rs::TS;
-use crate::api::{
-    get_display_value::{DisplayCellResults, GetDisplayValueRequest}, load_cell_plugin_css_map::CssMap, load_sheet::{FrontedSheetData, LoadSheetRequest}
-};
+use crate::{api::{
+    get_display_value::{DisplayCellResults, GetDisplayValueRequest}, 
+    load_cell_plugin_css_map::CssMap, load_sheet::{FrontedSheetData, LoadSheetRequest}
+}, sheet_plugins::fronted_sheet::FrontedSheet};
 
 pub fn export_ts() 
 {
@@ -30,6 +31,10 @@ pub fn export_ts()
         .unwrap();
 
     DisplayCellResults::
+        export_all_to(&out_dir)
+        .unwrap();
+
+    FrontedSheet::
         export_all_to(&out_dir)
         .unwrap();
     

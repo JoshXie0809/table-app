@@ -3,6 +3,7 @@ use schemars::Schema;
 use crate::sheet_plugins::stored_sheet::{StoredSheetData, StoredSheetMeta};
 pub mod base_sheet;
 pub mod stored_sheet;
+pub mod fronted_sheet;
 
 pub trait SheetPlugin: Send + Sync {
     // 回傳 Sheet 的型態
