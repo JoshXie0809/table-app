@@ -151,7 +151,7 @@ fn parse_payload(value_str: &str, other_payload_str: &str) -> Result<BasePayload
 
     let display_style = obj
         .get("display_style").cloned()
-        .and_then(|v| v.as_str().map(|s| s.to_string()));;
+        .and_then(|v| v.as_str().map(|s| s.to_string()));
 
     let extra_fields = obj
         .get("extra_fields")

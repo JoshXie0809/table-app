@@ -1,6 +1,6 @@
 use schemars::Schema;
 
-use crate::sheet_plugins::stored_sheet::{StoredSheetData, StoredSheetMeta};
+use crate::sheet_plugins::{fronted_sheet::FrontedSheet, stored_sheet::{StoredSheetData, StoredSheetMeta}};
 pub mod base_sheet;
 pub mod stored_sheet;
 pub mod fronted_sheet;
@@ -16,6 +16,8 @@ pub trait SheetPlugin: Send + Sync {
 
     fn from_meta_and_data(&self, meta: StoredSheetMeta, data: StoredSheetData)
         -> Result<serde_json::Value, String>;
+
+    fn to_fronted_sheet(&self, sheet_config: &serde_json::Value) -> Result<FrontedSheet, String>; 
 
 }
 

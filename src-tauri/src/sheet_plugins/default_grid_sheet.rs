@@ -4,7 +4,7 @@ use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{cell_plugins::cell::CellContent, sheet_plugins::{base_sheet::BaseSheet, stored_sheet::{StoredSheetData, StoredSheetMeta}, SheetPlugin}};
+use crate::{cell_plugins::cell::CellContent, sheet_plugins::{base_sheet::BaseSheet, fronted_sheet::FrontedSheet, stored_sheet::{StoredSheetData, StoredSheetMeta}, SheetPlugin}};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -51,10 +51,11 @@ impl SheetPlugin for DefaultGridSheet {
     }
 
     fn to_meta_and_data(&self, sheet_config: &serde_json::Value) 
-            -> Result<(super::stored_sheet::StoredSheetMeta, super::stored_sheet::StoredSheetData), String> {
-
+            -> Result<(super::stored_sheet::StoredSheetMeta, super::stored_sheet::StoredSheetData), String> 
+    {
         // 把 sheet_config 還原成 DefaultGridSheetConfig
-        let dgs_config: DefaultGridSheetConfig = serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
+        let dgs_config: DefaultGridSheetConfig = 
+            serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
         
         let sheet_meta = dgs_config.meta;
         let stored_meta = StoredSheetMeta { 
@@ -104,6 +105,26 @@ impl SheetPlugin for DefaultGridSheet {
         let dgs_value = json!(dgs_config);
         
         Ok(dgs_value)
+    }
+
+    fn to_fronted_sheet(&self, sheet_config: &serde_json::Value) 
+        -> Result<super::fronted_sheet::FrontedSheet, String> 
+    {
+        
+        let dgs_config: DefaultGridSheetConfig = serde_json::from_value(sheet_config.clone())
+            .map_err(|err| err.to_string())?;
+
+        let meta = dgs_config.meta;
+        let cells =  dgs_config.cells;
+
+        let fronted_sheet = FrontedSheet {
+            meta,
+            cells,
+            row_header: None,
+            col_header: None,
+        };
+
+        Ok(fronted_sheet)
     }
 }
 
