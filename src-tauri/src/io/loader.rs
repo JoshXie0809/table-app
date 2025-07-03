@@ -8,14 +8,12 @@ use zip::ZipArchive;
 use crate::{cell_plugins::cell::{BasePayload, CellContent}, sheet_plugins::stored_sheet::{StoredSheetData, StoredSheetMeta}};
 
 pub fn load_zip_file(path: &str) 
-    -> Result<(StoredSheetMeta), String>
+    -> Result<(StoredSheetMeta, StoredSheetData), String>
 {
     let meta = load_meta_of_zip_file(path)?;
+    let data = load_data_of_zip_file(path, &meta)?;
 
-    println!("{:#?}", meta);
-    println!("{:#?}", meta.sheet_meta.default_cell_content);
-
-    Ok(meta)
+    Ok((meta, data))
 }
 
 pub fn load_meta_of_zip_file(path: &str) 
@@ -36,7 +34,7 @@ pub fn load_meta_of_zip_file(path: &str)
 }
 
 pub fn load_data_of_zip_file(path: &str, meta: &StoredSheetMeta) 
-    -> Result<(), String>
+    -> Result<StoredSheetData, String>
 {
     let zip_file = File::open(path).map_err(|err| err.to_string())?;
     let mut archive = ZipArchive::new(zip_file).map_err(|err| err.to_string())?;
@@ -58,14 +56,15 @@ pub fn load_data_of_zip_file(path: &str, meta: &StoredSheetMeta)
     let tx = conn.transaction().map_err(|err| err.to_string())?;
     let mut stmt = tx.prepare("select * from cells;").map_err(|err| err.to_string())?;
 
-    let mut rows = stmt.query([]).map_err(|err| err.to_string())?;
-    let mut cells: HashMap<(u32, u32), CellContent> = HashMap::new();
+    let mut db_rows = stmt.query([]).map_err(|err| err.to_string())?;
 
     let data_format = meta.data_format.as_str();
         
-    match data_format {
+    let data = match data_format {
         "SparseMap" => {
-            while let Ok(Some(row)) = rows.next() {
+            let mut cells: HashMap<(u32, u32), CellContent> = HashMap::new();
+
+            while let Ok(Some(row)) = db_rows.next() {
                 let row_index: u32 = row.get(0).map_err(|err| err.to_string())?;
                 let col_index: u32 = row.get(1).map_err(|err| err.to_string())?;
                 let cell_type_id: String = row.get(2).map_err(|err| err.to_string())?;
@@ -80,33 +79,60 @@ pub fn load_data_of_zip_file(path: &str, meta: &StoredSheetMeta)
 
                 cells.insert((row_index, col_index), cell_content);
             }        
+
+            StoredSheetData::SparseMap { cells }
         }
 
         "Dense2D" => {
-            // let row_count = 
+            let row_count = meta.sheet_meta.row_count as usize;
+            let col_count = meta.sheet_meta.col_count as usize;
 
+            let mut rows: Vec<Vec<Option<CellContent>>> = vec![vec![None; col_count]; row_count];
+
+            while let Ok(Some(row)) = db_rows.next() {
+                let row_index: u32 = row.get(0).map_err(|err| err.to_string())?;
+                let col_index: u32 = row.get(1).map_err(|err| err.to_string())?;
+                let cell_type_id: String = row.get(2).map_err(|err| err.to_string())?;
+                let value_str: String = row.get(3).map_err(|err| err.to_string())?;
+                let other_payload_str: String = row.get(4).map_err(|err| err.to_string())?;
+
+                let payload = parse_payload(&value_str, &other_payload_str)?;
+                let cell_content = CellContent {
+                    cell_type_id,
+                    payload,
+                };
+
+                
+                rows[row_index as usize][col_index as usize] = Some(cell_content);
+
+                
+            }
+
+            StoredSheetData::Dense2D { rows }
         }
         _ => return  Err("error! cannot find this data_format at load_data_of_zip_file".to_string())
-    }
+    };
 
-    println!("{:#?}", cells);
+
     
     // 提早關閉連線，這樣才可以讓 temp file 順利刪除
     let _ = tx;
     let _ = conn;
 
-    Ok(())
+    Ok(data)
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::io::loader::{load_data_of_zip_file, load_meta_of_zip_file};
+    use crate::io::loader::{load_data_of_zip_file, load_meta_of_zip_file, load_zip_file};
 
 
     #[test]
     fn read_file() -> Result<(), String> {
-        let meta = load_meta_of_zip_file("./test.sheetpkg.zip")?;
-        let _ = load_data_of_zip_file("./test.sheetpkg.zip", &meta)?;
+        let (meta, data) = load_zip_file("./test.sheetpkg.zip")?;
+
+        println!("{:#?}", meta);
+        println!("{:#?}", data);
         Ok(())
     }
 }
