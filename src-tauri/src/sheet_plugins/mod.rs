@@ -11,7 +11,10 @@ pub trait SheetPlugin: Send + Sync {
     fn get_schema(&self) -> Schema;
 
     fn to_meta_and_data(&self, sheet_config: &serde_json::Value) 
-        -> Result<(StoredSheetMeta, StoredSheetData), String> ;
+        -> Result<(StoredSheetMeta, StoredSheetData), String>;
+
+    fn from_meta_and_data(&self, meta: StoredSheetMeta, data: StoredSheetData)
+        -> Result<serde_json::Value, String>;
 
 }
 

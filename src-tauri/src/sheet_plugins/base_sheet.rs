@@ -18,5 +18,5 @@ pub struct BaseSheet {
     pub cell_width: u32,
     pub cell_height: u32,
 
-    pub default_cell_content: CellContent,
+    pub default_cell_content: String,
 }

@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 use crate::{cell_plugins::cell::CellContent, sheet_plugins::{base_sheet::BaseSheet, stored_sheet::{StoredSheetData, StoredSheetMeta}, SheetPlugin}};
 
@@ -55,10 +56,10 @@ impl SheetPlugin for DefaultGridSheet {
         // 把 sheet_config 還原成 DefaultGridSheetConfig
         let dgs_config: DefaultGridSheetConfig = serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
         
-        let meta = dgs_config.meta;
+        let sheet_meta = dgs_config.meta;
         let stored_meta = StoredSheetMeta { 
             plugin_type: "SheetPlugin".to_string(),
-            sheet_meta: meta,
+            sheet_meta,
             data_format: "SparseMap".to_string(),
         };
 
@@ -72,9 +73,37 @@ impl SheetPlugin for DefaultGridSheet {
 
         let sp_map: StoredSheetData = StoredSheetData::SparseMap { cells };
 
-
         Ok((stored_meta, sp_map))        
         
+    }
+
+    fn from_meta_and_data(&self, meta: StoredSheetMeta, data: StoredSheetData)
+            -> Result<serde_json::Value, String> 
+    {
+
+        let meta = meta.sheet_meta;
+        let stored_cells = 
+        match data {
+            StoredSheetData::SparseMap { cells } => 
+                cells,
+            _ =>  return Err("the DefaultGridSheet needs SparseMap format".to_string())
+        };
+
+        let mut cells: HashMap<String, CellContent> = HashMap::new();
+
+        for ((row, col), cell_content) in stored_cells.into_iter() {
+            let key = Self::to_key(row, col);
+            cells.insert(key, cell_content);
+        }
+
+        let dgs_config = DefaultGridSheetConfig {
+            meta,
+            cells
+        };
+
+        let dgs_value = json!(dgs_config);
+        
+        Ok(dgs_value)
     }
 }
 
@@ -93,6 +122,7 @@ mod tests {
     use std::collections::HashMap;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
+    use crate::io::loader::load_zip_file;
     use crate::io::saver::save_to_zip_file;
     use crate::sheet_plugins::base_sheet::BaseSheet;
 
@@ -122,7 +152,7 @@ mod tests {
                 col_count: 50,
                 cell_width: 100,
                 cell_height: 40,
-                default_cell_content: cell_content.clone(),
+                default_cell_content: "Text".to_string(),
             },
             cells: {
                 let mut map = HashMap::new();
@@ -150,9 +180,22 @@ mod tests {
         // save_data(&data, &path).map_err(|err| err.to_string())?;
 
         // 測試 save_to_zip_file
-        let path = "test.sheetpkg.zip";
+        let path = "./test.sheetpkg.zip";
         save_to_zip_file(&meta, &data, path)?;
         
+        Ok(())
+    }
+
+    #[test]
+    fn test_from_meta_and_data() 
+        -> Result<(), String>
+    {
+        let dgs = DefaultGridSheet;
+        let (meta, data) = load_zip_file("./test.sheetpkg.zip")?;
+        let sheet_config = dgs.from_meta_and_data(meta, data)?;
+        println!("{:#?}", sheet_config);
+        let (meta, data) = dgs.to_meta_and_data(&sheet_config)?;
+        println!("{:#?}, {:#?}", meta, data); 
         Ok(())
     }
 
