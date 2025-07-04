@@ -1,7 +1,9 @@
 import React, { RefObject, useEffect, useRef } from "react";
-import { GridContent } from "./GridContent";
+import { GridContent } from "./SheetView-GridContent.tsx";
 import { VirtualCells } from "../VirtualCells";
-import { RowHeader } from "./rowHeader";
+import { RowHeader } from "./SheetView-RowHeader.tsx";
+import { ColHeader } from "./SheetView-ColHeader.tsx";
+import { TopLeftCell } from "./SheetView-TopLeftCell.tsx";
 
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
@@ -15,6 +17,8 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const rowHeaderRef = useRef<HTMLDivElement>(null);
+  const colHeaderRef = useRef<HTMLDivElement>(null);
+  const tlcRef = useRef<HTMLDivElement>(null);
 
 
   const totalRow = vcRef.current!.sheetSize.nRow ;
@@ -195,11 +199,27 @@ export const SheetView11: React.FC<SheetViewProps> = ({
         />
 
         <div id="vtable-row-header" ref={rowHeaderRef} 
-          style={{ position: "absolute", zIndex: 1, top: `${rowHeight}px`, willChange: "transform"}}
+          style={{ position: "absolute", zIndex: 1, top: `${rowHeight}px`, left: `0px`, willChange: "transform"}}
+        />
+
+        <div id="vtable-col-header" ref={colHeaderRef} 
+          style={{ position: "absolute", zIndex: 1, top: `0px`, left: `${cellWidth}px`, willChange: "transform"}}
+        />
+
+        <div id="top-left-cell" ref={tlcRef}
+          style={{ 
+            position: "absolute", zIndex: 2, top: `0px`, left: `0px`, 
+            height: `${rowHeight}px`, width: `${cellWidth}px`, 
+            backgroundColor: "rgb(245, 250, 255)",
+            boxSizing: "border-box", border: "1px solid #ddd",
+            willChange: "transform",
+          }}
         />
 
         <GridContent gridRef={gridRef} containerRef={containerRef} vcRef={vcRef}/>
         <RowHeader rowHeaderRef={rowHeaderRef} containerRef={containerRef} vcRef={vcRef} />
+        <ColHeader colHeaderRef={colHeaderRef} containerRef={containerRef} vcRef={vcRef} />
+        <TopLeftCell containerRef={containerRef} tlcRef={tlcRef} />
       </div>
   );
 }

@@ -7,40 +7,40 @@ import { VirtualCells } from "../VirtualCells";
 import { useMountVMCells } from "../hooks/useMountViMCells";
 import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
-import { useRowVC } from "../hooks/useRowVC";
+import { useHeaderVC } from "../hooks/useHeaderVC";
 
 export interface RowHeaderProps {
   containerRef: RefObject<HTMLDivElement>;
-  rowHeaderRef: RefObject<HTMLDivElement>;
+  colHeaderRef: RefObject<HTMLDivElement>;
   vcRef: RefObject<VirtualCells>;
 }
 
-export const RowHeader: React.FC<RowHeaderProps> = ({
+export const ColHeader: React.FC<RowHeaderProps> = ({
   containerRef,
-  rowHeaderRef,
+  colHeaderRef,
   vcRef,
 }) => {
 
-  const rowVCRef = useRowVC(vcRef);
+  const colVCRef = useHeaderVC("column", vcRef);
   // 時刻監聽 container 變化
+  console.log(`⚡⚡⚡⚡`, colVCRef)
   const containerDims = useContainerDimensions(containerRef);
 
   const vmRef = useRef<null | VManager>(null);
   const rmRef = useRef<null | RManager>(null);
   const scrollStopTimer = useRef<number | null>(null); 
 
-
-  const {stopPolling, startPollingIfDirty} = usePolling(rowVCRef, rmRef);
+  const {stopPolling, startPollingIfDirty} = usePolling(colVCRef, rmRef);
 
   // 初始化 managers
   useMountVMCells({
-    containerRef: rowHeaderRef, 
+    containerRef: colHeaderRef, 
     containerDims,
-    vcRef: rowVCRef,
+    vcRef: colVCRef,
     vmRef,
     rmRef,
-    overScanRow: 2,
-    overScanCol: 0,
+    overScanRow: 0,
+    overScanCol: 2,
   });
 
   // 初始化後就開始檢查
@@ -50,7 +50,7 @@ export const RowHeader: React.FC<RowHeaderProps> = ({
   useSyncContainerDims(
     containerRef,
     containerDims,
-    rowVCRef,
+    colVCRef,
     vmRef,
     rmRef,
     stopPolling,
@@ -65,7 +65,7 @@ export const RowHeader: React.FC<RowHeaderProps> = ({
 
     const handleScroll = () => {
       const container = containerRef.current;
-      const vc = rowVCRef.current;
+      const vc = colVCRef.current;
       const vm = vmRef.current;
       const rm = rmRef.current;
 
@@ -79,7 +79,7 @@ export const RowHeader: React.FC<RowHeaderProps> = ({
           const scrollTop = container.scrollTop;
           const scrollLeft = container.scrollLeft;
 
-          rowHeaderRef.current!.style.transform = `translateX(${scrollLeft}px)`;
+          colHeaderRef.current!.style.transform = `translateY(${scrollTop}px)`;
 
           const updatedCells = vm.scrollBy(scrollTop, scrollLeft);
           updatedCells.forEach((cell) => rm.markDirty(cell));

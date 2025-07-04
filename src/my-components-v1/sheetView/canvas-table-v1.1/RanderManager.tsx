@@ -35,6 +35,7 @@ export class RManager {
     el.style.willChange = "transform";
     el.style.top = "0px";
     el.style.left = "0px";
+    el.style.backgroundColor = "white";
     el.style.textRendering = "geometricPrecision";
     el.style.display = "flex";
     el.style.alignItems ='center';

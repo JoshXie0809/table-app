@@ -43,13 +43,15 @@ export function createVirtualCellsFromBackend(data: FrontedSheet): VirtualCells 
 }
 
 
-export function createRowVC(mainVC: VirtualCells): VirtualCells {
-  const nRow = mainVC.sheetSize.nRow;
+export function createHeaderVC(headerType:HeaderType, mainVC: VirtualCells): VirtualCells {
+  const nRow = headerType === "row" ? mainVC.sheetSize.nRow : 1;
+  const nCol = headerType === "row" ? 1 : mainVC.sheetSize.nCol;
+  const sheetName = headerType === "row" ? `${mainVC.sheetName}-row-header` : `${mainVC.sheetName}-col-header`;
 
-  const rowVC = new VirtualCells(
-    `${mainVC.sheetName}-row-header`,
+  const VC = new VirtualCells(
+    sheetName,
     mainVC.gridType,
-    { nRow, nCol: 1 },
+    { nRow, nCol },
     mainVC.cellWidth,
     mainVC.cellHeight,
     [], // 先給空 因為我們需要的是 ref to VirtualCells
@@ -58,7 +60,7 @@ export function createRowVC(mainVC: VirtualCells): VirtualCells {
   );
 
   // ✅ 將 rowHeaderMap 賦值給 rowVC 的 cellsMap
-  rowVC.cellsMap = mainVC.rowHeaderMap!;
+  VC.cellsMap = headerType === "row" ? mainVC.rowHeaderMap! : mainVC.colHeaderMap!;
 
-  return rowVC;
+  return VC;
 }
