@@ -24,7 +24,7 @@ export function useMountVMCells({
   overScanCol = 0,
 }: UseMountVMCellsProps) {
   useEffect(() => {
-    console.log("🟢 useMountVMCells mounted", { vm: vmRef.current, rm: rmRef.current });
+    // console.log("🟢 useMountVMCells mounted", { vm: vmRef.current, rm: rmRef.current });
 
     // ❗防呆: 元件尚未掛載 or 重複初始化則中止
     if (!containerRef.current || !vcRef.current) return;
@@ -73,7 +73,7 @@ export function useMountVMCells({
 
     // 🧼 清除行為
     return () => {
-      console.log("🔴 useMountVMCells cleanup", { vm: vmRef.current, rm: rmRef.current });
+      // console.log("🔴 useMountVMCells cleanup", { vm: vmRef.current, rm: rmRef.current });
       if (rmRef.current && vmRef.current) {
         // ✅ flush & unmount 所有格子
         const cellsToUnmount = vmRef.current.getAllCells();

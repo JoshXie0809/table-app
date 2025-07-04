@@ -146,7 +146,6 @@ mod tests {
     }
 
     use std::collections::HashMap;
-    use std::default;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::io::loader::load_zip_file;

@@ -22,8 +22,6 @@ export const ColHeader: React.FC<RowHeaderProps> = ({
 }) => {
 
   const colVCRef = useHeaderVC("column", vcRef);
-  // 時刻監聽 container 變化
-  console.log(`⚡⚡⚡⚡`, colVCRef)
   const containerDims = useContainerDimensions(containerRef);
 
   const vmRef = useRef<null | VManager>(null);
