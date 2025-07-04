@@ -158,22 +158,14 @@ mod tests {
     {
 
         let tcp = TextCellPlugin;
-        let mut payload = tcp.default_payload().unwrap();
         
-        let default_cell_content = CellContent {
-            cell_type_id: "Text".to_string(),
-            payload: payload.clone()
-        };
-        
-        
-        payload.value = json!("aaa");
-        
-        let cell_content = CellContent {
-            cell_type_id: "Text".to_string(),
-            payload,
-        };
+        let cell_config = tcp.default_cell_config();
+        let mut cell_content = tcp.to_cell_content(cell_config)?;
+        let default_cell_content = cell_content.clone();
 
-        
+        cell_content.payload.value = json!("aaa-12345");
+
+
 
         // 1. 準備一個 plugin config
         let config = DefaultGridSheetConfig {
@@ -183,7 +175,7 @@ mod tests {
                 sheet_name: "測試用".to_string(),
                 has_col_header: false,
                 has_row_header: false,
-                row_count: 10240,
+                row_count: 40960,
                 col_count: 512,
                 cell_width: 160,
                 cell_height: 52,
@@ -191,14 +183,14 @@ mod tests {
             },
             cells: {
                 let mut map = HashMap::new();
-                map.insert("2,3".to_string(), cell_content.clone());
-                map.insert("20,3".to_string(), cell_content.clone());
-                map.insert("2,30".to_string(), cell_content.clone());
-                map.insert("2,31".to_string(), cell_content.clone());
-                map.insert("21,3".to_string(), cell_content.clone());
-                map.insert("22,3".to_string(), cell_content.clone());
-                map.insert("21,32".to_string(), cell_content.clone());
-                map.insert("21,31".to_string(), cell_content.clone());
+                for r in 0..2000_u32 {
+                    for c in 0..5_u32 {
+                        let k = format!("{},{}", r, c);
+                        let v = format!("aaa-{}", k);
+                        cell_content.payload.value = json!(v);
+                        map.insert(k, cell_content.clone());
+                    }
+                }
                 map
             },
         };

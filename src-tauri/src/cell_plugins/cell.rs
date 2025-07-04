@@ -27,7 +27,8 @@ pub struct BasePayload {
 
     // 都收集到 'extra_fields' 這個 HashMap 中。
     // 這保留了 payload 的彈性，允許不同 CellType 有不同的額外字段。
-    #[ts(type="Map<string, any>")]
-    pub extra_fields: HashMap<String, Value>,
+    #[ts(type="Map<string, any> | null")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub extra_fields: Option<HashMap<String, Value>>,
 }
 

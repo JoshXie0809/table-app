@@ -1,39 +1,61 @@
-use std::collections::HashMap;
-
-use crate::cell_plugins::{cell::BasePayload};
+use crate::cell_plugins::cell::{BasePayload, CellContent};
 
 use super::CellPlugin;
+use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::{json};
 
 pub struct TextCellPlugin;
 
-#[derive(Debug, Deserialize, Serialize, Clone)]
+#[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
-pub struct TextCellPayload {
-    pub value: String,
-    pub label: Option<String>
+pub struct TextCellConfig {
+    pub cell_type_id: String,
+    pub payload: BasePayload
+}
+
+
+impl Default for TextCellConfig {
+    fn default() -> Self {
+        Self { 
+            cell_type_id: "Text".to_string(), 
+            payload: BasePayload { value: json!(""), 
+                display_value: None, 
+                display_style: None, 
+                extra_fields: None 
+            }
+        }
+    }
 }
 
 
 impl CellPlugin for TextCellPlugin {
-    fn get_type_id(&self) -> &str { "Text" }
 
-    fn get_display_name(&self) -> &str { "文字-Text" }
+    fn get_schema(&self) -> schemars::Schema {
+        schema_for!(TextCellConfig)
+    }
+
+    fn default_cell_config(&self) -> serde_json::Value {
+        json!(TextCellConfig::default())
+    }
 
     fn display_cell(&self, payload: BasePayload) -> String {
         let val = payload.value;
         val.as_str().unwrap_or("").to_string()
-    }    
+    }  
 
-    fn default_payload(&self) -> Result<BasePayload, String> {
+    fn from_cell_content(&self, cell_content: super::cell::CellContent) -> Result<serde_json::Value, String> {
+        let payload = cell_content.payload;
+        let cell_type_id = cell_content.cell_type_id;
+        Ok(json!( TextCellConfig{ cell_type_id, payload }))
+    }  
 
-        Ok(BasePayload {
-            value: json!("".to_string()),
-            display_style: None,
-            display_value: None,
-            extra_fields: HashMap::new(),
-        })
+    fn to_cell_content(&self, cell_config: serde_json::Value) -> Result<super::cell::CellContent, String> {
+        let text_cell_config: TextCellConfig = serde_json::from_value(cell_config)
+            .map_err(|err| err.to_string())?;
+        let cell_type_id = text_cell_config.cell_type_id;
+        let payload = text_cell_config.payload;
+        Ok( CellContent { cell_type_id, payload})
     }
 
     fn get_css(&self) -> String {

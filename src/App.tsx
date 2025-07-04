@@ -10,7 +10,6 @@ import { VirtualCells } from "./my-components-v1/VirtualCells.ts";
 import { CustomTitleBar } from "./my-components-v1/titlebar/CustomTitleBar.tsx";
 
 import "./App.css";
-import { MyButtonWrapper } from "./lit-components/my-button-wrapper.tsx";
 
 const useStyles = makeStyles({
   root: {
@@ -60,8 +59,6 @@ function App() {
         <CustomTitleBar />        
         <main className={styles.content}>
           <Text size={500}> Hello world </Text>
-
-          <MyButtonWrapper label="床前明月光" />
 
           <div>
             <button onClick={() => setOpen(true)}>open</button>

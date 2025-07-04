@@ -55,7 +55,7 @@ pub fn save_meta(meta: &StoredSheetMeta, path: &str)
 
 
 pub fn save_data(data: &StoredSheetData, path: &str)
-    -> DResult<()>
+    -> Result<(), Box<dyn std::error::Error>>
 {
 
     let mut conn = Connection::open(path)?;
@@ -99,24 +99,55 @@ pub fn save_data(data: &StoredSheetData, path: &str)
     };
 
 
+    let mut rows = Vec::with_capacity(100_000); // 預估筆數
+
     match data {
         StoredSheetData::SparseMap { cells } => {
             for (&(r, c), cell) in cells.iter() {
-                insert_cell(r, c, cell)?;
+                let value_str = cell.payload.value.to_string();
+                let other_payload_str = serde_json::to_string(&json!({
+                    "display_value": cell.payload.display_value,
+                    "display_style": cell.payload.display_style,
+                    "extra_fields": cell.payload.extra_fields,
+                }))?;
+                rows.push((
+                    r as i64,
+                    c as i64,
+                    cell.cell_type_id.clone(),
+                    value_str,
+                    other_payload_str,
+                ));
             }
         }
 
-        StoredSheetData::Dense2D { rows } => {
-            for (r, row) in rows.iter().enumerate() {
+        StoredSheetData::Dense2D { rows: dense_rows } => {
+            for (r, row) in dense_rows.iter().enumerate() {
                 for (c, cell_opt) in row.iter().enumerate() {
                     if let Some(cell) = cell_opt {
-                        insert_cell(r as u32, c as u32, cell)?;
+                        let value_str = cell.payload.value.to_string();
+                        let other_payload_str = serde_json::to_string(&json!({
+                            "display_value": cell.payload.display_value,
+                            "display_style": cell.payload.display_style,
+                            "extra_fields": cell.payload.extra_fields,
+                        }))?;
+
+                        rows.push((
+                            r as i64,
+                            c as i64,
+                            cell.cell_type_id.clone(),
+                            value_str,
+                            other_payload_str,
+                        ));
                     }
                 }
             }
         }
     }
 
+    // 實際 insert（避免中間 clone/json!）
+    for (r, c, ty, value, payload) in rows {
+        stmt.execute(params![r, c, ty, value, payload])?;
+    }
 
     tx.commit()?;
 

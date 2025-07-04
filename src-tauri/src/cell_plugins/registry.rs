@@ -27,7 +27,10 @@ impl CellPluginRegistry {
     // P 必須實現 CellPlugin trait，並且是 'static 生命周期，表示它在整個程序生命週期內都是有效的
 
     pub fn register<P: CellPlugin + 'static>(&mut self, plugin: P) {
-        let type_id = plugin.get_type_id().to_string(); // 獲取插件的類型 ID
+        let cell_config = plugin.default_cell_config();
+        let cell_content = plugin.to_cell_content(cell_config).expect("transform error in register");
+        
+        let type_id = cell_content.cell_type_id;
         self.plugins.insert(type_id, Arc::new(plugin)); // 將插件儲存到 HashMap 中
     }
 

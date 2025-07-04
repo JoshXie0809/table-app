@@ -1,4 +1,6 @@
-use crate::cell_plugins::{cell::BasePayload};
+use schemars::Schema;
+
+use crate::cell_plugins::cell::{BasePayload, CellContent};
 
 // 在 mod.rs 中聲明子模組
 pub mod cell;
@@ -8,18 +10,19 @@ pub mod null_cell;
 pub mod registry;  // 稍後會建立這個模組來管理所有插件
 
 pub trait CellPlugin: Send + Sync {
-    // 獲取 plugnin 的識別符
-    fn get_type_id(&self) -> &str;
 
-    // 顯示在前端的名稱
-    fn get_display_name(&self) -> &str;
+    fn get_schema(&self) -> Schema;
+
+    fn to_cell_content(&self, cell_config: serde_json::Value) -> Result<CellContent, String>;
+
+    fn from_cell_content(&self, cell_content: CellContent) -> Result<serde_json::Value, String>;
+
+    fn default_cell_config(&self) -> serde_json::Value;
 
     fn display_cell(&self, payload: BasePayload) -> String;
 
     fn get_css(&self) -> String;
 
-    // 用於前端， 定義 default cell 的 初始資料
-    fn default_payload(&self) -> Result<BasePayload, String>;
 
     // // 讓 quick edit 模式可以修改的值
     // fn get_value() -> Value;
