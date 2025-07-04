@@ -44,6 +44,7 @@ function App() {
         let vc = createVirtualCellsFromBackend(test.data!);
         vcRef.current = vc;
         setVirtualCellsReady(true);
+        console.log(vc);
       }
 
       const css_map = await loadCellPluginCssMap();

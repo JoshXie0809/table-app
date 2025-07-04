@@ -14,5 +14,5 @@ export type FrontedSheet = {
   colCount: number;
   cellWidth: number;
   cellHeight: number;
-  defaultCellContent: string;
+  defaultCellContent: CellContent;
 };

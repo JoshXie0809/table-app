@@ -7,19 +7,21 @@ import { VirtualCells } from "../VirtualCells";
 import { useMountVMCells } from "../hooks/useMountViMCells";
 import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
+import { useRowVC } from "../hooks/useRowVC";
 
-export interface GridContentProps {
+export interface RowHeaderProps {
   containerRef: RefObject<HTMLDivElement>;
-  gridRef: RefObject<HTMLDivElement>;
+  rowHeaderRef: RefObject<HTMLDivElement>;
   vcRef: RefObject<VirtualCells>;
 }
 
-export const GridContent: React.FC<GridContentProps> = ({
+export const RowHeader: React.FC<RowHeaderProps> = ({
   containerRef,
-  gridRef,
+  rowHeaderRef,
   vcRef,
 }) => {
 
+  const rowVCRef = useRowVC(vcRef);
   // 時刻監聽 container 變化
   const containerDims = useContainerDimensions(containerRef);
 
@@ -28,17 +30,17 @@ export const GridContent: React.FC<GridContentProps> = ({
   const scrollStopTimer = useRef<number | null>(null); 
 
 
-  const {stopPolling, startPollingIfDirty} = usePolling(vcRef, rmRef);
+  const {stopPolling, startPollingIfDirty} = usePolling(rowVCRef, rmRef);
 
   // 初始化 managers
   useMountVMCells({
-    containerRef: gridRef, // 這裡我們要將 grid content 掛上去
+    containerRef: rowHeaderRef, 
     containerDims,
-    vcRef,
+    vcRef: rowVCRef,
     vmRef,
     rmRef,
     overScanRow: 2,
-    overScanCol: 2,
+    overScanCol: 0,
   });
 
   // 初始化後就開始檢查
@@ -48,7 +50,7 @@ export const GridContent: React.FC<GridContentProps> = ({
   useSyncContainerDims(
     containerRef,
     containerDims,
-    vcRef,
+    rowVCRef,
     vmRef,
     rmRef,
     stopPolling,
@@ -63,7 +65,7 @@ export const GridContent: React.FC<GridContentProps> = ({
 
     const handleScroll = () => {
       const container = containerRef.current;
-      const vc = vcRef.current;
+      const vc = rowVCRef.current;
       const vm = vmRef.current;
       const rm = rmRef.current;
 
@@ -76,6 +78,9 @@ export const GridContent: React.FC<GridContentProps> = ({
         requestAnimationFrame(() => {
           const scrollTop = container.scrollTop;
           const scrollLeft = container.scrollLeft;
+
+          rowHeaderRef.current!.style.transform = `translateX(${scrollLeft}px)`;
+
           const updatedCells = vm.scrollBy(scrollTop, scrollLeft);
           updatedCells.forEach((cell) => rm.markDirty(cell));
           rm.transformScheduler.flush();

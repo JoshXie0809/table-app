@@ -2,6 +2,8 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
+use crate::cell_plugins::cell::CellContent;
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, TS)]
 #[serde(rename_all = "camelCase")]
 pub struct BaseSheet {
@@ -17,5 +19,5 @@ pub struct BaseSheet {
     pub cell_width: u32,
     pub cell_height: u32,
 
-    pub default_cell_content: String,
+    pub default_cell_content: CellContent,
 }

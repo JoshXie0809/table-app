@@ -146,6 +146,7 @@ mod tests {
     }
 
     use std::collections::HashMap;
+    use std::default;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::io::loader::load_zip_file;
@@ -159,6 +160,13 @@ mod tests {
 
         let tcp = TextCellPlugin;
         let mut payload = tcp.default_payload().unwrap();
+        
+        let default_cell_content = CellContent {
+            cell_type_id: "Text".to_string(),
+            payload: payload.clone()
+        };
+        
+        
         payload.value = json!("aaa");
         
         let cell_content = CellContent {
@@ -166,19 +174,21 @@ mod tests {
             payload,
         };
 
+        
+
         // 1. 準備一個 plugin config
         let config = DefaultGridSheetConfig {
             meta: BaseSheet {
                 sheet_id: "sheet1".to_string(),
                 sheet_type: "DefaultGridSheet".to_string(),
                 sheet_name: "測試用".to_string(),
-                has_col_header: true,
-                has_row_header: true,
+                has_col_header: false,
+                has_row_header: false,
                 row_count: 100,
                 col_count: 50,
                 cell_width: 160,
                 cell_height: 52,
-                default_cell_content: "Text".to_string(),
+                default_cell_content: default_cell_content,
             },
             cells: {
                 let mut map = HashMap::new();

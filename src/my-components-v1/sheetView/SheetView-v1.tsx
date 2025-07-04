@@ -1,6 +1,7 @@
 import React, { RefObject, useEffect, useRef } from "react";
 import { GridContent } from "./GridContent";
 import { VirtualCells } from "../VirtualCells";
+import { RowHeader } from "./rowHeader";
 
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
@@ -13,6 +14,8 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+  const rowHeaderRef = useRef<HTMLDivElement>(null);
+
 
   const totalRow = vcRef.current!.sheetSize.nRow ;
   const totalCol = vcRef.current!.sheetSize.nCol;
@@ -186,11 +189,17 @@ export const SheetView11: React.FC<SheetViewProps> = ({
         }}
       >
         <div id="sizer" style={{ width: cellWidth * (totalCol + 1), height: rowHeight * (totalRow + 1) }} />
+        
         <div id="vtable-content-grid" ref={gridRef} 
           style={{ position: "absolute", top: `${rowHeight}px`, left: `${cellWidth}px`, willChange: "transform"}}
         />
 
+        <div id="vtable-row-header" ref={rowHeaderRef} 
+          style={{ position: "absolute", zIndex: 1, top: `${rowHeight}px`, willChange: "transform"}}
+        />
+
         <GridContent gridRef={gridRef} containerRef={containerRef} vcRef={vcRef}/>
+        <RowHeader rowHeaderRef={rowHeaderRef} containerRef={containerRef} vcRef={vcRef} />
       </div>
   );
 }

@@ -7,17 +7,23 @@ import { IVirtualCells } from "./IVirtualCells";
 
 export class VirtualCells implements IVirtualCells {
   cellsMap: Map<string, CellContent> = new Map();
-  private dirtyCells: Set<string> = new Set();
+  rowHeaderMap: Map<string, CellContent> = new Map(); 
+  colHeaderMap: Map<string, CellContent> = new Map();
 
+  private dirtyCells: Set<string> = new Set();
   constructor(
     readonly sheetName: string,
     readonly gridType: string,
     readonly sheetSize: { nRow: number; nCol: number },
     readonly cellWidth: number,
     readonly cellHeight: number,
-    cells: [string, CellContent][]
+    cells: [string, CellContent][],
+    rowHeader: [string, CellContent][],
+    colHeader: [string, CellContent][],
   ) {
     cells.forEach(cell => this.cellsMap.set(cell[0], cell[1]));
+    rowHeader.forEach(cell => this.rowHeaderMap.set(cell[0], cell[1]));
+    colHeader.forEach(cell => this.colHeaderMap.set(cell[0], cell[1]));
   }
 
   toKey(row: number, col: number): string {

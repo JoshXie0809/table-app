@@ -20,8 +20,8 @@ export function useMountVMCells({
   vcRef,
   vmRef,
   rmRef,
-  overScanRow = 2,
-  overScanCol = 2,
+  overScanRow = 0,
+  overScanCol = 0,
 }: UseMountVMCellsProps) {
   useEffect(() => {
     console.log("🟢 useMountVMCells mounted", { vm: vmRef.current, rm: rmRef.current });
