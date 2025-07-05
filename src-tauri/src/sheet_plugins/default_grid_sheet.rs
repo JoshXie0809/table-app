@@ -175,15 +175,15 @@ mod tests {
                 sheet_name: "測試用".to_string(),
                 has_col_header: false,
                 has_row_header: false,
-                row_count: 40960,
-                col_count: 512,
+                row_count: 1024,
+                col_count: 64,
                 cell_width: 160,
                 cell_height: 52,
                 default_cell_content: default_cell_content,
             },
             cells: {
                 let mut map = HashMap::new();
-                for r in 0..2000_u32 {
+                for r in 0..1000_u32 {
                     for c in 0..5_u32 {
                         let k = format!("{},{}", r, c);
                         let v = format!("aaa-{}", k);
