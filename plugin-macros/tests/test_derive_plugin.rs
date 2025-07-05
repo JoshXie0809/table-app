@@ -2,10 +2,7 @@
 #[cfg(test)]
 mod tests {
     use plugin_macros::Plugin;
-
-    pub trait Plugin {
-        fn name(&self) -> &'static str;
-    }
+    use plugin_core::Plugin;
 
     #[test]
     fn test_derive_plugin() {

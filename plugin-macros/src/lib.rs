@@ -9,7 +9,7 @@ pub fn derive_plugin(input: TokenStream) -> TokenStream
     let name = ast.ident;
 
     let expanded = quote! {
-        impl Plugin for #name {
+        impl ::plugin_core::Plugin for #name {
             fn name(&self) -> &'static str {
                 stringify!(#name)
             }

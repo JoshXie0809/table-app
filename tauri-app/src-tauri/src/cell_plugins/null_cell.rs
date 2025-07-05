@@ -4,6 +4,7 @@ use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::{json};
 
+use plugin_macros::Plugin;
 
 #[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +28,9 @@ impl Default for NullCellConfig {
     }
 }
 
-
+#[derive(Plugin)]
 pub struct NullCellPlugin;
+
 impl CellPlugin for NullCellPlugin {
 
     fn get_schema(&self) -> schemars::Schema {
@@ -74,4 +76,18 @@ impl CellPlugin for NullCellPlugin {
         .to_string()
     }
 
+}
+
+
+#[cfg(test)]
+mod tests {
+    use plugin_core::Plugin;
+
+    use crate::cell_plugins::null_cell::NullCellPlugin;
+
+    #[test]
+    fn test_derive_pluging() {
+        let ncp = NullCellPlugin;
+        println!("{}", ncp.name());
+    }
 }
