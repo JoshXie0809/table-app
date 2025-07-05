@@ -1,0 +1,24 @@
+# Rust build
+/target
+**/target
+**/.cargo
+Cargo.lock
+
+# Node & frontend
+/node_modules
+/dist
+/.parcel-cache
+/.next
+/.output
+
+# Tauri build
+tauri-app/src-tauri/target
+tauri-app/src-tauri/.cargo
+tauri-app/src-tauri/Cargo.lock
+
+# OS/editor junk
+.DS_Store
+.vscode/
+*.log
+*.tmp
+*.bak
