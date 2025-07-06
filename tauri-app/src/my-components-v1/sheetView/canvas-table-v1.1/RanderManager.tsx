@@ -4,6 +4,7 @@ import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler
 import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
 import { RefObject } from "react";
 import { IVirtualCells } from "../../IVirtualCells";
+import { tokens } from "@fluentui/react-components";
 
 // render-manager
 export class RManager {
@@ -35,7 +36,7 @@ export class RManager {
     el.style.willChange = "transform";
     el.style.top = "0px";
     el.style.left = "0px";
-    el.style.backgroundColor = "white";
+    el.style.backgroundColor = tokens.colorNeutralBackground1;
     el.style.textRendering = "geometricPrecision";
     el.style.display = "flex";
     el.style.alignItems ='center';

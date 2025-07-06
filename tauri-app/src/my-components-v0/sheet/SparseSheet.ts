@@ -1,6 +1,5 @@
 import { SheetPlugin, Sheet, defaultSheetCellWidth, defaultSheetCellHeight, defaultSheetOrder } from "./SheetPluginSystem";
 import { Cell, createDefaultCell } from "../cell/cellPluginSystem";
-import { create } from "lodash";
 
 // ArraySheet
 // tpye: "ArraySheet"

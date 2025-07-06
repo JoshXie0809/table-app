@@ -11,6 +11,8 @@ import { CustomTitleBar } from "./my-components-v1/titlebar/CustomTitleBar.tsx";
 import "./App.css";
 import { ButtonToolBox } from "./my-components-v1/button-toolbox/ButtonToolBox.tsx";
 import { ButtonLoadSheet } from "./my-components-v1/button-toolbox/ButtonLoadSheet.tsx";
+import { RibbonGroup, RibbonLargeButton, RibbonSmallButton } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
+import { SaveRegular } from '@fluentui/react-icons';
 
 const useStyles = makeStyles({
   root: {
@@ -58,11 +60,15 @@ function App() {
       <div className={styles.root}>
         <CustomTitleBar /> 
         <ButtonToolBox>
-          <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady}/>
+          <RibbonGroup label="檔案讀取">
+            <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
+
+          </RibbonGroup>
         </ButtonToolBox>
+
         <main className={styles.content}>
           {virtualCellsReady && vcRef.current && 
-            <Text size={500} weight="semibold"> {`${vcRef.current.sheetName}.sheetpkg`} </Text>
+            <Text size={500} weight="semibold"> {vcRef.current.sheetName} </Text>
           }
           {virtualCellsReady && <SheetView11 vcRef={vcRef} />}
         </main>

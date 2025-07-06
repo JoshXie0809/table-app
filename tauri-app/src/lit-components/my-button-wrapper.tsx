@@ -8,7 +8,7 @@ export function MyButtonWrapper(props: { label: string; onClick?: () => void }) 
     const el = ref.current;
     if (!el) return;
 
-    const handle = (e: Event) => {
+    const handle = (_e: Event) => {
       props.onClick?.();
     };
 

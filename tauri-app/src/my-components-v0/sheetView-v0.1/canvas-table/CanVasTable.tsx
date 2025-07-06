@@ -9,7 +9,6 @@ import { drawGrid } from "./draw/drawGrid";
 
 import { CanvasLayoutEngine } from "./cavas-layout-engine/CanvasLayoutEngine";
 import { CanvasContext } from "./CanvasContext";
-import { throttle } from "lodash";
 
 export interface CanvasTableProps {
   layoutEngine: CanvasLayoutEngine,

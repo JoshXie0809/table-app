@@ -1,5 +1,4 @@
 import { MutableRefObject, RefObject, useEffect } from "react";
-import { VirtualCells } from "../VirtualCells";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
 import { RManager } from "../sheetView/canvas-table-v1.1/RanderManager";
 import { IVirtualCells } from "../IVirtualCells";
