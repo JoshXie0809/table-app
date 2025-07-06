@@ -32,4 +32,5 @@ duckdb = { version = "1.3.1", features = ["bundled"] }
 zip = "4.2.0"
 tempfile = "3.20.0"
 uuid = { version = "1", features = ["v4"] }
+tauri-plugin-dialog = "2"
 

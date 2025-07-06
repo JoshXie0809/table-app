@@ -4,12 +4,13 @@ use serde::{Deserialize, Serialize};
 use tauri::State;
 use ts_rs::TS;
 
-use crate::{
-    // cell_plugins::{cell::CellContent, registry::CellPluginRegistry}, 
-    cell_plugins::cell::CellContent, io::loader::load_zip_file, sheet_plugins::{fronted_sheet::FrontedSheet, registry::SheetPluginRegistry}
-};
 use super::base::ApiResponse;
-
+use crate::{
+    // cell_plugins::{cell::CellContent, registry::CellPluginRegistry},
+    cell_plugins::cell::CellContent,
+    io::loader::load_zip_file,
+    sheet_plugins::{fronted_sheet::FrontedSheet, registry::SheetPluginRegistry},
+};
 
 #[tauri::command]
 pub fn load_sheet(
@@ -23,45 +24,67 @@ pub fn load_sheet_inner(
     sheet_name: String,
     registry: &SheetPluginRegistry,
 ) -> ApiResponse<FrontedSheet> {
-    let _ = sheet_name;
-    let load_result = load_zip_file("./test.sheetpkg.zip");
+    
+    let load_result = load_zip_file(&sheet_name);
 
     let (meta, data) = match load_result {
         Ok(m_and_d) => m_and_d,
-        Err(err) => return ApiResponse {success: false, data: None, error: Some(err)}   
+        Err(err) => {
+            return ApiResponse {
+                success: false,
+                data: None,
+                error: Some(err),
+            }
+        }
     };
 
     let sheet_plugin = match registry.get_plugin(&meta.sheet_meta.sheet_type) {
         Some(p) => p,
-        None => return ApiResponse {
-            success: false,
-            data: None,
-            error: Some("meta-error, the plugin-type of sheet does not exist.".to_string()),
-        },
+        None => {
+            return ApiResponse {
+                success: false,
+                data: None,
+                error: Some("meta-error, the plugin-type of sheet does not exist.".to_string()),
+            }
+        }
     };
 
     let sheet_config = match sheet_plugin.from_meta_and_data(meta, data) {
         Ok(cfg) => cfg,
-        Err(err) => return ApiResponse {success: false, data: None, error: Some(err)}
+        Err(err) => {
+            return ApiResponse {
+                success: false,
+                data: None,
+                error: Some(err),
+            }
+        }
     };
 
     let fronted_sheet = match sheet_plugin.to_fronted_sheet(&sheet_config) {
         Ok(fs) => fs,
-        Err(err) => return ApiResponse {success: false, data: None, error: Some(err)}
+        Err(err) => {
+            return ApiResponse {
+                success: false,
+                data: None,
+                error: Some(err),
+            }
+        }
     };
 
-    ApiResponse { success: true, data: Some(fronted_sheet), error: None }
+    ApiResponse {
+        success: true,
+        data: Some(fronted_sheet),
+        error: None,
+    }
 }
 
-
 #[derive(Deserialize, Serialize, TS)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct ICell {
     pub row: u32,
     pub col: u32,
-    pub cell_data: CellContent
+    pub cell_data: CellContent,
 }
-
 
 #[derive(Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -74,12 +97,11 @@ pub struct LoadSheetRequest {
 mod tests {
     use std::sync::Arc;
 
-
-    use crate::{api::load_sheet::{load_sheet_inner}, sheet_plugins::registry::SheetPluginRegistry};
+    use crate::{api::load_sheet::load_sheet_inner, sheet_plugins::registry::SheetPluginRegistry};
 
     #[test]
     fn test_load_sheet() {
-         // 模擬 sheet registry
+        // 模擬 sheet registry
         let registry_sheet: Arc<SheetPluginRegistry> = Arc::new(SheetPluginRegistry::new());
 
         let sheet_name = "test test".to_string();

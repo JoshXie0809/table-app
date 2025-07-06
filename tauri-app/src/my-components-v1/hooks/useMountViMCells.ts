@@ -73,17 +73,19 @@ export function useMountVMCells({
 
     // 🧼 清除行為
     return () => {
+      const rm = rmRef.current;
+      const vm = vmRef.current;
       // console.log("🔴 useMountVMCells cleanup", { vm: vmRef.current, rm: rmRef.current });
-      if (rmRef.current && vmRef.current) {
+      if (rm && vm) {
         // ✅ flush & unmount 所有格子
-        const cellsToUnmount = vmRef.current.getAllCells();
+        const cellsToUnmount = vm.getAllCells();
         // ✅ 安全地將所有 cell 的 unmount 排到 microtask queue
         for (const cell of cellsToUnmount) {
-          queueMicrotask(() => rmRef.current!.unmountCell(cell));
+          queueMicrotask(() => rm.unmountCell(cell));
         }
 
         // flush 可保留同步
-        rmRef.current.flush();
+        rm.flush();
         
         // ❗⚠️ 關鍵：清掉 Ref，讓下一次 useEffect 能正常觸發
         vmRef.current = null;

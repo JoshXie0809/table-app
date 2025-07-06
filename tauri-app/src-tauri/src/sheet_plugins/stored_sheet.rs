@@ -1,4 +1,3 @@
-
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
@@ -12,7 +11,6 @@ pub struct StoredSheetMeta {
     pub data_format: String,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "format")]
 pub enum StoredSheetData {
@@ -23,6 +21,4 @@ pub enum StoredSheetData {
     SparseMap {
         cells: HashMap<(u32, u32), CellContent>,
     },
-
 }
-

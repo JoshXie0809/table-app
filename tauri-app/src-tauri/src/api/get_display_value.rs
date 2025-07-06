@@ -55,13 +55,11 @@ pub fn get_display_value(
 }
 
 #[derive(Deserialize, TS)]
-#[serde(rename_all="camelCase")]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct GetDisplayValueRequest {
-    cells: Vec<ICell>
+    cells: Vec<ICell>,
 }
-
-
 
 #[derive(Serialize, TS)]
 #[serde(rename_all = "camelCase")]

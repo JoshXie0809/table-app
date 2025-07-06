@@ -4,7 +4,6 @@
 use table_lib::{export_json_schema::export_json_schema, export_types::export_ts};
 
 fn main() {
-    
     let args: Vec<String> = std::env::args().collect();
     if args.get(1).map(|s| s.as_str()) == Some("export-ts") {
         export_ts();

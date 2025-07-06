@@ -1,8 +1,11 @@
-use crate::cell_plugins::{cell::{BasePayload, CellContent, CellMeta}, CellPlugin};
+use crate::cell_plugins::{
+    cell::{BasePayload, CellContent, CellMeta},
+    CellPlugin,
+};
 
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
-use serde_json::{json};
+use serde_json::json;
 
 use plugin_macros::Plugin;
 
@@ -13,17 +16,16 @@ pub struct NullCellConfig {
     pub payload: BasePayload,
 }
 
-
 impl Default for NullCellConfig {
     fn default() -> Self {
-        Self { 
-            cell_type_id: "Null".to_string(), 
-            payload: BasePayload { 
-                value: json!(""), 
-                display_value: None, 
-                display_style: None, 
-                extra_fields: None,            
-            } 
+        Self {
+            cell_type_id: "Null".to_string(),
+            payload: BasePayload {
+                value: json!(""),
+                display_value: None,
+                display_style: None,
+                extra_fields: None,
+            },
         }
     }
 }
@@ -32,7 +34,6 @@ impl Default for NullCellConfig {
 pub struct NullCellPlugin;
 
 impl CellPlugin for NullCellPlugin {
-
     fn get_meta(&self) -> CellMeta {
         CellMeta {
             has_display_value: false,
@@ -49,22 +50,27 @@ impl CellPlugin for NullCellPlugin {
     }
 
     fn to_cell_content(&self, cell_config: serde_json::Value) -> Result<CellContent, String> {
-        let null_cell_config: NullCellConfig = serde_json::from_value(cell_config)
-            .map_err(|err| err.to_string())?;
+        let null_cell_config: NullCellConfig =
+            serde_json::from_value(cell_config).map_err(|err| err.to_string())?;
 
         let cell_type_id = null_cell_config.cell_type_id;
         let payload = null_cell_config.payload;
 
-        Ok( CellContent { cell_type_id, payload } )
+        Ok(CellContent {
+            cell_type_id,
+            payload,
+        })
     }
 
     fn from_cell_content(&self, cell_content: CellContent) -> Result<serde_json::Value, String> {
         let cell_type_id = cell_content.cell_type_id;
         let payload = cell_content.payload;
 
-        Ok(json!( NullCellConfig { cell_type_id, payload }))
+        Ok(json!(NullCellConfig {
+            cell_type_id,
+            payload
+        }))
     }
-
 
     fn display_cell(&self, payload: BasePayload) -> String {
         let val = payload.value;
@@ -82,9 +88,7 @@ impl CellPlugin for NullCellPlugin {
         }"
         .to_string()
     }
-
 }
-
 
 #[cfg(test)]
 mod tests {

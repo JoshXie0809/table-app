@@ -4,7 +4,15 @@ use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-use crate::{cell_plugins::cell::CellContent, sheet_plugins::{base_sheet::BaseSheet, fronted_sheet::FrontedSheet, stored_sheet::{StoredSheetData, StoredSheetMeta}, SheetPlugin}};
+use crate::{
+    cell_plugins::cell::CellContent,
+    sheet_plugins::{
+        base_sheet::BaseSheet,
+        fronted_sheet::FrontedSheet,
+        stored_sheet::{StoredSheetData, StoredSheetMeta},
+        SheetPlugin,
+    },
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
@@ -13,7 +21,6 @@ pub struct DefaultGridSheetConfig {
     pub meta: BaseSheet,
     pub cells: HashMap<String, CellContent>,
 }
-
 
 pub struct DefaultGridSheet;
 
@@ -40,7 +47,6 @@ impl DefaultGridSheet {
     }
 }
 
-
 impl SheetPlugin for DefaultGridSheet {
     fn get_type_id(&self) -> &str {
         "DefaultGridSheet"
@@ -50,23 +56,29 @@ impl SheetPlugin for DefaultGridSheet {
         schema_for!(DefaultGridSheetConfig)
     }
 
-    fn to_meta_and_data(&self, sheet_config: &serde_json::Value) 
-            -> Result<(super::stored_sheet::StoredSheetMeta, super::stored_sheet::StoredSheetData), String> 
-    {
+    fn to_meta_and_data(
+        &self,
+        sheet_config: &serde_json::Value,
+    ) -> Result<
+        (
+            super::stored_sheet::StoredSheetMeta,
+            super::stored_sheet::StoredSheetData,
+        ),
+        String,
+    > {
         // 把 sheet_config 還原成 DefaultGridSheetConfig
-        let dgs_config: DefaultGridSheetConfig = 
+        let dgs_config: DefaultGridSheetConfig =
             serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
-        
+
         let sheet_meta = dgs_config.meta;
-        let stored_meta = StoredSheetMeta { 
+        let stored_meta = StoredSheetMeta {
             plugin_type: "SheetPlugin".to_string(),
             sheet_meta,
             data_format: "SparseMap".to_string(),
         };
 
-        
         let mut cells = HashMap::new();
-        let cells_string  = dgs_config.cells;
+        let cells_string = dgs_config.cells;
         for (k, v) in cells_string {
             let key = DefaultGridSheet::to_rc(&k)?;
             cells.insert(key, v);
@@ -74,20 +86,18 @@ impl SheetPlugin for DefaultGridSheet {
 
         let sp_map: StoredSheetData = StoredSheetData::SparseMap { cells };
 
-        Ok((stored_meta, sp_map))        
-        
+        Ok((stored_meta, sp_map))
     }
 
-    fn from_meta_and_data(&self, meta: StoredSheetMeta, data: StoredSheetData)
-            -> Result<serde_json::Value, String> 
-    {
-
+    fn from_meta_and_data(
+        &self,
+        meta: StoredSheetMeta,
+        data: StoredSheetData,
+    ) -> Result<serde_json::Value, String> {
         let meta = meta.sheet_meta;
-        let stored_cells = 
-        match data {
-            StoredSheetData::SparseMap { cells } => 
-                cells,
-            _ =>  return Err("the DefaultGridSheet needs SparseMap format".to_string())
+        let stored_cells = match data {
+            StoredSheetData::SparseMap { cells } => cells,
+            _ => return Err("the DefaultGridSheet needs SparseMap format".to_string()),
         };
 
         let mut cells: HashMap<String, CellContent> = HashMap::new();
@@ -97,28 +107,24 @@ impl SheetPlugin for DefaultGridSheet {
             cells.insert(key, cell_content);
         }
 
-        let dgs_config = DefaultGridSheetConfig {
-            meta,
-            cells
-        };
+        let dgs_config = DefaultGridSheetConfig { meta, cells };
 
         let dgs_value = json!(dgs_config);
-        
+
         Ok(dgs_value)
     }
 
-    fn to_fronted_sheet(&self, sheet_config: &serde_json::Value) 
-        -> Result<super::fronted_sheet::FrontedSheet, String> 
-    {
-        
-        let dgs_config: DefaultGridSheetConfig = serde_json::from_value(sheet_config.clone())
-            .map_err(|err| err.to_string())?;
+    fn to_fronted_sheet(
+        &self,
+        sheet_config: &serde_json::Value,
+    ) -> Result<super::fronted_sheet::FrontedSheet, String> {
+        let dgs_config: DefaultGridSheetConfig =
+            serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
 
         let meta = dgs_config.meta;
         let mut cells = vec![];
-        
-        for (k, v) in dgs_config.cells.into_iter()
-        {
+
+        for (k, v) in dgs_config.cells.into_iter() {
             cells.push((k, v));
         }
 
@@ -141,38 +147,33 @@ mod tests {
 
     #[test]
     fn test_get_schema() {
-        let schema = schema_for!(DefaultGridSheetConfig); 
+        let schema = schema_for!(DefaultGridSheetConfig);
         println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     }
 
-    use std::collections::HashMap;
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::io::loader::load_zip_file;
     use crate::io::saver::save_to_zip_file;
     use crate::sheet_plugins::base_sheet::BaseSheet;
+    use std::collections::HashMap;
 
     #[test]
-    fn test_default_grid_plugin_to_file() 
-        -> Result<(), String>
-    {
-
+    fn test_default_grid_plugin_to_file() -> Result<(), String> {
         let tcp = TextCellPlugin;
-        
+
         let cell_config = tcp.default_cell_config();
         let mut cell_content = tcp.to_cell_content(cell_config)?;
         let default_cell_content = cell_content.clone();
 
-        cell_content.payload.value = json!("aaa-12345");
-
-
+        cell_content.payload.value = json!("");
 
         // 1. 準備一個 plugin config
         let config = DefaultGridSheetConfig {
             meta: BaseSheet {
                 sheet_id: "sheet1".to_string(),
                 sheet_type: "DefaultGridSheet".to_string(),
-                sheet_name: "測試用".to_string(),
+                sheet_name: "hello-world-2".to_string(),
                 has_col_header: false,
                 has_row_header: false,
                 row_count: 1024,
@@ -186,7 +187,7 @@ mod tests {
                 for r in 0..1000_u32 {
                     for c in 0..5_u32 {
                         let k = format!("{},{}", r, c);
-                        let v = format!("aaa-{}", k);
+                        let v = format!("ggg-{}", k);
                         cell_content.payload.value = json!(v);
                         map.insert(k, cell_content.clone());
                     }
@@ -207,23 +208,20 @@ mod tests {
         // save_data(&data, &path).map_err(|err| err.to_string())?;
 
         // 測試 save_to_zip_file
-        let path = "./test.sheetpkg.zip";
+        let path = "./hello-world.sheetpkg.zip";
         save_to_zip_file(&meta, &data, path)?;
-        
+
         Ok(())
     }
 
     #[test]
-    fn test_from_meta_and_data() 
-        -> Result<(), String>
-    {
+    fn test_from_meta_and_data() -> Result<(), String> {
         let dgs = DefaultGridSheet;
         let (meta, data) = load_zip_file("./test.sheetpkg.zip")?;
         let sheet_config = dgs.from_meta_and_data(meta, data)?;
         println!("{:#?}", sheet_config);
         let (meta, data) = dgs.to_meta_and_data(&sheet_config)?;
-        println!("{:#?}, {:#?}", meta, data); 
+        println!("{:#?}, {:#?}", meta, data);
         Ok(())
     }
-
 }

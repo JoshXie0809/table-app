@@ -35,7 +35,8 @@ export const TopLeftCell: React.FC<TopLeftCellProps> = ({
 
     // 清理函數：在組件卸載或依賴變化時移除事件監聽器
     return () => {
-      containerRef.current!.removeEventListener("scroll", handleScroll);
+      if(containerRef.current)
+        containerRef.current.removeEventListener("scroll", handleScroll);
     };
   }, []); // 空依賴陣列表示只在組件 mount 和 unmount 時執行
 

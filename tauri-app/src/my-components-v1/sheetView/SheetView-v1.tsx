@@ -21,10 +21,10 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const tlcRef = useRef<HTMLDivElement>(null);
 
 
-  const totalRow = vcRef.current!.sheetSize.nRow ;
-  const totalCol = vcRef.current!.sheetSize.nCol;
-  const rowHeight = vcRef.current!.cellHeight;
-  const cellWidth = vcRef.current!.cellWidth;
+  const totalRow = vcRef.current?.sheetSize.nRow ?? 0;
+  const totalCol = vcRef.current?.sheetSize.nCol ?? 0;
+  const rowHeight = vcRef.current?.cellHeight ?? 24;
+  const cellWidth = vcRef.current?.cellWidth ?? 100;
 
   useEffect(() => {
     const container = containerRef.current;

@@ -21,4 +21,3 @@ pub struct FrontedSheet {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub col_header: Option<Vec<(String, CellContent)>>,
 }
-

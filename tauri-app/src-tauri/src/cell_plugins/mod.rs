@@ -4,13 +4,12 @@ use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
 
 // 在 mod.rs 中聲明子模組
 pub mod cell;
-pub mod text_cell; 
 pub mod null_cell;
+pub mod text_cell;
 
-pub mod registry;  // 稍後會建立這個模組來管理所有插件
+pub mod registry; // 稍後會建立這個模組來管理所有插件
 
 pub trait CellPlugin: Send + Sync {
-
     fn get_meta(&self) -> CellMeta;
 
     fn get_schema(&self) -> Schema;
@@ -25,7 +24,3 @@ pub trait CellPlugin: Send + Sync {
 
     fn get_css(&self) -> String;
 }
-
-
-
-

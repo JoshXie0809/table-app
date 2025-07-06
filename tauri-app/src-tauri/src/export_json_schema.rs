@@ -1,5 +1,5 @@
-use schemars::{generate::SchemaSettings, SchemaGenerator};
 use crate::sheet_plugins::base_sheet::BaseSheet;
+use schemars::{generate::SchemaSettings, SchemaGenerator};
 use std::fs;
 
 pub fn export_json_schema() {
@@ -15,5 +15,4 @@ pub fn export_json_schema() {
 
     let schema_json = serde_json::to_string_pretty(&schema).expect("Failed to serialize schema");
     fs::write(out_dir, schema_json).expect("Failed to write schema to file");
-
 }
