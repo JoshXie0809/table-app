@@ -1,4 +1,4 @@
-use crate::cell_plugins::{cell::{BasePayload, CellContent}, CellPlugin};
+use crate::cell_plugins::{cell::{BasePayload, CellContent, CellMeta}, CellPlugin};
 
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
@@ -32,6 +32,13 @@ impl Default for NullCellConfig {
 pub struct NullCellPlugin;
 
 impl CellPlugin for NullCellPlugin {
+
+    fn get_meta(&self) -> CellMeta {
+        CellMeta {
+            has_display_value: false,
+            has_display_style: false,
+        }
+    }
 
     fn get_schema(&self) -> schemars::Schema {
         schema_for!(NullCellConfig)

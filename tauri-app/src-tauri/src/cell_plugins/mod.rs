@@ -1,6 +1,6 @@
 use schemars::Schema;
 
-use crate::cell_plugins::cell::{BasePayload, CellContent};
+use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
 
 // 在 mod.rs 中聲明子模組
 pub mod cell;
@@ -10,6 +10,8 @@ pub mod null_cell;
 pub mod registry;  // 稍後會建立這個模組來管理所有插件
 
 pub trait CellPlugin: Send + Sync {
+
+    fn get_meta(&self) -> CellMeta;
 
     fn get_schema(&self) -> Schema;
 
@@ -22,14 +24,6 @@ pub trait CellPlugin: Send + Sync {
     fn display_cell(&self, payload: BasePayload) -> String;
 
     fn get_css(&self) -> String;
-
-
-    // // 讓 quick edit 模式可以修改的值
-    // fn get_value() -> Value;
-
-    // // 讓 quick edit 模式可以回傳的值
-    // fn set_value();
-
 }
 
 

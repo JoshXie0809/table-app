@@ -1,4 +1,4 @@
-use crate::cell_plugins::cell::{BasePayload, CellContent};
+use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
 
 use super::CellPlugin;
 use schemars::{schema_for, JsonSchema};
@@ -30,6 +30,13 @@ impl Default for TextCellConfig {
 
 
 impl CellPlugin for TextCellPlugin {
+
+    fn get_meta(&self) -> super::cell::CellMeta {
+        CellMeta {
+            has_display_value: false,
+            has_display_style: false,
+        }
+    }
 
     fn get_schema(&self) -> schemars::Schema {
         schema_for!(TextCellConfig)

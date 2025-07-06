@@ -32,3 +32,9 @@ pub struct BasePayload {
     pub extra_fields: Option<HashMap<String, Value>>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, TS, JsonSchema)]
+#[serde(rename_all = "camelCase")] // 自動處理 camelCase 命名
+pub struct CellMeta {
+    pub has_display_value: bool,
+    pub has_display_style: bool,
+}

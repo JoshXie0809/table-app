@@ -4,5 +4,5 @@ export type BasePayload = {
   value: any;
   displayValue: string | null;
   displayStyle: string | null;
-  extraFields: Map<string, any>;
+  extraFields: Map<string, any> | null;
 };
