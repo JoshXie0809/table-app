@@ -24,6 +24,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const colHeaderRef = useRef<HTMLDivElement>(null);
   const tlcRef = useRef<HTMLDivElement>(null);
 
+
   const refMap = useRef(new Map<string, RefBundle>());
 
   const registerRef = (key: string, refs: RefBundle) => {
@@ -42,6 +43,8 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const totalCol = vcRef.current?.sheetSize.nCol ?? 0;
   const rowHeight = vcRef.current?.cellHeight ?? 24;
   const cellWidth = vcRef.current?.cellWidth ?? 100;
+
+
 
   useEffect(() => {
     const container = containerRef.current;

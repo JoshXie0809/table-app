@@ -21,6 +21,15 @@ export class PointerManager {
     mode: "idle" as "idle" | "dragging" | "resizing" | "hovering" | "selecting"
   };
 
+  constructor() {
+    if (typeof window !== "undefined") {
+      window.addEventListener("pointerdown", e => this.handle("pointerdown", e));
+      window.addEventListener("pointermove", e => this.handle("pointermove", e));
+      window.addEventListener("pointerup", e => this.handle("pointerup", e));
+    }
+  }
+
+
   private handle(type: PointerEventType, e: PointerEvent) {
     this.pointerState.x = e.clientX;
     this.pointerState.y = e.clientY;

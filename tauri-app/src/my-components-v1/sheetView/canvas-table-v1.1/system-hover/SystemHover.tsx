@@ -3,6 +3,7 @@ import { useSheetView } from "../../SheetView-Context"
 import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 import { TransSystemName } from "../RenderManager";
 import { useTickingRef } from "../../../hooks/useTickingRef";
+import { usePointerListener } from "../../../hooks/usePointerListener";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -89,7 +90,7 @@ export const SystemHover: React.FC = () => {
 
 
   // 監聽滑鼠位置
-  useEffect(() => {
+  const handleMouseMove = (e: MouseEvent) => {
     const container = containerRef.current;
     if (!container) return;
     const canvas = canvasRef.current;
@@ -99,47 +100,31 @@ export const SystemHover: React.FC = () => {
     const vc = vcRef.current;
     if(!vc) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const container = containerRef.current;
-      if (!container) return;
-      const canvas = canvasRef.current;
-      if(!canvas) return;
-      const ctx = canvas.getContext("2d");
-      if(!ctx) return;
-      const vc = vcRef.current;
-      if(!vc) return;
+    const scrollTop = container.scrollTop;
+    const scrollLeft = container.scrollLeft;
+    const rowHeight = vc.cellHeight;
+    const cellWidth = vc.cellWidth;
 
-      const scrollTop = container.scrollTop;
-      const scrollLeft = container.scrollLeft;
-      const rowHeight = vc.cellHeight;
-      const cellWidth = vc.cellWidth;
+    // 取得滑鼠目前指到的畫面座標
+    const { clientX, clientY } = e;
 
-      // 取得滑鼠目前指到的畫面座標
-      const { clientX, clientY } = e;
+    // 查出目前滑鼠底下的元素
+    const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+    let ticking = false;
 
-      // 查出目前滑鼠底下的元素
-      const el = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
-      let ticking = false;
+    if(!ticking) {
+      ticking = true;
+      const target = findTransSystemElement(el);
 
-      if(!ticking) {
-        ticking = true;
-        const target = findTransSystemElement(el);
+      requestAnimationFrame(() => {
+        drawCell(target, ctx, scrollTop, scrollLeft, rowHeight, cellWidth);
+        ticking = false;
+      })
+    }
+  };
 
-        requestAnimationFrame(() => {
-          drawCell(target, ctx, scrollTop, scrollLeft, rowHeight, cellWidth);
-          ticking = false;
-        })
-      }
-    };
-
-    container.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      const container = containerRef.current;
-      if(!container) return;
-      container.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, [containerRef]);
+  
+  usePointerListener("pointermove", handleMouseMove);
 
   return null;
 };
