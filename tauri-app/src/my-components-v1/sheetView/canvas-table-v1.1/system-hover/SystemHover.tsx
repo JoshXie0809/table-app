@@ -1,13 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useSheetView } from "../../SheetView-Context"
-import { TransSystemName } from "../Dirty/DirtyTranslateCellScheduler";
 import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
+import { TransSystemName } from "../RenderManager";
+import { useTickingRef } from "../../../hooks/useTickingRef";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerDims = useContainerDimensions(containerRef);
-
+  const tickingRef = useTickingRef();
 
   // 掛畫布到 containerRef
   useEffect(() => {
@@ -65,15 +66,14 @@ export const SystemHover: React.FC = () => {
       const ctx = canvas.getContext("2d");
       if(!ctx) return;
 
-      let ticking = false;
-      if (!ticking) {
-        ticking = true; // 立即設定為 true，表示已排程一個幀
+      if (!tickingRef.current) {
+        tickingRef.current = true; // 立即設定為 true，表示已排程一個幀
         requestAnimationFrame(() => {
           ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
           const scrollTop = container.scrollTop;
           const scrollLeft = container.scrollLeft;
           canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
-          ticking = false; // 所有更新完成後，將 ticking 設為 false
+          tickingRef.current = false; // 所有更新完成後，將 ticking 設為 false
         });
       }
     }

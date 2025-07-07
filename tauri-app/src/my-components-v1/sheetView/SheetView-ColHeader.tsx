@@ -1,14 +1,14 @@
 import React, { RefObject, useEffect, useRef } from "react";
 
 import { VManager } from "./canvas-table-v1.1/VirtualizationMangaer";
-import { RManager } from "./canvas-table-v1.1/RenderManager";
+import { RManager, TransSystemName } from "./canvas-table-v1.1/RenderManager";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import { VirtualCells } from "../VirtualCells";
 import { useMountVMCells } from "../hooks/useMountViMCells";
 import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
 import { useHeaderVC } from "../hooks/useHeaderVC";
-import { TransSystemName } from "./canvas-table-v1.1/Dirty/DirtyTranslateCellScheduler";
+import { useTickingRef } from "../hooks/useTickingRef";
 
 export interface RowHeaderProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -32,6 +32,8 @@ export const ColHeader: React.FC<RowHeaderProps> = ({
   const {stopPolling, startPollingIfDirty} = usePolling(colVCRef, rmRef);
 
   const transSystemName: TransSystemName = "column-header";
+
+  const tickingRef = useTickingRef();
 
   // 初始化 managers
   useMountVMCells({
@@ -63,8 +65,6 @@ export const ColHeader: React.FC<RowHeaderProps> = ({
   useEffect(() => {
     if(!containerRef.current) return;
 
-    let ticking = false; // 這裡定義的 ticking 變數是每個 useEffect 實例獨有的
-
     const handleScroll = () => {
       const container = containerRef.current;
       const vc = colVCRef.current;
@@ -74,8 +74,8 @@ export const ColHeader: React.FC<RowHeaderProps> = ({
       if(!vc) return;    
       if (!vm || !rm || !container) return;
       // 如果已經在排程 requestAnimationFrame，則不重複排程
-      if (!ticking) {
-        ticking = true; // 立即設定為 true，表示已排程一個幀
+      if (!tickingRef.current) {
+        tickingRef.current = true; // 立即設定為 true，表示已排程一個幀
 
         requestAnimationFrame(() => {
           const scrollTop = container.scrollTop;
@@ -90,7 +90,7 @@ export const ColHeader: React.FC<RowHeaderProps> = ({
           // 在滾動過程中也要請求顯示值，因為可視區域內的單元格變化了
           vc.requestDisplayValueAndUpdate();
 
-          ticking = false; // 所有更新完成後，將 ticking 設為 false
+          tickingRef.current = false; // 所有更新完成後，將 ticking 設為 false
         });
       }
 

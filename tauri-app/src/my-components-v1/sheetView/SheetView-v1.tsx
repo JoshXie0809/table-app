@@ -34,6 +34,10 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     return refMap.current.get(key);
   };
 
+  const unregisterRef = (key: string) => {
+    refMap.current.delete(key);
+  };
+
   const totalRow = vcRef.current?.sheetSize.nRow ?? 0;
   const totalCol = vcRef.current?.sheetSize.nCol ?? 0;
   const rowHeight = vcRef.current?.cellHeight ?? 24;
@@ -192,7 +196,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 
   
   return (
-    <SheetViewContext.Provider value={{ vcRef, containerRef, registerRef, getRef }}>
+    <SheetViewContext.Provider value={{ vcRef, containerRef, registerRef, unregisterRef, getRef }}>
       <div
         ref={containerRef}
         id="container-virtual-cells"
@@ -245,3 +249,4 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     </SheetViewContext.Provider>
   );
 }
+

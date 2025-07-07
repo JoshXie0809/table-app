@@ -14,6 +14,7 @@ export interface SheetViewContextValue {
   containerRef: RefObject<HTMLDivElement>,
   vcRef: RefObject<VirtualCells>,
   registerRef: (key: string, refs: RefBundle) => void;
+  unregisterRef: (key: string) => void;
   getRef: (key: string) => RefBundle | undefined
 }
 

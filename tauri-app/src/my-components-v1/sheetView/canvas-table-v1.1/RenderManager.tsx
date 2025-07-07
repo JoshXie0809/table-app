@@ -1,27 +1,36 @@
 import { Cell } from "./Cell";
 import { createRoot } from "react-dom/client";
-import { DirtyTranslateCellScheduler, TransSystemName } from "./Dirty/DirtyTranslateCellScheduler";
+import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
 import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
 import { RefObject } from "react";
 import { IVirtualCells } from "../../IVirtualCells";
 import { tokens } from "@fluentui/react-components";
+
+
+export type TransSystemName = "cells" | "row-header" | "column-header" | "tlc";
+
 
 // render-manager
 export class RManager {
   private cellWidth: number;
   private rowHeight: number;
   private container: HTMLElement;
-
+  private transSystemName: TransSystemName;
   private domPool: Map<string, HTMLElement> = new Map();
 
   transformScheduler: DirtyTranslateCellScheduler;
   contentScheduler: DirtyCellContentScheduler;
 
-  constructor(transSystemName: TransSystemName, rowHeight: number, cellWidth: number, container: HTMLElement, vcRef: RefObject<IVirtualCells> ) {
+  constructor(
+    transSystemName: TransSystemName, 
+    rowHeight: number, cellWidth: number, 
+    container: HTMLElement, vcRef: RefObject<IVirtualCells> ) 
+  {
+    this.transSystemName = transSystemName; 
     this.cellWidth = cellWidth;
     this.rowHeight = rowHeight;
     this.container = container;
-    this.transformScheduler = new DirtyTranslateCellScheduler(transSystemName, this.rowHeight, this.cellWidth);
+    this.transformScheduler = new DirtyTranslateCellScheduler(this.rowHeight, this.cellWidth);
     this.contentScheduler = new DirtyCellContentScheduler(vcRef);
   }
 
@@ -41,6 +50,8 @@ export class RManager {
     el.style.display = "flex";
     el.style.alignItems ='center';
     el.style.justifyContent = 'center'; 
+    // 加入 trans 的型別
+    el.dataset.transSystem = this.transSystemName;
   }
 
   mountCell(cell: Cell) {

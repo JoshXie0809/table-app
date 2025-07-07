@@ -1,5 +1,6 @@
 import { RefObject, useEffect } from "react";
-import { TransSystemName } from "./canvas-table-v1.1/Dirty/DirtyTranslateCellScheduler";
+import { TransSystemName } from "./canvas-table-v1.1/RenderManager";
+
 
 export interface TopLeftCellProps {
   containerRef: RefObject<HTMLDivElement>;

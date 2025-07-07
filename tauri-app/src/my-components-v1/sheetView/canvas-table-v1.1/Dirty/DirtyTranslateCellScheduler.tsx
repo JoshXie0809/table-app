@@ -1,13 +1,11 @@
 import { Cell } from "../Cell";
 
-export type TransSystemName = "cells" | "row-header" | "column-header" | "tlc";
 export class DirtyTranslateCellScheduler {
   private dirtyCells = new Set<Cell>();
   private scheduled = false;
   private externalFlush = false; // 是否改為由外部控制 flush
     
   constructor(
-    private systemName: TransSystemName,
     private rowHeight: number,
     private cellWidth: number,
   ) {}
@@ -58,7 +56,7 @@ export class DirtyTranslateCellScheduler {
     el.style.transform = `translate3d(${transX}px, ${transY}px, 0px)`;
     el.dataset.transX = `${transX}`;
     el.dataset.transY = `${transY}`;
-    el.dataset.transSystem = this.systemName;
+    
     cell.valueRef.transX = transX;
     cell.valueRef.transY = transY;
     
