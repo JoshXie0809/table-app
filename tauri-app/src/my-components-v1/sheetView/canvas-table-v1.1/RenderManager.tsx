@@ -1,6 +1,6 @@
 import { Cell } from "./Cell";
 import { createRoot } from "react-dom/client";
-import { DirtyTranslateCellScheduler } from "./Dirty/DirtyTranslateCellScheduler";
+import { DirtyTranslateCellScheduler, TransSystemName } from "./Dirty/DirtyTranslateCellScheduler";
 import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
 import { RefObject } from "react";
 import { IVirtualCells } from "../../IVirtualCells";
@@ -17,11 +17,11 @@ export class RManager {
   transformScheduler: DirtyTranslateCellScheduler;
   contentScheduler: DirtyCellContentScheduler;
 
-  constructor(rowHeight: number, cellWidth: number, container: HTMLElement, vcRef: RefObject<IVirtualCells> ) {
+  constructor(transSystemName: TransSystemName, rowHeight: number, cellWidth: number, container: HTMLElement, vcRef: RefObject<IVirtualCells> ) {
     this.cellWidth = cellWidth;
     this.rowHeight = rowHeight;
     this.container = container;
-    this.transformScheduler = new DirtyTranslateCellScheduler(this.rowHeight, this.cellWidth);
+    this.transformScheduler = new DirtyTranslateCellScheduler(transSystemName, this.rowHeight, this.cellWidth);
     this.contentScheduler = new DirtyCellContentScheduler(vcRef);
   }
 

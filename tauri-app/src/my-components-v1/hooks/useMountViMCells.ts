@@ -1,9 +1,11 @@
 import { MutableRefObject, RefObject, useEffect } from "react";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
-import { RManager } from "../sheetView/canvas-table-v1.1/RanderManager";
+import { RManager } from "../sheetView/canvas-table-v1.1/RenderManager";
 import { IVirtualCells } from "../IVirtualCells";
+import { TransSystemName } from "../sheetView/canvas-table-v1.1/Dirty/DirtyTranslateCellScheduler";
 
 export interface UseMountVMCellsProps {
+  transSystemName: TransSystemName,
   containerRef: RefObject<HTMLElement>;
   containerDims: { width: number; height: number };
   vcRef: RefObject<IVirtualCells>;
@@ -14,6 +16,7 @@ export interface UseMountVMCellsProps {
 }
 
 export function useMountVMCells({
+  transSystemName,
   containerRef,
   containerDims,
   vcRef,
@@ -50,6 +53,7 @@ export function useMountVMCells({
     );
 
     rmRef.current = new RManager(
+      transSystemName,
       rowHeight,
       cellWidth,
       containerRef.current,

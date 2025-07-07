@@ -12,6 +12,7 @@ import "./App.css";
 import { ButtonToolBox } from "./my-components-v1/button-toolbox/ButtonToolBox.tsx";
 import { ButtonLoadSheet } from "./my-components-v1/button-toolbox/ButtonLoadSheet.tsx";
 import { RibbonGroup } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
+import { SystemHover } from "./my-components-v1/sheetView/canvas-table-v1.1/system-hover/SystemHover.tsx";
 
 
 const useStyles = makeStyles({
@@ -72,7 +73,7 @@ function App() {
           }
           {virtualCellsReady && 
             <SheetView11 vcRef={vcRef} >
-              
+              <SystemHover />
             </SheetView11>
           }
         </main>

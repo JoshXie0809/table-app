@@ -1,6 +1,6 @@
 import { RefObject, useRef } from "react";
 import { VirtualCells } from "../VirtualCells";
-import { RManager } from "../sheetView/canvas-table-v1.1/RanderManager";
+import { RManager } from "../sheetView/canvas-table-v1.1/RenderManager";
 
 export function usePolling(
   vcRef: RefObject<VirtualCells>,

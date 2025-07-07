@@ -1,12 +1,13 @@
 import React, { RefObject, useEffect, useRef } from "react";
 
 import { VManager } from "./canvas-table-v1.1/VirtualizationMangaer";
-import { RManager } from "./canvas-table-v1.1/RanderManager";
+import { RManager } from "./canvas-table-v1.1/RenderManager";
 import { useContainerDimensions } from "../hooks/useContainerDimensions";
 import { VirtualCells } from "../VirtualCells";
 import { useMountVMCells } from "../hooks/useMountViMCells";
 import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
+import { TransSystemName } from "./canvas-table-v1.1/Dirty/DirtyTranslateCellScheduler";
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -30,8 +31,11 @@ export const GridContent: React.FC<GridContentProps> = ({
 
   const {stopPolling, startPollingIfDirty} = usePolling(vcRef, rmRef);
 
+  const transSystemName: TransSystemName = "cells";
+
   // 初始化 managers
   useMountVMCells({
+    transSystemName,
     containerRef: gridRef, // 這裡我們要將 grid content 掛上去
     containerDims,
     vcRef,

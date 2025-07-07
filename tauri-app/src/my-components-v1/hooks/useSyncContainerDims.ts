@@ -1,7 +1,7 @@
 import { MutableRefObject, RefObject, useEffect } from "react";
 import { VirtualCells } from "../VirtualCells";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
-import { RManager } from "../sheetView/canvas-table-v1.1/RanderManager";
+import { RManager } from "../sheetView/canvas-table-v1.1/RenderManager";
 
 export function useSyncContainerDims(
   containerRef: RefObject<HTMLElement>,
