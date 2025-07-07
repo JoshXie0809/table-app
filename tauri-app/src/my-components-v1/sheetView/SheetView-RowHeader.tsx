@@ -9,6 +9,7 @@ import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
 import { useHeaderVC } from "../hooks/useHeaderVC";
 import { useTickingRef } from "../hooks/useTickingRef";
+import { useRegisterSystemRef } from "./SheetView-Context";
 
 export interface RowHeaderProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -34,6 +35,13 @@ export const RowHeader: React.FC<RowHeaderProps> = ({
   const tickingRef = useTickingRef();
 
   const transSystemName: TransSystemName = "row-header";
+  // 註冊 managers 到 sheetViewContext
+  useRegisterSystemRef(transSystemName, {
+    rmRef,
+    vmRef,
+    vcRef: rowVCRef,
+  })
+
   // 初始化 managers
   useMountVMCells({
     transSystemName,

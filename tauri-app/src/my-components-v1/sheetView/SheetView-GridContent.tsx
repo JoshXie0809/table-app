@@ -8,6 +8,7 @@ import { useMountVMCells } from "../hooks/useMountViMCells";
 import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
 import { useTickingRef } from "../hooks/useTickingRef";
+import { useRegisterSystemRef } from "./SheetView-Context";
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -34,6 +35,13 @@ export const GridContent: React.FC<GridContentProps> = ({
   const {stopPolling, startPollingIfDirty} = usePolling(vcRef, rmRef);
 
   const transSystemName: TransSystemName = "cells";
+
+  // 註冊 managers 到 sheetViewContext
+    useRegisterSystemRef(transSystemName, {
+      rmRef,
+      vmRef,
+      vcRef,
+    })
 
   // 初始化 managers
   useMountVMCells({

@@ -1,8 +1,7 @@
 import { MutableRefObject, RefObject, useEffect } from "react";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
-import { RManager } from "../sheetView/canvas-table-v1.1/RenderManager";
+import { RManager, TransSystemName } from "../sheetView/canvas-table-v1.1/RenderManager";
 import { IVirtualCells } from "../IVirtualCells";
-import { TransSystemName } from "../sheetView/canvas-table-v1.1/Dirty/DirtyTranslateCellScheduler";
 
 export interface UseMountVMCellsProps {
   transSystemName: TransSystemName,

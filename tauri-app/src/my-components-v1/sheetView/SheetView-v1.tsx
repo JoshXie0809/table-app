@@ -5,7 +5,7 @@ import { RowHeader } from "./SheetView-RowHeader.tsx";
 import { ColHeader } from "./SheetView-ColHeader.tsx";
 import { TopLeftCell } from "./SheetView-TopLeftCell.tsx";
 import { tokens } from "@fluentui/react-components";
-import { RefBundle, SheetViewContext } from "./SheetView-Context.tsx";
+import { SheetViewContext, useCreateSheetViewContextValue } from "./SheetView-Context.tsx";
 
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
@@ -25,26 +25,12 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const tlcRef = useRef<HTMLDivElement>(null);
 
 
-  const refMap = useRef(new Map<string, RefBundle>());
-
-  const registerRef = (key: string, refs: RefBundle) => {
-    refMap.current.set(key, refs);
-  };
-
-  const getRef = (key: string) => {
-    return refMap.current.get(key);
-  };
-
-  const unregisterRef = (key: string) => {
-    refMap.current.delete(key);
-  };
-
   const totalRow = vcRef.current?.sheetSize.nRow ?? 0;
   const totalCol = vcRef.current?.sheetSize.nCol ?? 0;
   const rowHeight = vcRef.current?.cellHeight ?? 24;
   const cellWidth = vcRef.current?.cellWidth ?? 100;
 
-
+  const value = useCreateSheetViewContextValue(vcRef, containerRef);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -199,7 +185,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 
   
   return (
-    <SheetViewContext.Provider value={{ vcRef, containerRef, registerRef, unregisterRef, getRef }}>
+    <SheetViewContext.Provider value={value}>
       <div
         ref={containerRef}
         id="container-virtual-cells"

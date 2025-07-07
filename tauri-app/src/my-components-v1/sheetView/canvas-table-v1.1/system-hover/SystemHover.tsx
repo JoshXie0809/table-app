@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { useSheetView } from "../../SheetView-Context"
 import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 import { TransSystemName } from "../RenderManager";
@@ -32,9 +32,11 @@ export const SystemHover: React.FC = () => {
     canvasRef.current = canvas;
 
     return () => {
-      if(!containerRef.current) return;
       const container = containerRef.current;
-      container.removeChild(canvas);
+      const canvas = canvasRef.current;
+      if (container && canvas && container.contains(canvas)) {
+        container.removeChild(canvas);
+      }
       canvasRef.current = null;
     };
   }, [containerRef]);
