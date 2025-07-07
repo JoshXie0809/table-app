@@ -1,18 +1,19 @@
 import { useEffect, useRef } from "react";
 import { useSheetView } from "../../SheetView-Context"
 import { TransSystemName } from "../Dirty/DirtyTranslateCellScheduler";
+import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const containerDims = useContainerDimensions(containerRef);
+
 
   // 掛畫布到 containerRef
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
     const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    if(!ctx) return;
 
     canvas.style.position = "absolute";
     canvas.style.top = "0px";
@@ -28,11 +29,37 @@ export const SystemHover: React.FC = () => {
     container.appendChild(canvas);
     canvasRef.current = canvas;
 
+    return () => {
+      if(!containerRef.current) return;
+      const container = containerRef.current;
+      container.removeChild(canvas);
+      canvasRef.current = null;
+    };
+  }, [containerRef]);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const container = containerRef.current;
+    if (!container) return;
+
+    canvas.width = container.clientWidth;
+    canvas.height = container.clientHeight;
+  }, [containerDims]);
+
+
+  // 監聽滾動事件
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    if(!ctx) return;
+
     const handleScroll = () => {
       if(!containerRef.current) return;
       if(!canvasRef.current) return;
       
-
       const container = containerRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
@@ -56,12 +83,10 @@ export const SystemHover: React.FC = () => {
     return () => {
       if(!containerRef.current) return;
       const container = containerRef.current;
-
       container.removeEventListener("scroll", handleScroll);
-      container.removeChild(canvas);
-
     };
-  }, [containerRef]);
+  }, [containerRef])
+
 
   // 監聽滑鼠位置
   useEffect(() => {
@@ -101,18 +126,7 @@ export const SystemHover: React.FC = () => {
         const target = findTransSystemElement(el);
 
         requestAnimationFrame(() => {
-          // if (target) {
-          //   const system = target.dataset.transSystem;
-          //   const transX = target.dataset.transX;
-          //   const transY = target.dataset.transY;
-
-          //   console.log(`滑鼠指到 ${system} 區塊，位置為 (${transX}, ${transY})`);
-          // } else {
-          //   console.log("未指向任何 trans-system 元素");
-          // }
-
           drawCell(target, ctx, scrollTop, scrollLeft, rowHeight, cellWidth);
-
           ticking = false;
         })
       }
@@ -121,9 +135,11 @@ export const SystemHover: React.FC = () => {
     container.addEventListener("mousemove", handleMouseMove);
 
     return () => {
+      const container = containerRef.current;
+      if(!container) return;
       container.removeEventListener("mousemove", handleMouseMove);
     };
-  }, []);
+  }, [containerRef]);
 
   return null;
 };
@@ -181,6 +197,9 @@ function drawCell(
         }
 
         ctx.fillRect(x, y, w, h);
+        ctx.fillRect(x, 0, w, rowHeight);
+        ctx.fillRect(0, y, cellWidth, h);
+
         break;
       
       case "column-header":
