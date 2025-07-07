@@ -4,13 +4,17 @@ import { VirtualCells } from "../VirtualCells";
 import { RowHeader } from "./SheetView-RowHeader.tsx";
 import { ColHeader } from "./SheetView-ColHeader.tsx";
 import { TopLeftCell } from "./SheetView-TopLeftCell.tsx";
+import { tokens } from "@fluentui/react-components";
+import { SheetViewContext } from "./SheetView-Context.tsx";
 
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
+  children?: React.ReactNode
 }
 
 export const SheetView11: React.FC<SheetViewProps> = ({
   vcRef,
+  children
 }) =>
 {
   
@@ -179,6 +183,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 
   
   return (
+    <SheetViewContext.Provider value={{ vcRef, containerRef }}>
       <div
         ref={containerRef}
         id="container-virtual-cells"
@@ -192,7 +197,11 @@ export const SheetView11: React.FC<SheetViewProps> = ({
           borderRadius: "4px",
         }}
       >
-        <div id="sizer" style={{ width: cellWidth * (totalCol + 1), height: rowHeight * (totalRow + 1) }} />
+        <div id="sizer" style={{ 
+          width: cellWidth * (totalCol + 1), 
+          height: rowHeight * (totalRow + 1),
+          pointerEvents: "none",
+        }} />
         
         <div id="vtable-content-grid" ref={gridRef} 
           style={{ position: "absolute", top: `${rowHeight}px`, left: `${cellWidth}px`, willChange: "transform"}}
@@ -210,7 +219,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
           style={{ 
             position: "absolute", zIndex: 2, top: `0px`, left: `0px`, 
             height: `${rowHeight}px`, width: `${cellWidth}px`, 
-            backgroundColor: "rgb(245, 250, 255)",
+            backgroundColor: tokens.colorNeutralBackground2,
             boxSizing: "border-box", border: "1px solid #ddd",
             willChange: "transform",
           }}
@@ -220,6 +229,10 @@ export const SheetView11: React.FC<SheetViewProps> = ({
         <RowHeader rowHeaderRef={rowHeaderRef} containerRef={containerRef} vcRef={vcRef} />
         <ColHeader colHeaderRef={colHeaderRef} containerRef={containerRef} vcRef={vcRef} />
         <TopLeftCell containerRef={containerRef} tlcRef={tlcRef} />
+
+        {children}
       </div>
+
+    </SheetViewContext.Provider>
   );
 }

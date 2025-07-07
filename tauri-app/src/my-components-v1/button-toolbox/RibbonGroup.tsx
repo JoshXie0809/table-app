@@ -6,7 +6,7 @@ const useStyles = makeStyles({
     display: "flex",
     flexDirection: "column",
     borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-    backgroundColor: "red",
+    // backgroundColor: "red",
   },
   gridArea: {
     display: "grid",

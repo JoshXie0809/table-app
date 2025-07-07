@@ -2,7 +2,7 @@ import { makeStyles, tokens, Toolbar } from "@fluentui/react-components"
 
 const useStyles = makeStyles({
   buttonToolBoxContainer: {
-    backgroundColor: tokens.colorNeutralBackground3,
+    backgroundColor: tokens.colorNeutralBackground4,
     padding: "12px 8px 16px 8px",
   },
 

@@ -11,8 +11,8 @@ import { CustomTitleBar } from "./my-components-v1/titlebar/CustomTitleBar.tsx";
 import "./App.css";
 import { ButtonToolBox } from "./my-components-v1/button-toolbox/ButtonToolBox.tsx";
 import { ButtonLoadSheet } from "./my-components-v1/button-toolbox/ButtonLoadSheet.tsx";
-import { RibbonGroup, RibbonLargeButton, RibbonSmallButton } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
-import { SaveRegular } from '@fluentui/react-icons';
+import { RibbonGroup } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
+
 
 const useStyles = makeStyles({
   root: {
@@ -70,7 +70,11 @@ function App() {
           {virtualCellsReady && vcRef.current && 
             <Text size={500} weight="semibold"> {vcRef.current.sheetName} </Text>
           }
-          {virtualCellsReady && <SheetView11 vcRef={vcRef} />}
+          {virtualCellsReady && 
+            <SheetView11 vcRef={vcRef} >
+              
+            </SheetView11>
+          }
         </main>
       </div>
 
