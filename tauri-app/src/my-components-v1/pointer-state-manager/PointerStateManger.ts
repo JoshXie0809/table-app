@@ -84,7 +84,7 @@ export class PointerStateManager {
     const nextState = transitionTable[this.state]?.[eventType];
 
     if(nextState) {
-      this.emitPointerActivity({state: nextState});
+      this.emitPointerActivity({state: nextState, event});
       
       if(nextState !== this.state) {
         const prev = this.state;
