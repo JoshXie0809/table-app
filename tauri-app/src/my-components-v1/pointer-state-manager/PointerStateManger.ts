@@ -39,8 +39,6 @@ const transitionTable: Record<PointerState, Partial<Record<PointerEventType, Poi
   }
 }
 
-export type PointerEventHandler = (e: PointerEvent) => void;
-
 
 export class PointerStateManager {
   private state: PointerState = "idle";
@@ -105,4 +103,3 @@ export class PointerStateManager {
   }, Math.round(1000/60))
 
 }
-

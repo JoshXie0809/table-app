@@ -6,6 +6,8 @@ import { ColHeader } from "./SheetView-ColHeader.tsx";
 import { TopLeftCell } from "./SheetView-TopLeftCell.tsx";
 import { tokens } from "@fluentui/react-components";
 import { SheetViewContext, useCreateSheetViewContextValue } from "./SheetView-Context.tsx";
+import { ScrollEventManager } from "../scroll-manager/ScrollManager.ts";
+import { EventBus } from "../event-bus/EventBus.ts";
 
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
@@ -31,6 +33,16 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const cellWidth = vcRef.current?.cellWidth ?? 100;
 
   const value = useCreateSheetViewContextValue(vcRef, containerRef);
+
+  // 註冊 scoll-event-manager
+  useEffect(() => {
+    if(!containerRef.current) return;
+    const container = containerRef.current;
+    const sm = new ScrollEventManager(EventBus, container);
+    return () => {
+      sm.destroy();
+    }
+  }, [])
 
   useEffect(() => {
     const container = containerRef.current;

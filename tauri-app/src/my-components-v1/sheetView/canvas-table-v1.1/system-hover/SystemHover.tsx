@@ -3,7 +3,7 @@ import { useSheetView } from "../../SheetView-Context"
 import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 import { TransSystemName } from "../RenderManager";
 import { useTickingRef } from "../../../hooks/useTickingRef";
-import { EventPayloadMap, EventType, useRegisterToBus } from "../../../event-bus/EventBus";
+import { EventPayloadMap, useRegisterToBus } from "../../../event-bus/EventBus";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -51,53 +51,39 @@ export const SystemHover: React.FC = () => {
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
   }, [containerDims]);
-
-
+  
   // 監聽滾動事件
-  useEffect(() => {
+  const handleScroll = (payload: EventPayloadMap["scroll:scrolling"]) => {
+    
+    if(!containerRef.current) return;
+    if(!canvasRef.current) return;
+    
     const container = containerRef.current;
-    if (!container) return;
-    const canvas = document.createElement("canvas");
+    const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     if(!ctx) return;
 
-    const handleScroll = () => {
-      if(!containerRef.current) return;
-      if(!canvasRef.current) return;
-      
-      const container = containerRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if(!ctx) return;
+    // 比照是否相同
+    if (!(payload.target instanceof HTMLElement)) return;
+    if(payload.target !== container) return;
 
-      if (!tickingRefHandleScroll.current) {
-        tickingRefHandleScroll.current = true; // 立即設定為 true，表示已排程一個幀
-        requestAnimationFrame(() => {
-          ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-          const scrollTop = container.scrollTop;
-          const scrollLeft = container.scrollLeft;
-          canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
-          tickingRefHandleScroll.current = false; // 所有更新完成後，將 ticking 設為 false
-        });
-      }
+    if (!tickingRefHandleScroll.current) {
+      tickingRefHandleScroll.current = true; // 立即設定為 true，表示已排程一個幀
+      requestAnimationFrame(() => {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        const scrollTop = container.scrollTop;
+        const scrollLeft = container.scrollLeft;
+        canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
+        tickingRefHandleScroll.current = false; // 所有更新完成後，將 ticking 設為 false
+      });
     }
+  }
 
-    container.addEventListener("scroll", handleScroll);
-
-    return () => {
-      if(!containerRef.current) return;
-      const container = containerRef.current;
-      container.removeEventListener("scroll", handleScroll);
-    };
-  }, [containerRef])
-
-
-  const eventType: EventType = "pointer:activity";
+  useRegisterToBus("scroll:scrolling", handleScroll);
 
   // 監聽滑鼠位置
   const handlePointerMove = (payload: EventPayloadMap["pointer:activity"]) => {
     const { state, event } = payload;
-    
     // 只處理 "hovering"
     if (state !== "hovering") return;
 
@@ -130,8 +116,7 @@ export const SystemHover: React.FC = () => {
     }
   };
 
-
-  useRegisterToBus(eventType, handlePointerMove);
+  useRegisterToBus("pointer:activity", handlePointerMove);
 
   return null;
 };
@@ -238,4 +223,3 @@ function drawCell(
     }
   }
 }
-
