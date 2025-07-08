@@ -1,6 +1,6 @@
 // hooks/usePointerListener.ts
 import { useEffect } from "react";
-import { PointerEventHandler, PointerEventType, pointerManager } from "../sheetView/canvas-table-v1.1/PointerManger";
+import { PointerEventHandler, PointerEventType, pointerManager } from "../pointer-manager/PointerManger";
 
 export function usePointerListener(type: PointerEventType, handler: PointerEventHandler) {
   useEffect(() => {

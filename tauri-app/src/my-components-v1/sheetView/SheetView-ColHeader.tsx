@@ -9,7 +9,7 @@ import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
 import { useHeaderVC } from "../hooks/useHeaderVC";
 import { useTickingRef } from "../hooks/useTickingRef";
-import { useRegisterSystemRef, useSheetView } from "./SheetView-Context";
+import { useRegisterSystemRef } from "./SheetView-Context";
 
 export interface RowHeaderProps {
   containerRef: RefObject<HTMLDivElement>;

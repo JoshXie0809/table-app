@@ -1,7 +1,7 @@
 export type PointerEventType = "pointerdown" | "pointermove" | "pointerup";
 export type PointerEventHandler = (e: PointerEvent) => void;
 
-type Mode = "idle" | "hovering" | "dragging" | "resizing" | "selecting";
+type PointerMode = "idle" | "hovering" | "dragging" | "resizing" | "selecting";
 
 export class PointerManager {
   private listeners: Record<PointerEventType, Set<PointerEventHandler>> = {
@@ -22,7 +22,7 @@ export class PointerManager {
     x: 0,
     y: 0,
     target: null as EventTarget | null,
-    mode: "idle" as Mode,
+    mode: "idle" as PointerMode,
   };
 
   constructor() {
@@ -68,7 +68,7 @@ export class PointerManager {
     return this.pointerState;
   }
 
-  setMode(mode: Mode) {
+  setMode(mode: PointerMode) {
     this.pointerState.mode = mode;
   }
 }
