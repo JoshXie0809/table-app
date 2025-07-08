@@ -37,11 +37,11 @@ export const GridContent: React.FC<GridContentProps> = ({
   const transSystemName: TransSystemName = "cells";
 
   // 註冊 managers 到 sheetViewContext
-    useRegisterSystemRef(transSystemName, {
-      rmRef,
-      vmRef,
-      vcRef,
-    })
+  useRegisterSystemRef(transSystemName, {
+    rmRef,
+    vmRef,
+    vcRef,
+  })
 
   // 初始化 managers
   useMountVMCells({

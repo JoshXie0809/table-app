@@ -40,6 +40,7 @@ export const useCreateSheetViewContextValue = (
   const registerRef = (key: string, refs: RefBundle) => {
     refMap.current.set(key, refs);
     setRefOK(key, false);
+    setAllRefOK(false);
   };
 
   const getRef = (key: string) => {

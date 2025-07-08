@@ -1,15 +1,108 @@
+import { useEffect, useRef } from "react";
+import { EventPayloadMap, useRegisterToBus } from "../../../event-bus/EventBus";
 import { useSheetView } from "../../SheetView-Context";
-import { TransSystemName } from "../RenderManager";
+import { createRoot, Root } from "react-dom/client";
+import { Input } from "@fluentui/react-components";
 
 export const SystemQuickEdit = () => {
-  const { allRefOK, getRef } = useSheetView();
+  const { containerRef, vcRef, allRefOK, getRef } = useSheetView();
+  const divRef = useRef<HTMLDivElement | null>(null);
+  const rootRef = useRef<Root | null>(null);
 
-  if(!allRefOK) return null;
+  const colHeaderRef = getRef("column-header");
+  const rowHeaderRef = getRef("row-header");
+  const cellsRef = getRef("cells");
 
-  const name: TransSystemName = "column-header";
-  const refs = getRef(name);
+  // 將編輯的的 Input 先掛到 container 上
+  useEffect(() => {
+    if(!containerRef.current) return;
+    const container = containerRef.current;
+    const divEl = document.createElement("div");
+    divRef.current = divEl;
 
-  console.log(refs);
+    divEl.style.width = `20px`;
+    divEl.style.height = `20px`;
+    divEl.style.backgroundColor = "red";
+    divEl.style.position = `absolute`;
+    divEl.style.top = "0px";
+    divEl.style.left = "0px";
+    divEl.style.willChange = "transform";
+    divEl.style.zIndex = "1";
+
+    container.appendChild(divEl);
+    const root = createRoot(divEl);
+    rootRef.current = root;
+    root.render(<Input placeholder="輸入值來改寫"></Input>)
+    
+
+    return () => {
+      const container = containerRef.current;
+      const divEl = divRef.current;
+      const root = rootRef.current;
+
+      if(root) 
+        queueMicrotask(() => root.unmount())
+        
+      if(container && divEl && container.contains(divEl)) 
+        container.removeChild(divEl)
+      
+      rootRef.current = null;
+      divRef.current = null; 
+    }
+  }, []);
+
+  const handleSelecting = (payload: EventPayloadMap["pointer:stateChange"]) => {
+    if(payload.to !== "selecting") return;
+    const divEl = divRef.current;
+    const vc = vcRef.current;
+    const container = containerRef.current;
+    if(!allRefOK || !colHeaderRef || !rowHeaderRef || !cellsRef || !divEl || !vc || !container) return;
+    const cellHeight = vc.cellHeight;
+    const cellWidth =  vc.cellWidth;
+    const {clientX, clientY} = payload.event;
+    const hoveredElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+    const target = findTransSystemElement(hoveredElement)
+    if(!target) return;
+    const dataset = target.dataset
+    const transXStr = dataset.transX;
+    const transYStr = dataset.transY;
+    const trnasSystem = dataset.transSystem;
+    if(!transYStr || !transXStr || !trnasSystem) return;
+    const transY = Number(transYStr);
+    const transX = Number(transXStr);
+    
+    let paddingX = 0;
+    let paddingY = 0;
+    
+    if(trnasSystem === "cells") {
+      paddingX = cellWidth;
+      paddingY = cellHeight;
+    } else 
+    if(trnasSystem === "column-header") {
+      paddingY = container.scrollTop;
+      paddingX = cellWidth;
+    } else 
+    if(trnasSystem === "row-header") {
+      paddingX = container.scrollLeft;
+      paddingY = cellHeight;
+    }
+
+    divEl.style.transform = `translate3d(${transX + paddingX}px, ${transY + paddingY}px, 0)`;
+  }
+
+  useRegisterToBus("pointer:stateChange", handleSelecting);
   
+
+  return null;
+}
+
+
+function findTransSystemElement(el: HTMLElement | null): HTMLElement | null {
+  while (el) {
+    if (el.dataset?.transSystem) {
+      return el;
+    }
+    el = el.parentElement;
+  }
   return null;
 }
