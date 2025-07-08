@@ -3,7 +3,6 @@ import { useSheetView } from "../../SheetView-Context"
 import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 import { TransSystemName } from "../RenderManager";
 import { useTickingRef } from "../../../hooks/useTickingRef";
-import { usePointerListener } from "../../../hooks/usePointerListener";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -116,7 +115,7 @@ export const SystemHover: React.FC = () => {
     drawCell(target, ctx, scrollTop, scrollLeft, rowHeight, cellWidth);  
   }
 
-  usePointerListener("pointermove", handleMouseMove);
+  // usePointerListener("pointermove", handleMouseMove);
 
   return null;
 };

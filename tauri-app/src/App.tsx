@@ -14,6 +14,8 @@ import { ButtonLoadSheet } from "./my-components-v1/button-toolbox/ButtonLoadShe
 import { RibbonGroup } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
 import { SystemHover } from "./my-components-v1/sheetView/canvas-table-v1.1/system-hover/SystemHover.tsx";
 import { SystemQuickEdit } from "./my-components-v1/sheetView/canvas-table-v1.1/system-QuickEdit/SystemQuickEdit.tsx";
+import { PointerStateManager } from "./my-components-v1/pointer-state-manager/PointerStateManger.ts";
+import { EventBus } from "./my-components-v1/event-bus/EventBus.ts";
 
 
 const useStyles = makeStyles({
@@ -39,6 +41,15 @@ function App() {
   const [sheetName, setSheetName] = React.useState<string | null>(null);
   const [virtualCellsReady, setVirtualCellsReady] = React.useState(false);
   const vcRef = React.useRef<VirtualCells | null>(null);
+
+  // 加入全局監聽 監聽滑鼠事件
+  useEffect(() => {
+    const psm = new PointerStateManager(EventBus);
+
+    return () => {
+      psm.destroy();
+    }
+  }, []);
 
   useEffect(() => {
     async function fetch(sheetName: string) {
