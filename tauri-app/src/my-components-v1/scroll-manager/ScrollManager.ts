@@ -1,27 +1,39 @@
-import { throttle } from "lodash";
-import { EventBus } from "../event-bus/EventBus";
-
+import { fromEvent, BehaviorSubject } from "rxjs";
+import { throttleTime, map } from "rxjs/operators";
+import { debounceTime, startWith } from "rxjs/operators";
 export type ScrollState = "scrolling";
 
-export class ScrollEventManager {
-  private bus: EventBus;
-  private target: EventTarget;
+// 可被外部觀察的 stream
+export const scrolling$ = new BehaviorSubject<{ state: ScrollState, event: UIEvent, target: EventTarget } | null>(null);
 
-  constructor(bus: EventBus, target: EventTarget = window) {
-    this.bus = bus;
+export class ScrollEventManager {
+  private target: EventTarget;
+  private subscription: any;
+
+  constructor(target: EventTarget = window) {
     this.target = target;
-    this.target.addEventListener("scroll", this.emitScroll);
+
+    this.subscription = fromEvent<UIEvent>(this.target, "scroll").pipe(
+      throttleTime(Math.round(1000 / 120)), // 控制最大觸發頻率為 120fps
+      map((event): { state: ScrollState, event: UIEvent, target: EventTarget } => ({
+        state: "scrolling",
+        event,
+        target: this.target
+      }))
+    ).subscribe(payload => {
+      scrolling$.next(payload); // 僅推送狀態，如果你需要完整 payload 也可以改寫
+    });
   }
 
-  private emitScroll = throttle((e: Event) => {
-    this.bus.emit("scroll:scrolling", {
-      state: "scrolling",
-      event: e as UIEvent,
-      target: this.target,
-    })
-  }, Math.round(1000 / 360));
-
-  public destroy() {
-    this.target.removeEventListener("scroll", this.emitScroll);
+  destroy() {
+    this.subscription.unsubscribe();
   }
 }
+
+
+export const isScrolling$ = scrolling$.pipe(
+  startWith(null),
+  map(() => true),
+  debounceTime(50),
+  map(() => false)
+);

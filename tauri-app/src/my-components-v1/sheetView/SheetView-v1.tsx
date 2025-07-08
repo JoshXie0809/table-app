@@ -38,7 +38,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   useEffect(() => {
     if(!containerRef.current) return;
     const container = containerRef.current;
-    const sm = new ScrollEventManager(EventBus, container);
+    const sm = new ScrollEventManager(container);
     return () => {
       sm.destroy();
     }

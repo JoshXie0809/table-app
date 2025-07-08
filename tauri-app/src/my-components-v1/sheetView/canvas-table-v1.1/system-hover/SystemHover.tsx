@@ -3,8 +3,10 @@ import { useSheetView } from "../../SheetView-Context"
 import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 import { TransSystemName } from "../RenderManager";
 import { useTickingRef } from "../../../hooks/useTickingRef";
-import { EventPayloadMap, useRegisterToBus } from "../../../event-bus/EventBus";
+
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
+import { isScrolling$, scrolling$ } from "../../../scroll-manager/ScrollManager";
+import { combineLatest, filter, map } from "rxjs";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -54,35 +56,46 @@ export const SystemHover: React.FC = () => {
   }, [containerDims]);
   
   // 監聽滾動事件
-  const handleScroll = (payload: EventPayloadMap["scroll:scrolling"]) => {
-    
-    if(!containerRef.current) return;
-    if(!canvasRef.current) return;
-    
-    const container = containerRef.current;
-    const canvas = canvasRef.current;
-    
-    // 比照是否相同
-    if (!(payload.target instanceof HTMLElement)) return;
-    if(payload.target !== container) return;
+  useEffect(() => {
+    const sub = scrolling$.subscribe((payload) => {
+      if(!containerRef.current) return;
+      if(!canvasRef.current) return;
+      if(!payload) return;
 
-    if (!tickingRefHandleScroll.current) {
-      tickingRefHandleScroll.current = true; // 立即設定為 true，表示已排程一個幀
-      requestAnimationFrame(() => {
-        const scrollTop = container.scrollTop;
-        const scrollLeft = container.scrollLeft;
-        canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
-        tickingRefHandleScroll.current = false; // 所有更新完成後，將 ticking 設為 false
-      });
-    }
-  }
+      const container = containerRef.current;
+      const canvas = canvasRef.current;
 
-  useRegisterToBus("scroll:scrolling", handleScroll);
+      // 比照是否相同
+      if (!(payload.target instanceof HTMLElement)) return;
+      if(payload.target !== container) return;
 
+      if (!tickingRefHandleScroll.current) {
+        tickingRefHandleScroll.current = true; // 立即設定為 true，表示已排程一個幀
+        requestAnimationFrame(() => {
+          const scrollTop = container.scrollTop;
+          const scrollLeft = container.scrollLeft;
+          canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
+          tickingRefHandleScroll.current = false; // 所有更新完成後，將 ticking 設為 false
+        });
+      }
+
+    })
+
+    return () => sub.unsubscribe();
+  })
+
+  
+  // 合併兩個 stream 並且過濾出「hovering 且未滾動」
+  const allowHover$ = combineLatest([
+    throttledPointerActivity$,
+    isScrolling$,  
+  ]).pipe(
+    filter(([activity, isScrolling]) => activity.state === "hovering" && !isScrolling),
+    map(([activity, _]) => activity)
+  );
 
   useEffect(() => {
-    const sub = throttledPointerActivity$.subscribe(({state, event}) => {
-      if(state != "hovering") return;
+    const sub = allowHover$.subscribe(({event}) => {
       const container = containerRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d");
