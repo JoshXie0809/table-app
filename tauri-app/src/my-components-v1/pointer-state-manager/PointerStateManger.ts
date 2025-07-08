@@ -47,11 +47,6 @@ export class PointerStateManager {
   private bus: EventBus;
   private target: EventTarget;
 
-
-  // private handlePointerDown(e: PointerEvent) { this.dispatch("POINTER_DOWN", e);}
-  // private handlePointerMove(e: PointerEvent) {this.dispatch("POINTER_MOVE", e);}
-  // private handlePointerUp(e: PointerEvent) {this.dispatch("POINTER_UP", e);}
-  // private handlePointerCancel(e: PointerEvent) { this.dispatch("POINTER_CANCEL", e) }
   private handlePointerDown = (e: Event) => {
     this.dispatch("POINTER_DOWN", e as PointerEvent);
   }

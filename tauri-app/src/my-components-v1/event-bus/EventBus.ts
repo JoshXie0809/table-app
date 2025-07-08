@@ -1,6 +1,7 @@
-import { PointerEventType, PointerState } from "../pointer-state-manager/PointerStateManger";
+import React from "react";
+import { PointerState } from "../pointer-state-manager/PointerStateManger";
 
-export type EventType = 
+export type EventType =
   | "pointer:stateChange"
   | "pointer:activity";
 
@@ -11,29 +12,65 @@ export interface EventPayloadMap {
     event: PointerEvent;
   };
   "pointer:activity": {
-    state: PointerEventType;
+    state: PointerState;
     event: PointerEvent;
   };
 }
+
+type EventHandler<K extends keyof EventPayloadMap> = (payload: EventPayloadMap[K]) => void;
 
 export interface EventBus {
   emit<K extends keyof EventPayloadMap>(
     event: K,
     payload: EventPayloadMap[K]
   ): void;
+
+  on<K extends keyof EventPayloadMap>(
+    event: K,
+    handler: (payload: EventPayloadMap[K]) => void
+  ): void;
+
+  off<K extends keyof EventPayloadMap>(
+    event: K,
+    handler: (payload: EventPayloadMap[K]) => void
+  ): void;
+}
+
+export class TypedEventBus {
+  private listeners = new Map<keyof EventPayloadMap, Set<(payload: any) => void>>();
+
+  emit<K extends keyof EventPayloadMap>(event: K, payload: EventPayloadMap[K]) {
+    const handlers = this.listeners.get(event);
+    if (!handlers) return;
+
+    for (const handler of handlers) {
+      (handler as EventHandler<K>)(payload);
+    }
+  }
+
+  on<K extends keyof EventPayloadMap>(event: K, handler: EventHandler<K>) {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+
+    this.listeners.get(event)!.add(handler as (payload: any) => void);
+  }
+
+  off<K extends keyof EventPayloadMap>(event: K, handler: EventHandler<K>) {
+    this.listeners.get(event)?.delete(handler as (payload: any) => void);
+  }
 }
 
 
-export const EventBus: EventBus = {
-  emit(eventType, payload) {
-    if(eventType === "pointer:activity") {
-      console.log(payload)
-    } else
-    if(eventType === "pointer:stateChange") {
-      const { from, to, event } = payload as EventPayloadMap["pointer:stateChange"];
-      console.log(`[EventBus] pointer state: ${from} → ${to}`, event);
+export const EventBus: EventBus = new TypedEventBus();
+
+export function useRegisterToBus<K extends keyof EventPayloadMap>
+  (eventType: K, handler: EventHandler<K>) 
+{
+  React.useEffect(() => {
+    EventBus.on(eventType, handler);
+    return () => {
+      EventBus.off(eventType, handler);
     }
-  }
-};
-
-
+  }, [eventType, handler]);
+}
