@@ -1,6 +1,7 @@
-import { throttle } from "lodash";
-import { EventBus } from "../event-bus/EventBus";
+import { BehaviorSubject, Subject } from "rxjs";
+import { throttleTime } from "rxjs/operators";
 
+// === 定義狀態與事件 ===
 export type PointerEventType =
   | "POINTER_DOWN"
   | "POINTER_MOVE"
@@ -13,82 +14,56 @@ export type PointerState =
   | "hovering"
   | "dragging";
 
-const transitionTable: Record<PointerState, Partial<Record<PointerEventType, PointerState>>> = {
+const transitionTable: Record<
+  PointerState,
+  Partial<Record<PointerEventType, PointerState>>
+> = {
   idle: {
     POINTER_MOVE: "hovering",
     POINTER_DOWN: "selecting",
     POINTER_CANCEL: "idle",
   },
-
   selecting: {
     POINTER_MOVE: "dragging",
     POINTER_UP: "idle",
     POINTER_CANCEL: "idle",
   },
-  
   hovering: {
     POINTER_DOWN: "selecting",
     POINTER_CANCEL: "idle",
     POINTER_MOVE: "hovering",
   },
-
   dragging: {
     POINTER_MOVE: "dragging",
     POINTER_UP: "idle",
-    POINTER_CANCEL: "idle"
-  }
-}
+    POINTER_CANCEL: "idle",
+  },
+};
 
+// === RxJS Streams ===
+export const pointerState$ = new BehaviorSubject<PointerState>("idle");
 
+export const pointerActivity$ = new Subject<{
+  state: PointerState;
+  event: PointerEvent;
+}>();
+
+export const throttledPointerActivity$ = pointerActivity$.pipe(
+  throttleTime(1000 / 60, undefined, { leading: true, trailing: true })
+);
+
+// === Pointer 管理器 ===
 export class PointerStateManager {
   private state: PointerState = "idle";
-  private bus: EventBus;
   private target: EventTarget;
 
-  private handlePointerDown = (e: Event) => {
-    this.dispatch("POINTER_DOWN", e as PointerEvent);
-  }
-  private handlePointerMove = (e: Event) => {
-    this.dispatch("POINTER_MOVE", e as PointerEvent);
-  }
-  private handlePointerUp = (e: Event) => {
-    this.dispatch("POINTER_UP", e as PointerEvent);
-  }
-  
-  private handlePointerCancel = (e: Event) => {
-    this.dispatch("POINTER_CANCEL", e as PointerEvent);
-  }
-
-  constructor(bus: EventBus, target: EventTarget = window) {
-    this.bus = bus;
+  constructor(target: EventTarget = window) {
     this.target = target;
-    // 自動註冊事件監聽
+
     this.target.addEventListener("pointerdown", this.handlePointerDown);
     this.target.addEventListener("pointermove", this.handlePointerMove);
     this.target.addEventListener("pointerup", this.handlePointerUp);
     this.target.addEventListener("pointercancel", this.handlePointerCancel);
-
-  }
-
-  public getState() { return this.state; }
-
-  public dispatch(eventType: PointerEventType, event: PointerEvent) 
-  {
-    const nextState = transitionTable[this.state]?.[eventType];
-
-    if(nextState) {
-      this.emitPointerActivity({state: nextState, event});
-      
-      if(nextState !== this.state) {
-        const prev = this.state;
-        this.state = nextState;
-
-        this.bus.emit(
-          "pointer:stateChange", 
-          {from: prev, to: this.state, event}
-        )
-      }
-    }
   }
 
   public destroy() {
@@ -98,8 +73,26 @@ export class PointerStateManager {
     this.target.removeEventListener("pointercancel", this.handlePointerCancel);
   }
 
-  private emitPointerActivity = throttle((payload) => {
-    this.bus.emit("pointer:activity", payload);
-  }, Math.round(1000/60))
+  private handlePointerDown = (e: Event) =>
+    this.dispatch("POINTER_DOWN", e as PointerEvent);
+  private handlePointerMove = (e: Event) =>
+    this.dispatch("POINTER_MOVE", e as PointerEvent);
+  private handlePointerUp = (e: Event) =>
+    this.dispatch("POINTER_UP", e as PointerEvent);
+  private handlePointerCancel = (e: Event) =>
+    this.dispatch("POINTER_CANCEL", e as PointerEvent);
 
+  private dispatch(eventType: PointerEventType, event: PointerEvent) {
+    const nextState = transitionTable[this.state]?.[eventType];
+
+    if (nextState) {
+      pointerActivity$.next({ state: nextState, event });
+      if (nextState !== this.state) {
+        this.state = nextState;
+        pointerState$.next(this.state);
+      }
+    }
+  }
 }
+
+

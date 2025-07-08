@@ -4,6 +4,7 @@ import { useContainerDimensions } from "../../../hooks/useContainerDimensions";
 import { TransSystemName } from "../RenderManager";
 import { useTickingRef } from "../../../hooks/useTickingRef";
 import { EventPayloadMap, useRegisterToBus } from "../../../event-bus/EventBus";
+import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -60,9 +61,7 @@ export const SystemHover: React.FC = () => {
     
     const container = containerRef.current;
     const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if(!ctx) return;
-
+    
     // 比照是否相同
     if (!(payload.target instanceof HTMLElement)) return;
     if(payload.target !== container) return;
@@ -70,7 +69,6 @@ export const SystemHover: React.FC = () => {
     if (!tickingRefHandleScroll.current) {
       tickingRefHandleScroll.current = true; // 立即設定為 true，表示已排程一個幀
       requestAnimationFrame(() => {
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         const scrollTop = container.scrollTop;
         const scrollLeft = container.scrollLeft;
         canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
@@ -81,42 +79,35 @@ export const SystemHover: React.FC = () => {
 
   useRegisterToBus("scroll:scrolling", handleScroll);
 
-  // 監聽滑鼠位置
-  const handlePointerMove = (payload: EventPayloadMap["pointer:activity"]) => {
-    const { state, event } = payload;
-    // 只處理 "hovering"
-    if (state !== "hovering") return;
 
-    const container = containerRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    const vc = vcRef.current;
+  useEffect(() => {
+    const sub = throttledPointerActivity$.subscribe(({state, event}) => {
+      if(state != "hovering") return;
+      const container = containerRef.current;
+      const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      const vc = vcRef.current;
 
-    // 檢查必要元件是否存在
-    if (!container || !canvas || !ctx || !vc) return;
+      if (!container || !canvas || !ctx || !vc) return;
+      if (tickingRefHandlePointerMove.current) return;
 
-    if(!tickingRefHandlePointerMove.current) {
       tickingRefHandlePointerMove.current = true;
-      
+
       const { scrollTop, scrollLeft } = container;
       const { cellHeight: rowHeight, cellWidth } = vc;
-
-      // 從 PointerEvent 取得滑鼠位置
       const { clientX, clientY } = event;
 
-      // 取得滑鼠下方元素
       const hoveredElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
       const target = findTransSystemElement(hoveredElement);
 
-      requestAnimationFrame(() => {        
-        // 呼叫繪製
+      requestAnimationFrame(() => {
         drawCell(target, ctx, scrollTop, scrollLeft, rowHeight, cellWidth);
         tickingRefHandlePointerMove.current = false;
-      })
-    }
-  };
-
-  useRegisterToBus("pointer:activity", handlePointerMove);
+      });
+    })
+  
+    return () => sub.unsubscribe(); // 清除訂閱
+  }, [])
 
   return null;
 };

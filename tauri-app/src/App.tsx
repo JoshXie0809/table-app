@@ -44,7 +44,7 @@ function App() {
 
   // 加入全局監聽 監聽滑鼠事件
   useEffect(() => {
-    const psm = new PointerStateManager(EventBus);
+    const psm = new PointerStateManager();
     return () => {
       psm.destroy();
     }
