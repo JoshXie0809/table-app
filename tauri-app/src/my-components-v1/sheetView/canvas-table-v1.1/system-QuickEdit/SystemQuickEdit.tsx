@@ -1,78 +1,22 @@
 import { useEffect, useRef } from "react";
 import { useSheetView } from "../../SheetView-Context";
-import { createRoot, Root } from "react-dom/client";
-import { Input, tokens } from "@fluentui/react-components";
+
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 import { filter } from "rxjs";
+import { useInputCell } from "./useInputCell";
+import { findTransSystemElement } from "./useInputCellStateManager";
 
 
 export const SystemQuickEdit = () => {
   const { containerRef, vcRef, allRefOK, getRef } = useSheetView();
   const divRef = useRef<HTMLDivElement | null>(null);
-  const rootRef = useRef<Root | null>(null);
 
-  const colHeaderRef = getRef("column-header");
-  const rowHeaderRef = getRef("row-header");
-  const cellsRef = getRef("cells");
+  const colHeaderRefBundle = getRef("column-header");
+  const rowHeaderRefBundle = getRef("row-header");
+  const cellsRefBundle = getRef("cells");
 
   // 將編輯的的 Input 先掛到 container 上
-  useEffect(() => {
-    if(!containerRef.current) return;
-    if(!vcRef.current)return;
-    const vc = vcRef.current;
-    const container = containerRef.current;
-    const divEl = document.createElement("div");
-    divRef.current = divEl;
-
-    divEl.style.width = `0px`;
-    divEl.style.height = `0px`;
-    divEl.style.backgroundColor = "red";
-    divEl.style.position = `absolute`;
-    // divEl.style.top = `${Math.round(vc.cellHeight*0.15)}px`;
-    // divEl.style.left = `${Math.round(vc.cellHeight*0.15)}px`;
-    divEl.style.top = `0px`;
-    divEl.style.left = `0px`;
-    divEl.style.willChange = "transform";
-    divEl.style.zIndex = "0";
-
-    container.appendChild(divEl);
-    const root = createRoot(divEl);
-    rootRef.current = root;
-    root.render(
-      <Input 
-        placeholder="輸入"
-        style={{
-          height: `${Math.round(vc.cellHeight)}px`, 
-          width: `${Math.round(vc.cellWidth)}px`,
-          borderRadius: "0px",
-          border: "1px solid rgb(96, 151, 96)",
-          boxShadow: tokens.shadow2,
-          boxSizing: "border-box",
-        }} 
-        // contentAfter={
-        //   <div>
-        //     <Button icon={<ArrowMaximizeRegular />} appearance="transparent" onClick={() => alert("hello-world")}/>    
-        //   </div>
-        // }
-      />
-    )
-    
-
-    return () => {
-      const container = containerRef.current;
-      const divEl = divRef.current;
-      const root = rootRef.current;
-
-      if(root) 
-        queueMicrotask(() => root.unmount())
-        
-      if(container && divEl && container.contains(divEl)) 
-        container.removeChild(divEl)
-      
-      rootRef.current = null;
-      divRef.current = null; 
-    }
-  }, []);
+  useInputCell(containerRef, vcRef, divRef);
 
 
   useEffect(() => {
@@ -84,7 +28,7 @@ export const SystemQuickEdit = () => {
       const divEl = divRef.current;
       const vc = vcRef.current;
       const container = containerRef.current;
-      if(!allRefOK || !colHeaderRef || !rowHeaderRef || !cellsRef || !divEl || !vc || !container) return;
+      if(!allRefOK || !colHeaderRefBundle || !rowHeaderRefBundle || !cellsRefBundle || !divEl || !vc || !container) return;
 
       if(payload.state != "pressing") 
         return;
@@ -136,12 +80,3 @@ export const SystemQuickEdit = () => {
 }
 
 
-function findTransSystemElement(el: HTMLElement | null): HTMLElement | null {
-  while (el) {
-    if (el.dataset?.transSystem) {
-      return el;
-    }
-    el = el.parentElement;
-  }
-  return null;
-}

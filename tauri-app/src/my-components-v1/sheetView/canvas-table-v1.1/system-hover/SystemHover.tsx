@@ -7,6 +7,7 @@ import { useTickingRef } from "../../../hooks/useTickingRef";
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 import { isScrolling$ } from "../../../scroll-manager/ScrollManager";
 import { combineLatest, map, startWith } from "rxjs";
+import { findTransSystemElement } from "../system-QuickEdit/useInputCellStateManager";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -101,17 +102,6 @@ export const SystemHover: React.FC = () => {
 
   return null;
 };
-
-
-function findTransSystemElement(el: HTMLElement | null): HTMLElement | null {
-  while (el) {
-    if (el.dataset?.transSystem) {
-      return el;
-    }
-    el = el.parentElement;
-  }
-  return null;
-}
 
 function drawCell(
   target: HTMLElement | null, 
