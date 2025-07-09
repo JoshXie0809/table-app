@@ -17,7 +17,7 @@ const useStyles = makeStyles({
   groupLabel: {
     marginTop: "6px",
     fontSize: "12px",
-    color: tokens.colorNeutralForeground3,
+    color: tokens.colorNeutralForeground1,
     textAlign: "center",
   },
   smallButton: {
@@ -60,7 +60,7 @@ export const RibbonGroup: React.FC<{ label: string; children?: React.ReactNode }
   return (
     <div className={styles.group}>
       <div className={styles.gridArea}>{children}</div>
-      <Text className={styles.groupLabel} weight="semibold">{label}</Text>
+      <Text className={styles.groupLabel}>{label}</Text>
     </div>
   );
 };

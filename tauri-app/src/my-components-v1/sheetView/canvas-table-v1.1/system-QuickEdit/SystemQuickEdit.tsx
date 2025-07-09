@@ -15,7 +15,7 @@ export const SystemQuickEdit = () => {
   const cellsRefBundle = getRef("cells");
 
   // 將編輯的的 Input 先掛到 container 上
-  const {divRef, inputCellRef} = useInputCell(containerRef, vcRef);
+  const { divRef } = useInputCell(containerRef, vcRef);
 
 
   useEffect(() => {
