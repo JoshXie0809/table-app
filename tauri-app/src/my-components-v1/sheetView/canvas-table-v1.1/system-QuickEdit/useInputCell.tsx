@@ -1,6 +1,6 @@
 import { RefObject, useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
-import { QuickEditInputCell } from "./InputCell";
+import { QuickEditInputCell, QuickEditInputCellHandle } from "./InputCell";
 import { VirtualCells } from "../../../VirtualCells";
 
 export const useInputCell = (
@@ -11,6 +11,7 @@ export const useInputCell = (
 
   const divRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<Root | null>(null);
+  const inputCellRef = useRef<QuickEditInputCellHandle | null>(null);
 
   useEffect(() => {
     if(!containerRef.current) return;
@@ -34,10 +35,9 @@ export const useInputCell = (
     rootRef.current = root;
     root.render(
       <>
-        <QuickEditInputCell vcRef={vcRef} />
+        <QuickEditInputCell vcRef={vcRef} containerRef={containerRef} ref={inputCellRef}/>
       </>
     );
-    
 
     return () => {
       const container = containerRef.current;
@@ -55,5 +55,6 @@ export const useInputCell = (
     }
   }, []);
 
-  return ({divRef, rootRef})
+  
+  return ({divRef, rootRef, inputCellRef})
 }

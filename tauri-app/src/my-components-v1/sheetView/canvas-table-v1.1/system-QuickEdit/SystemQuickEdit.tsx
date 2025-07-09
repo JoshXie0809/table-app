@@ -10,13 +10,12 @@ import { findTransSystemElement } from "../toolfunction";
 export const SystemQuickEdit = () => {
   const { containerRef, vcRef, allRefOK, getRef } = useSheetView();
   
-
   const colHeaderRefBundle = getRef("column-header");
   const rowHeaderRefBundle = getRef("row-header");
   const cellsRefBundle = getRef("cells");
 
   // 將編輯的的 Input 先掛到 container 上
-  const {divRef} = useInputCell(containerRef, vcRef);
+  const {divRef, inputCellRef} = useInputCell(containerRef, vcRef);
 
 
   useEffect(() => {
