@@ -15,7 +15,6 @@ import { RibbonGroup } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
 import { SystemHover } from "./my-components-v1/sheetView/canvas-table-v1.1/system-hover/SystemHover.tsx";
 import { SystemQuickEdit } from "./my-components-v1/sheetView/canvas-table-v1.1/system-QuickEdit/SystemQuickEdit.tsx";
 import { PointerStateManager } from "./my-components-v1/pointer-state-manager/PointerStateManger.ts";
-import { EventBus } from "./my-components-v1/event-bus/EventBus.ts";
 
 
 const useStyles = makeStyles({

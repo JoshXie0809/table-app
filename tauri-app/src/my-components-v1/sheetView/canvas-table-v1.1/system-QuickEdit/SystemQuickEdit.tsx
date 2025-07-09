@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
-import { EventPayloadMap, useRegisterToBus } from "../../../event-bus/EventBus";
 import { useSheetView } from "../../SheetView-Context";
 import { createRoot, Root } from "react-dom/client";
 import { Input, tokens } from "@fluentui/react-components";
+import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
+import { filter } from "rxjs";
 
 
 export const SystemQuickEdit = () => {
@@ -73,57 +74,61 @@ export const SystemQuickEdit = () => {
     }
   }, []);
 
-  const handleSelecting = (payload: EventPayloadMap["pointer:stateChange"]) => {
-    const divEl = divRef.current;
-    const vc = vcRef.current;
-    const container = containerRef.current;
-    if(!allRefOK || !colHeaderRef || !rowHeaderRef || !cellsRef || !divEl || !vc || !container) return;
 
-    // divEl.style.display = "none";
-
-    if(payload.from !== "selecting" || payload.to !== "idle") 
-      return;
+  useEffect(() => {
+    const selection$ = throttledPointerActivity$.pipe(
+      filter(({event}) => event.pointerType === 'mouse' ? event.button === 0 : true)
+    );
     
-    const cellHeight = vc.cellHeight;
-    const cellWidth =  vc.cellWidth;
-    const {clientX, clientY} = payload.event;
-    const hoveredElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
-    const target = findTransSystemElement(hoveredElement)
-    if(!target) return;
-    const dataset = target.dataset
-    const transXStr = dataset.transX;
-    const transYStr = dataset.transY;
-    const trnasSystem = dataset.transSystem;
-    if(!transYStr || !transXStr || !trnasSystem) return;
-    const transY = Number(transYStr);
-    const transX = Number(transXStr);
-    
-    let paddingX = 0;
-    let paddingY = 0;
-    
-    if(trnasSystem === "cells") {
-      paddingX = cellWidth;
-      paddingY = cellHeight;
-    } 
-    // else 
-    // if(trnasSystem === "column-header") {
-    //   paddingY = container.scrollTop;
-    //   paddingX = cellWidth;
-    // } 
-    // else 
-    // if(trnasSystem === "row-header") {
-    //   paddingX = container.scrollLeft;
-    //   paddingY = cellHeight;
-    // } 
-    else {
-      return;
-    }
+    const sub = selection$.subscribe((payload) => {
+      const divEl = divRef.current;
+      const vc = vcRef.current;
+      const container = containerRef.current;
+      if(!allRefOK || !colHeaderRef || !rowHeaderRef || !cellsRef || !divEl || !vc || !container) return;
 
-    divEl.style.transform = `translate3d(${transX + paddingX}px, ${transY + paddingY}px, 0)`;
-  }
+      if(payload.state != "selecting") 
+        return;
+      
+      const cellHeight = vc.cellHeight;
+      const cellWidth =  vc.cellWidth;
+      const {clientX, clientY} = payload.event;
+      const hoveredElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+      const target = findTransSystemElement(hoveredElement)
+      if(!target) return;
+      const dataset = target.dataset
+      const transXStr = dataset.transX;
+      const transYStr = dataset.transY;
+      const trnasSystem = dataset.transSystem;
+      if(!transYStr || !transXStr || !trnasSystem) return;
+      const transY = Number(transYStr);
+      const transX = Number(transXStr);
+      
+      let paddingX = 0;
+      let paddingY = 0;
+      
+      if(trnasSystem === "cells") {
+        paddingX = cellWidth;
+        paddingY = cellHeight;
+      } 
+      // else 
+      // if(trnasSystem === "column-header") {
+      //   paddingY = container.scrollTop;
+      //   paddingX = cellWidth;
+      // } 
+      // else 
+      // if(trnasSystem === "row-header") {
+      //   paddingX = container.scrollLeft;
+      //   paddingY = cellHeight;
+      // } 
+      else {
+        return;
+      }
 
-  useRegisterToBus("pointer:stateChange", handleSelecting);
-  
+      divEl.style.transform = `translate3d(${transX + paddingX}px, ${transY + paddingY}px, 0)`;
+    })
+
+    return () => sub.unsubscribe();
+  })
 
   return null;
 }

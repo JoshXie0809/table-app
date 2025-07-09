@@ -10,6 +10,7 @@ export type PointerEventType =
 
 export type PointerState =
   | "idle"
+  | "pressing"
   | "selecting"
   | "hovering"
   | "dragging";
@@ -20,16 +21,22 @@ const transitionTable: Record<
 > = {
   idle: {
     POINTER_MOVE: "hovering",
-    POINTER_DOWN: "selecting",
+    POINTER_DOWN: "pressing",
+    POINTER_CANCEL: "idle",
+  },
+
+  pressing: {
+    POINTER_UP: "selecting",
+    POINTER_MOVE: "dragging",
     POINTER_CANCEL: "idle",
   },
   selecting: {
-    POINTER_MOVE: "dragging",
-    POINTER_UP: "idle",
+    POINTER_DOWN: "pressing",
+    POINTER_MOVE: "idle",
     POINTER_CANCEL: "idle",
   },
   hovering: {
-    POINTER_DOWN: "selecting",
+    POINTER_DOWN: "pressing",
     POINTER_CANCEL: "idle",
     POINTER_MOVE: "hovering",
   },
@@ -49,7 +56,7 @@ export const pointerActivity$ = new Subject<{
 }>();
 
 export const throttledPointerActivity$ = pointerActivity$.pipe(
-  throttleTime(1000 / 60, undefined, { leading: true, trailing: true })
+  throttleTime(Math.round(1000 / 120), undefined, { leading: true, trailing: true })
 );
 
 // === Pointer 管理器 ===

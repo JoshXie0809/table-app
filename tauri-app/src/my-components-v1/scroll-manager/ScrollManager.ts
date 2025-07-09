@@ -34,6 +34,6 @@ export class ScrollEventManager {
 export const isScrolling$ = scrolling$.pipe(
   startWith(null),
   map(() => true),
-  debounceTime(50),
+  debounceTime(100),
   map(() => false)
 );

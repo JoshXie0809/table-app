@@ -64,6 +64,9 @@ export const SystemHover: React.FC = () => {
 
       const container = containerRef.current;
       const canvas = canvasRef.current;
+      const ctx = canvas?.getContext("2d");
+      if(!ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // 比照是否相同
       if (!(payload.target instanceof HTMLElement)) return;
@@ -78,23 +81,21 @@ export const SystemHover: React.FC = () => {
           tickingRefHandleScroll.current = false; // 所有更新完成後，將 ticking 設為 false
         });
       }
-
     })
 
     return () => sub.unsubscribe();
   })
 
-  
-  // 合併兩個 stream 並且過濾出「hovering 且未滾動」
-  const allowHover$ = combineLatest([
-    throttledPointerActivity$,
-    isScrolling$,  
-  ]).pipe(
-    filter(([activity, isScrolling]) => activity.state === "hovering" && !isScrolling),
-    map(([activity, _]) => activity)
-  );
-
   useEffect(() => {
+    // 合併兩個 stream 並且過濾出「hovering 且未滾動」
+    const allowHover$ = combineLatest([
+      throttledPointerActivity$,
+      isScrolling$,  
+    ]).pipe(
+      filter(([activity, isScrolling]) => activity.state === "hovering" && !isScrolling),
+      map(([activity, _]) => activity)
+    );
+    
     const sub = allowHover$.subscribe(({event}) => {
       const container = containerRef.current;
       const canvas = canvasRef.current;
@@ -177,9 +178,9 @@ function drawCell(
           y = rowHeight;
         }
 
-        ctx.fillRect(x, y, w, h);
-        ctx.fillRect(x, 0, w, rowHeight);
-        ctx.fillRect(0, y, cellWidth, h);
+        // ctx.fillRect(x, y, w, h); cell
+        ctx.fillRect(x, 0, w, rowHeight); // header
+        ctx.fillRect(0, y, cellWidth, h); // header
 
         break;
       

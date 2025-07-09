@@ -7,7 +7,6 @@ import { TopLeftCell } from "./SheetView-TopLeftCell.tsx";
 import { tokens } from "@fluentui/react-components";
 import { SheetViewContext, useCreateSheetViewContextValue } from "./SheetView-Context.tsx";
 import { ScrollEventManager } from "../scroll-manager/ScrollManager.ts";
-import { EventBus } from "../event-bus/EventBus.ts";
 
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
