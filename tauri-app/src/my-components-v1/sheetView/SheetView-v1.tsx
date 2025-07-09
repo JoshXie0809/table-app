@@ -41,7 +41,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
     return () => {
       sm.destroy();
     }
-  }, [])
+  })
 
   useEffect(() => {
     const container = containerRef.current;

@@ -76,17 +76,17 @@ export const SystemQuickEdit = () => {
 
 
   useEffect(() => {
-    const selection$ = throttledPointerActivity$.pipe(
+    const pressing$ = throttledPointerActivity$.pipe(
       filter(({event}) => event.pointerType === 'mouse' ? event.button === 0 : true)
     );
-    
-    const sub = selection$.subscribe((payload) => {
+
+    const sub = pressing$.subscribe((payload) => {
       const divEl = divRef.current;
       const vc = vcRef.current;
       const container = containerRef.current;
       if(!allRefOK || !colHeaderRef || !rowHeaderRef || !cellsRef || !divEl || !vc || !container) return;
 
-      if(payload.state != "selecting") 
+      if(payload.state != "pressing") 
         return;
       
       const cellHeight = vc.cellHeight;
@@ -125,6 +125,8 @@ export const SystemQuickEdit = () => {
       }
 
       divEl.style.transform = `translate3d(${transX + paddingX}px, ${transY + paddingY}px, 0)`;
+      divEl.style.transition = "transform 48ms ease-out";
+
     })
 
     return () => sub.unsubscribe();

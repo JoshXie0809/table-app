@@ -1,39 +1,57 @@
-import { fromEvent, BehaviorSubject } from "rxjs";
-import { throttleTime, map } from "rxjs/operators";
-import { debounceTime, startWith } from "rxjs/operators";
+import { fromEvent, Subject, merge, Subscription } from "rxjs";
+import { map, throttleTime, debounceTime, distinctUntilChanged } from "rxjs/operators";
+
 export type ScrollState = "scrolling";
 
-// 可被外部觀察的 stream
-export const scrolling$ = new BehaviorSubject<{ state: ScrollState, event: UIEvent, target: EventTarget } | null>(null);
+// 滾動事件的 Payload 型別
+export interface ScrollPayload {
+  state: ScrollState;
+  event: UIEvent;
+  target: EventTarget;
+}
 
+// 觀察 scroll 的主 stream
+export const scrolling$ = new Subject<ScrollPayload>();
+
+// 滾動狀態（true/false）stream
+export const isScrolling$ = merge(
+  scrolling$.pipe(
+    map(() => {
+      // console.log("✅ isScrolling = true");
+      return true;
+    })
+  ),
+  scrolling$.pipe(
+    debounceTime(100),
+    map(() => {
+      // console.log("🛑 isScrolling = false");
+      return false;
+    })
+  )
+).pipe(distinctUntilChanged());
+
+
+// ScrollEventManager：綁定滾動事件、產生 scroll stream
 export class ScrollEventManager {
   private target: EventTarget;
-  private subscription: any;
+  private subscription: Subscription | null = null;
 
   constructor(target: EventTarget = window) {
     this.target = target;
 
     this.subscription = fromEvent<UIEvent>(this.target, "scroll").pipe(
-      throttleTime(Math.round(1000 / 120)), // 控制最大觸發頻率為 120fps
-      map((event): { state: ScrollState, event: UIEvent, target: EventTarget } => ({
+      throttleTime(1000 / 120), // 最多 120fps
+      map((event): ScrollPayload => ({
         state: "scrolling",
         event,
-        target: this.target
+        target: this.target,
       }))
     ).subscribe(payload => {
-      scrolling$.next(payload); // 僅推送狀態，如果你需要完整 payload 也可以改寫
+      scrolling$.next(payload);
     });
   }
 
   destroy() {
-    this.subscription.unsubscribe();
+    this.subscription?.unsubscribe();
   }
 }
-
-
-export const isScrolling$ = scrolling$.pipe(
-  startWith(null),
-  map(() => true),
-  debounceTime(100),
-  map(() => false)
-);

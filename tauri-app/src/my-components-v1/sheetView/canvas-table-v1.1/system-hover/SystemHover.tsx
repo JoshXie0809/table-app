@@ -5,14 +5,13 @@ import { TransSystemName } from "../RenderManager";
 import { useTickingRef } from "../../../hooks/useTickingRef";
 
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
-import { isScrolling$, scrolling$ } from "../../../scroll-manager/ScrollManager";
-import { combineLatest, filter, map } from "rxjs";
+import { isScrolling$ } from "../../../scroll-manager/ScrollManager";
+import { combineLatest, map, startWith } from "rxjs";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerDims = useContainerDimensions(containerRef);
-  const tickingRefHandleScroll = useTickingRef();
   const tickingRefHandlePointerMove = useTickingRef();
   
   // 掛畫布到 containerRef
@@ -26,6 +25,7 @@ export const SystemHover: React.FC = () => {
     canvas.style.left = "0px";
     canvas.style.pointerEvents = "none";
     canvas.style.zIndex = "10";
+    canvas.id = "sheet-view-hover-system-canvas"
     
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
@@ -54,49 +54,17 @@ export const SystemHover: React.FC = () => {
     canvas.width = container.clientWidth;
     canvas.height = container.clientHeight;
   }, [containerDims]);
-  
-  // 監聽滾動事件
-  useEffect(() => {
-    const sub = scrolling$.subscribe((payload) => {
-      if(!containerRef.current) return;
-      if(!canvasRef.current) return;
-      if(!payload) return;
-
-      const container = containerRef.current;
-      const canvas = canvasRef.current;
-      const ctx = canvas?.getContext("2d");
-      if(!ctx) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // 比照是否相同
-      if (!(payload.target instanceof HTMLElement)) return;
-      if(payload.target !== container) return;
-
-      if (!tickingRefHandleScroll.current) {
-        tickingRefHandleScroll.current = true; // 立即設定為 true，表示已排程一個幀
-        requestAnimationFrame(() => {
-          const scrollTop = container.scrollTop;
-          const scrollLeft = container.scrollLeft;
-          canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;    
-          tickingRefHandleScroll.current = false; // 所有更新完成後，將 ticking 設為 false
-        });
-      }
-    })
-
-    return () => sub.unsubscribe();
-  })
 
   useEffect(() => {
     // 合併兩個 stream 並且過濾出「hovering 且未滾動」
     const allowHover$ = combineLatest([
       throttledPointerActivity$,
-      isScrolling$,  
+      isScrolling$.pipe(startWith(false)),
     ]).pipe(
-      filter(([activity, isScrolling]) => activity.state === "hovering" && !isScrolling),
-      map(([activity, _]) => activity)
+      map(([activity, isScrolling]) => {return { ...activity, isScrolling }} )
     );
     
-    const sub = allowHover$.subscribe(({event}) => {
+    const sub = allowHover$.subscribe(({event, state, isScrolling}) => {
       const container = containerRef.current;
       const canvas = canvasRef.current;
       const ctx = canvas?.getContext("2d");
@@ -114,7 +82,15 @@ export const SystemHover: React.FC = () => {
       const hoveredElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
       const target = findTransSystemElement(hoveredElement);
 
+      if(isScrolling || state !== "hovering") {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;
+        tickingRefHandlePointerMove.current = false;
+        return;   
+      }
+
       requestAnimationFrame(() => {
+        canvas.style.transform = `translate3d(${scrollLeft}px, ${scrollTop}px, 0)`;
         drawCell(target, ctx, scrollTop, scrollLeft, rowHeight, cellWidth);
         tickingRefHandlePointerMove.current = false;
       });

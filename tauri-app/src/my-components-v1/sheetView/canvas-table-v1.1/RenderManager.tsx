@@ -50,6 +50,7 @@ export class RManager {
     el.style.display = "flex";
     el.style.alignItems ='center';
     el.style.justifyContent = 'center'; 
+    el.style.userSelect = "none";
     // 加入 trans 的型別
     el.dataset.transSystem = this.transSystemName;
   }
