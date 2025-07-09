@@ -7,7 +7,7 @@ import { useTickingRef } from "../../../hooks/useTickingRef";
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 import { isScrolling$ } from "../../../scroll-manager/ScrollManager";
 import { combineLatest, map, startWith } from "rxjs";
-import { findTransSystemElement } from "../system-QuickEdit/useInputCellStateManager";
+import { findTransSystemElement } from "../toolfunction";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();

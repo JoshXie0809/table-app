@@ -1,22 +1,22 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useSheetView } from "../../SheetView-Context";
 
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 import { filter } from "rxjs";
 import { useInputCell } from "./useInputCell";
-import { findTransSystemElement } from "./useInputCellStateManager";
+import { findTransSystemElement } from "../toolfunction";
 
 
 export const SystemQuickEdit = () => {
   const { containerRef, vcRef, allRefOK, getRef } = useSheetView();
-  const divRef = useRef<HTMLDivElement | null>(null);
+  
 
   const colHeaderRefBundle = getRef("column-header");
   const rowHeaderRefBundle = getRef("row-header");
   const cellsRefBundle = getRef("cells");
 
   // 將編輯的的 Input 先掛到 container 上
-  useInputCell(containerRef, vcRef, divRef);
+  const {divRef} = useInputCell(containerRef, vcRef);
 
 
   useEffect(() => {

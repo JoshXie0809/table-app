@@ -1,4 +1,4 @@
-import { MutableRefObject, RefObject, useEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { QuickEditInputCell } from "./InputCell";
 import { VirtualCells } from "../../../VirtualCells";
@@ -6,10 +6,12 @@ import { VirtualCells } from "../../../VirtualCells";
 export const useInputCell = (
   containerRef: RefObject<HTMLElement>,
   vcRef: RefObject<VirtualCells>,
-  divRef: MutableRefObject<HTMLElement | null>,
+
 ) => {
 
+  const divRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<Root | null>(null);
+
   useEffect(() => {
     if(!containerRef.current) return;
     if(!vcRef.current)return;
@@ -49,7 +51,9 @@ export const useInputCell = (
         container.removeChild(divEl)
       
       rootRef.current = null;
-      divRef.current = null; 
+      divRef.current = null;
     }
   }, []);
+
+  return ({divRef, rootRef})
 }
