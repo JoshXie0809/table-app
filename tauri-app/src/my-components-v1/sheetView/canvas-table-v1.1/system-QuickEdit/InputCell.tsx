@@ -33,21 +33,33 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
 
       
   const handleKeyDown = () => {
-
     requestAnimationFrame(() => {
-      const container = containerRef.current; // 從 props 傳入 containerRef
-      const vc = vcRef.current
+      const container = containerRef.current;
+      const vc = vcRef.current;
       const inputEl = inputRef.current;
       if (!container || !inputEl || !vc) return;
 
       const containerRect = container.getBoundingClientRect();
-      const rect = inputEl.getBoundingClientRect();
-      const HEADER_HEIGHT = Math.round(vc.cellHeight * 1.5);
-      const offset = containerRect.top + HEADER_HEIGHT - rect.top;
+      const inputRect = inputEl.getBoundingClientRect();
 
-      if (offset > 0) {
-        container.scrollTop -= offset;
+      const headerHeight = Math.round(vc.cellHeight);
+      const headerWidth = Math.round(vc.cellWidth);
+
+      const cond1 = (inputRect.top < containerRect.top + headerHeight);
+      const cond2 = (inputRect.left < containerRect.left + headerWidth)
+      const isCoveredByHeader =  cond1 || cond2;
+      if (!isCoveredByHeader) return;
+
+      if(cond1) {
+        const offsetY = containerRect.top + headerHeight - inputRect.top;
+        container.scrollTop -= offsetY;
       }
+      
+      if(cond2) {
+        const offsetX = containerRect.left + headerWidth - inputRect.left;
+        container.scrollLeft -= offsetX;
+      }
+    
     });
   };
 
@@ -70,5 +82,6 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
         input={{ref: inputRef}}
       />
     );
+
   }
 );
