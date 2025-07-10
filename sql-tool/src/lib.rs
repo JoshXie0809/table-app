@@ -1,20 +1,30 @@
-use duckdb::{Connection, Result};
+use std::error::Error;
+use duckdb::{polars::{error::{PolarsError, PolarsResult}, frame::DataFrame}, Connection};
 
-/// 執行查詢並列印每一列資料
-pub fn read_duckdb(path: &str, sql: &str) -> Result<()> {
-    // 開啟資料庫（如果檔案不存在會建立）
-    let conn = Connection::open(path)?;
+fn reduce_vstack(mut dfs: Vec<DataFrame>) -> PolarsResult<DataFrame> {
+    let mut base = dfs
+        .pop()
+        .ok_or_else(|| PolarsError::NoData("無資料可合併".into()))?;
 
-    // 執行查詢
-    let mut stmt = conn.prepare(sql)?;
-    let mut rows = stmt.query([])?;
-
-    // 動態列印每一列資料
-    while let Some(row) = rows.next()? {
-        // 假設你查的是單欄
-        let value: duckdb::types::ValueRef = row.get_ref_unwrap(4 );
-        println!("Value: {:?}", value);
+    for df in dfs {
+        base.vstack_mut(&df)?;
     }
+
+    Ok(base)
+}
+
+pub fn query_all_as_polars_df(path: &str, sql: &str) -> Result<(), Box<dyn Error>> {
+    let conn: Connection = Connection::open(path)?;
+
+    let pls: Vec<DataFrame> = conn
+        .prepare(sql)?
+        .query_polars([])?
+        .collect();
+
+    // println!("{:#?}", pls);
+
+    let pl = reduce_vstack(pls)?;
+    println!("{:#?}", pl);
 
     Ok(())
 }
@@ -22,11 +32,11 @@ pub fn read_duckdb(path: &str, sql: &str) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-
     #[test]
-    fn test_read_duckdb() -> Result<()>
+    fn read_pl() -> Result<(), Box<dyn Error>>
     {
-        read_duckdb("../data.duckdb", "select * from cells")?;
+        query_all_as_polars_df("../data.duckdb", "select * from cells")?;
         Ok(())
     }
+
 }

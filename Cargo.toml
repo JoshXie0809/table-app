@@ -3,5 +3,4 @@ resolver = "2"
 members = [ "plugin-core", "plugin-macros", "sql-tool","tauri-app/src-tauri"]
 
 [workspace.dependencies]
-duckdb = { version = "1.3.1", features = ["bundled"] }
-polars = "0.49.1"
+duckdb = { version = "1.3.1", features = ["bundled", "polars"] }
