@@ -1,0 +1,8 @@
+[package]
+name = "sql-tool"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+duckdb = { workspace = true, features = ["bundled"] }
+polars = { workspace = true }
