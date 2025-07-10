@@ -18,7 +18,7 @@ import { PointerStateManager } from "./my-components-v1/pointer-state-manager/Po
 import { ButtonSQL } from "./my-components-v1/button-toolbox/button-sql-tool/ButtonSQL.tsx";
 
 
-const useStyles = makeStyles({
+export const useStyles = makeStyles({
   root: {
     height: "100vh",
     display: "flex",

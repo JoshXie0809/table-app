@@ -15,6 +15,7 @@ const useStyles = makeStyles({
     minHeight: "150px",
     gap: "8px",
     alignItems: "stretch",
+    userSelect: "none",
   }
 })
 

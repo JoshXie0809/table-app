@@ -24,7 +24,7 @@ export function openNewWindow() {
 export const ButtonSQL = () => {
   return(
     <RibbonLargeButton
-      icon={<BsDatabaseFill size={52} color="rgb(96, 110, 155)"/>}
+      icon={<BsDatabaseFill size={52} color="rgb(141, 152, 190)"/>}
       label="SQL"
       onClick={() => openNewWindow()}
     />

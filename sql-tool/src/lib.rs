@@ -1,11 +1,10 @@
 use std::error::Error;
-use duckdb::{polars::{error::{PolarsError, PolarsResult}, frame::DataFrame}, Connection};
+use duckdb::{polars::{error::{PolarsResult}, frame::DataFrame, prelude::AnyValue}, Connection};
+use serde_json::{Value as JsonValue};
 
-fn reduce_vstack(mut dfs: Vec<DataFrame>) -> PolarsResult<DataFrame> {
-    let mut base = dfs
-        .pop()
-        .ok_or_else(|| PolarsError::NoData("無資料可合併".into()))?;
-
+fn reduce_vstack(dfs: Vec<DataFrame>) -> PolarsResult<DataFrame> {
+    let mut base = DataFrame::default();
+    
     for df in dfs {
         base.vstack_mut(&df)?;
     }
@@ -24,9 +23,90 @@ pub fn query_all_as_polars_df(path: &str, sql: &str) -> Result<(), Box<dyn Error
     // println!("{:#?}", pls);
 
     let pl = reduce_vstack(pls)?;
-    println!("{:#?}", pl);
+    // println!("{:#?}", pl);
+
+    let (_, ncol ) = pl.shape();
+
+    let mut row_val = vec![];
+
+    for i in 0..ncol {
+        if let Some(av )= pl.get(i) {
+            let av: Vec<JsonValue> = av.into_iter()
+            .map(|av| {
+                convert_any_value_to_json_value(av)
+            })
+            .collect();
+            
+            row_val.push(av);
+        }
+    }
+
+    println!("{row_val:#?}");
 
     Ok(())
+}
+
+
+fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn Error>> {
+    let conn = Connection::open_in_memory()?; // 或用你自己的 .duckdb
+
+    // ✅ 啟用 SQLite scanner
+    conn.execute("INSTALL sqlite_scanner;", [])?;
+    conn.execute("LOAD sqlite_scanner;", [])?;
+
+    // ✅ 附加 SQLite 資料庫
+    let attach_sql: String = format!("ATTACH '{}' AS sqlite_db (TYPE SQLITE);", sqlite_path);
+    conn.execute(&attach_sql, [])?;
+
+    // ✅ 查詢其中一個表格
+    let query = format!("SELECT * FROM sqlite_db.{};", table);
+    let mut stmt = conn.prepare(&query)?;
+    
+    let pls: Vec<DataFrame> = stmt.query_polars([])?.collect();
+    let pl = reduce_vstack(pls)?;
+    
+    println!("{pl:#?}");
+
+    let (_, ncol) = pl.shape();
+    
+    
+    let mut row_val = vec![];
+
+    for i in 0..ncol {
+        if let Some(av )= pl.get(i) {
+            let av: Vec<JsonValue> = av.into_iter()
+            .map(|av| {
+                convert_any_value_to_json_value(av)
+            })
+            .collect();
+            
+            row_val.push(av);
+        }
+    }
+
+    println!("{row_val:#?}");
+    Ok(())
+}
+
+
+fn convert_any_value_to_json_value(av: AnyValue) -> JsonValue {
+    match av {
+        AnyValue::Null => JsonValue::Null,
+        AnyValue::Boolean(b) => JsonValue::Bool(b),
+        AnyValue::String(s) => JsonValue::String(s.to_string()),
+        AnyValue::Int64(i) => JsonValue::from(i),
+        AnyValue::Int32(i) => JsonValue::from(i),
+        AnyValue::Int16(i) => JsonValue::from(i),
+        AnyValue::Int8(i) => JsonValue::from(i),
+        AnyValue::UInt64(u) => JsonValue::from(u),
+        AnyValue::UInt32(u) => JsonValue::from(u),
+        AnyValue::UInt16(u) => JsonValue::from(u),
+        AnyValue::UInt8(u) => JsonValue::from(u),
+        AnyValue::Float64(f) => JsonValue::from(f),
+        AnyValue::Float32(f) => JsonValue::from(f),
+        // 如有日期、時間戳等，可再補上
+        _ => JsonValue::Null, // 其它型別暫時給 Null，實務請補齊！
+    }
 }
 
 #[cfg(test)]
@@ -36,6 +116,7 @@ mod tests {
     fn read_pl() -> Result<(), Box<dyn Error>>
     {
         query_all_as_polars_df("../data.duckdb", "select * from cells")?;
+        read_sqlite_via_duckdb("../vote.sqlite", "content_tbl")?;
         Ok(())
     }
 
