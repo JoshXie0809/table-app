@@ -42,8 +42,8 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       const containerRect = container.getBoundingClientRect();
       const inputRect = inputEl.getBoundingClientRect();
 
-      const headerHeight = Math.round(vc.cellHeight);
-      const headerWidth = Math.round(vc.cellWidth);
+      const headerHeight = Math.round(vc.cellHeight) +2;
+      const headerWidth = Math.round(vc.cellWidth) +2;
 
       const cond1 = (inputRect.top < containerRect.top + headerHeight);
       const cond2 = (inputRect.left < containerRect.left + headerWidth)

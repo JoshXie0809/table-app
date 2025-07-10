@@ -15,6 +15,7 @@ import { RibbonGroup } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
 import { SystemHover } from "./my-components-v1/sheetView/canvas-table-v1.1/system-hover/SystemHover.tsx";
 import { SystemQuickEdit } from "./my-components-v1/sheetView/canvas-table-v1.1/system-QuickEdit/SystemQuickEdit.tsx";
 import { PointerStateManager } from "./my-components-v1/pointer-state-manager/PointerStateManger.ts";
+import { ButtonSQL } from "./my-components-v1/button-toolbox/button-sql-tool/ButtonSQL.tsx";
 
 
 const useStyles = makeStyles({
@@ -73,9 +74,13 @@ function App() {
         <ButtonToolBox>
           <RibbonGroup label="檔案讀取">
             <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
-          </RibbonGroup>
-          <RibbonGroup label="檔案讀取">
             <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
+            <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
+            <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
+          </RibbonGroup>
+
+          <RibbonGroup label="SQL 工具">
+            <ButtonSQL />
           </RibbonGroup>
         </ButtonToolBox>
 

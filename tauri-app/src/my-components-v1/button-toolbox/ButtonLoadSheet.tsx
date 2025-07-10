@@ -1,7 +1,7 @@
-import { FaRegFolderOpen } from "react-icons/fa";
+import { FaFolderOpen } from "react-icons/fa";
 import { open } from "@tauri-apps/plugin-dialog";
 import React from "react";
-import { RibbonLargeButton } from "./RibbonGroup";
+import { RibbonSmallButton } from "./RibbonGroup";
 
 export interface ButtonLoadSheetProps {
   setSheetName: React.Dispatch<React.SetStateAction<string | null>>
@@ -40,8 +40,8 @@ export const ButtonLoadSheet: React.FC<ButtonLoadSheetProps>
     }
 
     return(
-      <RibbonLargeButton
-        icon={<FaRegFolderOpen size={32} color="rgb(182, 172, 89)" />} 
+      <RibbonSmallButton
+        icon={<FaFolderOpen size={32} color="#fbc02d" />} 
         onClick={onClick}
         label="載入檔案"
         tipContent="載入 .sheetpkg.zip 檔案"

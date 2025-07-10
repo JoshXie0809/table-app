@@ -14,6 +14,7 @@ const useStyles = makeStyles({
     display: "flex",
     minHeight: "150px",
     gap: "8px",
+    alignItems: "stretch",
   }
 })
 

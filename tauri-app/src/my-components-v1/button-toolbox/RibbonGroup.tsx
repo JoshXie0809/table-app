@@ -1,25 +1,33 @@
-import { Button, makeStyles, Slot, Text, tokens, Tooltip } from "@fluentui/react-components";
+import { Button, makeStyles, Slot, Text, tokens, ToolbarDivider, Tooltip } from "@fluentui/react-components";
 import React from "react";
+
+
 
 const useStyles = makeStyles({
   group: {
-    display: "flex",
-    flexDirection: "column",
-    borderRight: `1px solid ${tokens.colorNeutralStroke2}`,
-    // backgroundColor: "red",
+    display: "grid",
+    gridTemplateRows: "1fr auto",
+    height: "100%",
+    boxSizing: "border-box",
+    gap: "4px"
   },
+
   gridArea: {
     display: "grid",
     gridAutoFlow: "column",
-    gridTemplateRows: "repeat(3, auto)", // 每 column 固定 3 row
-    gap: "4px 12px",
+    height: "100%",
+    gridTemplateRows: "repeat(3, 32px)", // 每 column 固定 3 row
   },
+  
   groupLabel: {
-    marginTop: "6px",
+    margin: 0,          // ✅ 完全不要加 margin
+    padding: 0,
+    boxSizing: "border-box",
     fontSize: "12px",
     color: tokens.colorNeutralForeground1,
     textAlign: "center",
   },
+
   smallButton: {
     gridRow: "span 1",
     display: "flex",
@@ -36,9 +44,10 @@ const useStyles = makeStyles({
     flexDirection: "column",
     alignItems: "flex-start", // ✅ 全部靠左
     justifyContent: "flex-start",
-    gap: "4px",
+    // gap: "4px",
     width: "100%",
   },
+
   iconArea: {
     display: "flex",
     alignItems: "center",
@@ -50,6 +59,7 @@ const useStyles = makeStyles({
   labelArea: {
     display: "flex",
     justifyContent: "center",
+    textAlign: "center",
     width: "100%",
   },
 
@@ -58,10 +68,13 @@ const useStyles = makeStyles({
 export const RibbonGroup: React.FC<{ label: string; children?: React.ReactNode }> = ({ label, children }) => {
   const styles = useStyles();
   return (
-    <div className={styles.group}>
-      <div className={styles.gridArea}>{children}</div>
-      <Text className={styles.groupLabel}>{label}</Text>
-    </div>
+    <>
+      <div className={styles.group}>
+        <Text className={styles.groupLabel}>{label}</Text>
+        <div className={styles.gridArea}>{children}</div>
+      </div>
+      <ToolbarDivider />
+    </>
   );
 };
 
