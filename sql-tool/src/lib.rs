@@ -1,5 +1,5 @@
 use std::error::Error;
-use duckdb::{polars::{error::{PolarsResult}, frame::DataFrame, prelude::AnyValue}, Connection};
+use duckdb::{polars::{error::PolarsResult, frame::DataFrame, prelude::{AnyValue, SchemaExt}, series::ChunkCompareEq}, Connection};
 use serde_json::{Value as JsonValue};
 
 fn reduce_vstack(dfs: Vec<DataFrame>) -> PolarsResult<DataFrame> {
@@ -23,49 +23,10 @@ pub fn query_all_as_polars_df(path: &str, sql: &str) -> Result<(), Box<dyn Error
     // println!("{:#?}", pls);
 
     let pl = reduce_vstack(pls)?;
-    // println!("{:#?}", pl);
 
-    let (_, ncol ) = pl.shape();
-
-    let mut row_val = vec![];
-
-    for i in 0..ncol {
-        if let Some(av )= pl.get(i) {
-            let av: Vec<JsonValue> = av.into_iter()
-            .map(|av| {
-                convert_any_value_to_json_value(av)
-            })
-            .collect();
-            
-            row_val.push(av);
-        }
+    for field in pl.schema().iter_fields() {
+        println!("{}: {:?}", field.name(), field.dtype());
     }
-
-    println!("{row_val:#?}");
-
-    Ok(())
-}
-
-
-fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn Error>> {
-    let conn = Connection::open_in_memory()?; // 或用你自己的 .duckdb
-
-    // ✅ 啟用 SQLite scanner
-    conn.execute("INSTALL sqlite_scanner;", [])?;
-    conn.execute("LOAD sqlite_scanner;", [])?;
-
-    // ✅ 附加 SQLite 資料庫
-    let attach_sql: String = format!("ATTACH '{}' AS sqlite_db (TYPE SQLITE);", sqlite_path);
-    conn.execute(&attach_sql, [])?;
-
-    // ✅ 查詢其中一個表格
-    let query = format!("SELECT * FROM sqlite_db.{};", table);
-    let mut stmt = conn.prepare(&query)?;
-    
-    let pls: Vec<DataFrame> = stmt.query_polars([])?.collect();
-    let pl = reduce_vstack(pls)?;
-    
-    println!("{pl:#?}");
 
     let (_, ncol) = pl.shape();
     
@@ -85,6 +46,55 @@ fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn 
     }
 
     println!("{row_val:#?}");
+
+
+    Ok(())
+}
+
+
+fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn Error>> {
+    let conn = Connection::open_in_memory()?; // 或用你自己的 .duckdb
+
+    // ✅ 啟用 SQLite scanner
+    conn.execute("INSTALL sqlite_scanner;", [])?;
+    conn.execute("LOAD sqlite_scanner;", [])?;
+
+    // ✅ 附加 SQLite 資料庫
+    let attach_sql: String = format!("ATTACH '{}' AS sqlite_db (TYPE SQLITE);", sqlite_path);
+    conn.execute(&attach_sql, [])?;
+
+    // ✅ 查詢其中一個表格
+    let query = format!("SELECT * FROM sqlite_db.{}  limit 1000;", table);
+    let mut stmt = conn.prepare(&query)?;
+    
+    let pls: Vec<DataFrame> = stmt.query_polars([])?.collect();
+    let pl = reduce_vstack(pls)?;
+    
+    println!("{pl:#?}");
+
+    // let mask = pl.column("game")?.str()?.equal("Game1");
+    // let filtered = pl.filter(&mask)?;
+
+    
+    let cols = ["game", "push"];
+    let gb = pl.group_by(cols)?;
+    
+    let groups = gb.groups()?; // DataFrame, columns: "nameid", "groups"
+    println!("{:#?}", groups);
+    
+    // let nameid_col = groups.column(col)?.str()?;
+    // let idx_col: &duckdb::polars::prelude::ChunkedArray<duckdb::polars::prelude::ListType> = groups.column("groups")?.list()?; // 每一組是一個 ListChunked
+
+    // for (maybe_name, maybe_idxs) in nameid_col.into_iter().zip(idx_col) {
+    //     if let (Some(name), Some(idxs)) = (maybe_name, maybe_idxs) {
+    //         // idxs 是 Series，裡面裝一個 u32 list
+    //         let idxs = idxs.u32()?;
+    //         let subdf = gb.df.take(idxs)?;
+    //         println!("group {name:?}:\n{subdf:?}");
+    //     }
+    // }
+
+    
     Ok(())
 }
 

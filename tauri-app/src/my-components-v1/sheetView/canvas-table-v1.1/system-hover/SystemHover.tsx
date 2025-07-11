@@ -7,7 +7,7 @@ import { useTickingRef } from "../../../hooks/useTickingRef";
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 import { isScrolling$ } from "../../../scroll-manager/ScrollManager";
 import { combineLatest, map, startWith } from "rxjs";
-import { findTransSystemElement } from "../toolfunction";
+import { findTransSystemElement, getCellPositionOnMainContainer } from "../toolfunction";
 
 export const SystemHover: React.FC = () => {
   const { containerRef, vcRef } = useSheetView();
@@ -114,79 +114,37 @@ function drawCell(
 
   if(target) {
     const transSystemName = target.dataset.transSystem as TransSystemName;
-    const transX = Number(target.dataset.transX);
-    const transY = Number(target.dataset.transY);
 
-    let offsetX = 0;
-    let offsetY = 0;
-    let x = 0;
+    let {x, y} = getCellPositionOnMainContainer(target, scrollTop, scrollLeft, rowHeight, cellWidth);    
     let w = 0;
-    let y = 0;
     let h = 0;
 
     switch(transSystemName) {
       case "cells":
-        offsetX = cellWidth;
-        offsetY = rowHeight;
-        x = transX + offsetX - scrollLeft;
         w = cellWidth;
-
-        if(x < cellWidth) {
-          w = x;
-          x = cellWidth;
-        }
-          
-        y = transY + offsetY - scrollTop;
+        if(x < cellWidth) { w = x; x = cellWidth;}
         h = rowHeight;
-
-        if(y < rowHeight) {
-          h = y;
-          y = rowHeight;
-        }
-
+        if(y < rowHeight) { h = y; y = rowHeight;}
         // ctx.fillRect(x, y, w, h); cell
         ctx.fillRect(x, 0, w, rowHeight); // header
         ctx.fillRect(0, y, cellWidth, h); // header
-
         break;
       
       case "column-header":
-        offsetX = cellWidth;
-        offsetY = scrollTop;
-
-        x = transX + offsetX - scrollLeft;
         w = cellWidth;
-        y = transY + offsetY - scrollTop;
         h = rowHeight;
-
-        if(x < cellWidth) {
-          w = x;
-          x = cellWidth;
-        }
-
+        if(x < cellWidth) { w = x; x = cellWidth; }
         ctx.fillRect(x, y, w, h);
         break;
       
       case "row-header":
-        offsetX = scrollLeft;
-        offsetY = rowHeight;
-
-        x = transX + offsetX - scrollLeft;
         w = cellWidth;
-        y = transY + offsetY - scrollTop;
         h = rowHeight;
-
-        if(y < rowHeight) {
-          h = y;
-          y = rowHeight;
-        }
-
+        if(y < rowHeight) { h = y; y = rowHeight; }
         ctx.fillRect(x, y, w, h);
         break;
 
       case "tlc":
-        offsetX = 0;
-        offsetY = 0;
         break;
 
       default:

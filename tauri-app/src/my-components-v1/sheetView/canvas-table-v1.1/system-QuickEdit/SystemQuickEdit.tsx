@@ -4,7 +4,8 @@ import { useSheetView } from "../../SheetView-Context";
 import { throttledPointerActivity$ } from "../../../pointer-state-manager/PointerStateManger";
 import { filter } from "rxjs";
 import { useInputCell } from "./useInputCell";
-import { findTransSystemElement } from "../toolfunction";
+import { findTransSystemElement, getCellPositionOnMainContainer } from "../toolfunction";
+import { TransSystemName } from "../RenderManager";
 
 
 export const SystemQuickEdit = () => {
@@ -15,7 +16,7 @@ export const SystemQuickEdit = () => {
   const cellsRefBundle = getRef("cells");
 
   // 將編輯的的 Input 先掛到 container 上
-  const { divRef } = useInputCell(containerRef, vcRef);
+  const { divRef, inputCellRef } = useInputCell(containerRef, vcRef);
 
 
   useEffect(() => {
@@ -27,7 +28,8 @@ export const SystemQuickEdit = () => {
       const divEl = divRef.current;
       const vc = vcRef.current;
       const container = containerRef.current;
-      if(!allRefOK || !colHeaderRefBundle || !rowHeaderRefBundle || !cellsRefBundle || !divEl || !vc || !container) return;
+      const inputCell = inputCellRef.current;
+      if(!allRefOK || !colHeaderRefBundle || !rowHeaderRefBundle || !cellsRefBundle || !divEl || !vc || !container || !inputCell) return;
 
       if(payload.state != "pressing") 
         return;
@@ -38,38 +40,18 @@ export const SystemQuickEdit = () => {
       const hoveredElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
       const target = findTransSystemElement(hoveredElement)
       if(!target) return;
-      const dataset = target.dataset
-      const transXStr = dataset.transX;
-      const transYStr = dataset.transY;
-      const trnasSystem = dataset.transSystem;
-      if(!transYStr || !transXStr || !trnasSystem) return;
-      const transY = Number(transYStr);
-      const transX = Number(transXStr);
-      
-      let paddingX = 0;
-      let paddingY = 0;
-      
-      if(trnasSystem === "cells") {
-        paddingX = cellWidth;
-        paddingY = cellHeight;
-      } 
-      // else 
-      // if(trnasSystem === "column-header") {
-      //   paddingY = container.scrollTop;
-      //   paddingX = cellWidth;
-      // } 
-      // else 
-      // if(trnasSystem === "row-header") {
-      //   paddingX = container.scrollLeft;
-      //   paddingY = cellHeight;
-      // } 
-      else {
-        return;
+      // 點選後 設定 input 值
+      const transSystem = target.dataset.transSystem as TransSystemName;
+      if(transSystem === "cells") {
+        const shellId = target.dataset.shellId as string;
+        inputCell.setQuickEditInputCellValue(`hello-${shellId}`)
       }
+        
 
-      divEl.style.transform = `translate3d(${transX + paddingX}px, ${transY + paddingY}px, 0)`;
+      // 移動 input 框
+      const {x, y} = getCellPositionOnMainContainer(target, 0, 0, cellHeight, cellWidth);
+      divEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
       divEl.style.transition = "transform 48ms ease-out";
-
     })
 
     return () => sub.unsubscribe();

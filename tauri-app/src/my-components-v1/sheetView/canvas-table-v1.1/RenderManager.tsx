@@ -34,7 +34,7 @@ export class RManager {
     this.contentScheduler = new DirtyCellContentScheduler(vcRef);
   }
 
-  private initCellStyle(el: HTMLElement, cellWidth: number, rowHeight: number) {
+  private initCellStyle(el: HTMLElement, cellWidth: number, rowHeight: number, shellId: string) {
     el.style.position = "absolute";
     el.style.width = `${cellWidth}px`;
     el.style.height = `${rowHeight}px`;
@@ -53,6 +53,8 @@ export class RManager {
     el.style.userSelect = "none";
     // 加入 trans 的型別
     el.dataset.transSystem = this.transSystemName;
+    // 加入 shellId
+    el.dataset.shellId = shellId;
   }
 
   mountCell(cell: Cell) {
@@ -60,11 +62,12 @@ export class RManager {
     if(el) return el;
 
     el = document.createElement("div");
-    this.initCellStyle(el, this.cellWidth, this.rowHeight);
+    this.initCellStyle(el, this.cellWidth, this.rowHeight, cell.shellId);
     // mount 上去
     this.container.appendChild(el);
     this.domPool.set(cell.shellId, el);
     cell.valueRef.el = el;
+    
 
     if(cell.valueRef.reactRoot) return;
     const root = createRoot(el);

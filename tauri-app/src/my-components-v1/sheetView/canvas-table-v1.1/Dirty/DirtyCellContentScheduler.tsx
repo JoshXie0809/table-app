@@ -49,7 +49,7 @@ export class DirtyCellContentScheduler {
     const displayText = vc.getCellDisplayValue(row, col);
 
     if(displayText === null) {
-      // 不刪除即可
+      // 不刪除即可 不用再加入
       // this.markDirty(cell);
       root.render(<SimpleCellSkeleton />);
     }
