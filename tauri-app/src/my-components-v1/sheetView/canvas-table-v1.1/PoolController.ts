@@ -89,7 +89,6 @@ export class NestedPoolController implements INestedPoolController {
       const firstCell = row.children.shift();
       if(!firstCell) return updatedCells; // 代表後續的都會有問題所以直接 return 不 continue
       firstCell.indexPath[n-1] = lastColIndex + 1;
-      // this._updateCellPosition(firstCell);
       updatedCells.push(firstCell);
       // 放到最後一個
       row.children.push(firstCell);
@@ -111,7 +110,6 @@ export class NestedPoolController implements INestedPoolController {
       const lastCell = row.children.pop();
       if(!lastCell) return updatedCells;
       lastCell.indexPath[n-1] = firstColIndex - 1;
-      // this._updateCellPosition(lastCell);
       updatedCells.push(lastCell);
       row.children.unshift(lastCell);
       row.startColIndex -= 1;
@@ -132,7 +130,6 @@ export class NestedPoolController implements INestedPoolController {
       pool.forEach((cell) => {
         const idxL = cell.indexPath.length;
         cell.indexPath[idxL - 2] += n;
-        // this._updateCellPosition(cell);
         updatedCells.push(cell);
       });
       this.pool.startRowIndex += n;
@@ -163,7 +160,6 @@ export class NestedPoolController implements INestedPoolController {
       pool.forEach((cell) => {
         const idxL = cell.indexPath.length;
         cell.indexPath[idxL - 1] += n;
-        // this._updateCellPosition(cell);
         updatedCells.push(cell);
       });
       

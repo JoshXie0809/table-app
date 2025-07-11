@@ -1,9 +1,8 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
-  "identifier": "default",
+  "identifier": "window-sql-tool",
   "description": "Capability for the main window",
   "windows": [
-    "main",
     "window-sql-tool"
   ],
   "permissions": [

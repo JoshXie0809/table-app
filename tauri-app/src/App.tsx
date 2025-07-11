@@ -74,9 +74,6 @@ function App() {
         <ButtonToolBox>
           <RibbonGroup label="檔案讀取">
             <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
-            <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
-            <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
-            <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
           </RibbonGroup>
 
           <RibbonGroup label="SQL 工具">

@@ -1,14 +1,10 @@
-import { RefObject, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { createRoot, Root } from "react-dom/client";
 import { QuickEditInputCell, QuickEditInputCellHandle } from "./InputCell";
-import { VirtualCells } from "../../../VirtualCells";
+import { useSheetView } from "../../SheetView-Context";
 
-export const useInputCell = (
-  containerRef: RefObject<HTMLElement>,
-  vcRef: RefObject<VirtualCells>,
-
-) => {
-
+export const useInputCell = () => {
+  const { containerRef, vcRef} = useSheetView();
   const divRef = useRef<HTMLDivElement | null>(null);
   const rootRef = useRef<Root | null>(null);
   const inputCellRef = useRef<QuickEditInputCellHandle | null>(null);

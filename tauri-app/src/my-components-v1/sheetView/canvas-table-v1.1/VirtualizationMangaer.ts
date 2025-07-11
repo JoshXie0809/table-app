@@ -23,6 +23,16 @@ export class VManager implements IVirtualizationManager {
       this.cellMap.set(cell.shellId, cell);
     })
   }
+
+  getCellRowColByShellId(shellId: string) : {row: number | undefined, col: number | undefined}
+  {
+    const cell =  this.cellMap.get(shellId);
+    const n = cell?.indexPath.length;
+    if(!n) return {row: undefined, col: undefined};
+    const row = cell.indexPath[n - 2];
+    const col = cell.indexPath[n - 1];
+    return {row, col};
+  }
   
   containerDims: {width: number, height: number};
   overScanRow: number = 0;
