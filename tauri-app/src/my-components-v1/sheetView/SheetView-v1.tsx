@@ -18,7 +18,6 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   children
 }) =>
 {
-  
   const containerRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const rowHeaderRef = useRef<HTMLDivElement>(null);
@@ -193,6 +192,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       if (inertiaTimeout) clearTimeout(inertiaTimeout);
     };
   }, [rowHeight, cellWidth]);
+
 
   
   return (

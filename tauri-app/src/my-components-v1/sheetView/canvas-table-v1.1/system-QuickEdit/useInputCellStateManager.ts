@@ -5,6 +5,7 @@ import { useSheetView } from "../../SheetView-Context";
 import { target$ } from "./SystemQuickEdit";
 import { QuickEditInputCellHandle } from "./InputCell";
 import { TransSystemName } from "../RenderManager";
+import { useKeyboard } from "./useKeyboard";
 
 export const useInputCellStateManager = (
   divRef: RefObject<HTMLDivElement | null>,
@@ -43,4 +44,9 @@ export const useInputCellStateManager = (
 
     return () => sub.unsubscribe();
   })
+
+
+  useKeyboard(inputCellRef);
+
+
 }

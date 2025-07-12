@@ -6,7 +6,6 @@ import { findTransSystemElement } from "../toolfunction";
 import { useTransformInputCell } from "./useTransfromInputCell";
 import { useInputCellStateManager } from "./useInputCellStateManager";
 
-
 export const target$ = new Subject<{target: HTMLElement | null}>();
 
 export const SystemQuickEdit = () => {
@@ -31,7 +30,7 @@ export const SystemQuickEdit = () => {
   useTransformInputCell(divRef);
   // 管理編輯框狀態的功能
   useInputCellStateManager(divRef, inputCellRef)
-
+  
   return null;
 }
 

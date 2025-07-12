@@ -3,6 +3,7 @@ import { useStyles } from "../App";
 import { ButtonToolBox } from "../my-components-v1/button-toolbox/ButtonToolBox";
 import { RibbonGroup, RibbonSmallButton } from "../my-components-v1/button-toolbox/RibbonGroup";
 import { BsDatabaseAdd } from "react-icons/bs";
+import LuaRunner from "../my-components-v1/lua/LuaRunner";
 
 
 export const SQLApp = () => {
@@ -17,6 +18,10 @@ export const SQLApp = () => {
           </RibbonGroup>
         </ButtonToolBox>
         <main className={styles.content}>
+          <div>
+            <h1>vm</h1>
+            <LuaRunner />
+          </div>
         </main>
       </div>
     </FluentProvider>
