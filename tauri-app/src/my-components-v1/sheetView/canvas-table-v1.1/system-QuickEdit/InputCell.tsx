@@ -66,7 +66,9 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
   };
 
     return (
-      <Input
+      <Input 
+        data-zone = "system-quick-edit"
+        id="system-quick-edit-cell"
         placeholder="輸入"
         value={quickEditInputCellValue}
         onFocus={() => setIsFocused(true)}

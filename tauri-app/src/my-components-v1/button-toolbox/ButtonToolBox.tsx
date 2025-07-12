@@ -29,7 +29,7 @@ export const ButtonToolBox: React.FC<ButtonToolBoxProps> = ({
   const styles = useStyles();
 
   return(
-    <div className={styles.buttonToolBoxContainer}>
+    <div className={styles.buttonToolBoxContainer} data-zone="button-toolbox">
       <Toolbar className={styles.buttonToolBox}>
         {children}
       </Toolbar>

@@ -24,7 +24,6 @@ export const SheetView11: React.FC<SheetViewProps> = ({
   const colHeaderRef = useRef<HTMLDivElement>(null);
   const tlcRef = useRef<HTMLDivElement>(null);
 
-
   const totalRow = vcRef.current?.sheetSize.nRow ?? 0;
   const totalCol = vcRef.current?.sheetSize.nCol ?? 0;
   const rowHeight = vcRef.current?.cellHeight ?? 24;
@@ -200,6 +199,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       <div
         ref={containerRef}
         id="container-virtual-cells"
+        data-zone="sheet-view"
         style={{
           width: "100%",
           height: "100%",

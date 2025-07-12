@@ -81,7 +81,9 @@ function App() {
           </RibbonGroup>
         </ButtonToolBox>
 
-        <main className={styles.content}>
+        <main className={styles.content}
+          data-zone="win-main"
+        >
           {virtualCellsReady && vcRef.current && 
             <Text size={500} weight="semibold"> {vcRef.current.sheetName} </Text>
           }

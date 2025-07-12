@@ -4,7 +4,9 @@ import { ButtonToolBox } from "../my-components-v1/button-toolbox/ButtonToolBox"
 import { RibbonGroup, RibbonSmallButton } from "../my-components-v1/button-toolbox/RibbonGroup";
 import { BsDatabaseAdd } from "react-icons/bs";
 import LuaRunner from "../my-components-v1/lua/LuaRunner";
+import { MyTiptapEditor } from "../my-components-v1/tiptap-editor/TipTap";
 
+import "./SQLApp.css"
 
 export const SQLApp = () => {
   const styles = useStyles();
@@ -14,11 +16,14 @@ export const SQLApp = () => {
       <div className={styles.root}>
         <ButtonToolBox>
           <RibbonGroup label="子視窗測試">
-            <RibbonSmallButton icon={<BsDatabaseAdd size={32}/>} label="加載" onClick={() => confirm("開啟檔案")}/>
+            <RibbonSmallButton icon={<BsDatabaseAdd size={32}/>} 
+              label="加載" 
+              onClick={() => confirm("開啟檔案")}/>
           </RibbonGroup>
         </ButtonToolBox>
         <main className={styles.content}>
-          <div>
+          <div style={{overflow: "auto"}}>
+            <MyTiptapEditor />
             <h1>vm</h1>
             <LuaRunner />
           </div>
