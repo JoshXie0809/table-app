@@ -4,7 +4,6 @@ import { target$ } from "./SystemQuickEdit";
 import { QuickEditInputCellHandle } from "./InputCell";
 import { TransSystemName } from "../RenderManager";
 import { useKeyboard } from "./useKeyboard";
-import { VirtualCells } from "../../../VirtualCells";
 import { Subject } from "rxjs";
 
 
@@ -14,8 +13,8 @@ export const useInputCellStateManager = (
   divRef: RefObject<HTMLDivElement | null>,
   inputCellRef: RefObject<QuickEditInputCellHandle | null>
 ) => {
+  
   const { vcRef, allRefOK, getRef } = useSheetView();
-  // const { containerRef, vcRef, allRefOK, getRef } = useSheetView();
   // const colHeaderRefBundle = getRef("column-header");
   // const rowHeaderRefBundle = getRef("row-header");
   const cellsRefBundle = getRef("cells");
@@ -54,7 +53,7 @@ export const useInputCellStateManager = (
     return () => sub.unsubscribe();
   })
 
-  useKeyboard(inputCellRef, vcRef);
+  useKeyboard(inputCellRef);
 
 }
 

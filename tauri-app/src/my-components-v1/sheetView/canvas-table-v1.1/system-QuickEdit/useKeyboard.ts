@@ -3,6 +3,7 @@ import { filter, fromEvent, map, withLatestFrom } from "rxjs";
 import { QuickEditInputCellHandle } from "./InputCell";
 import { rc$ } from "./useInputCellStateManager";
 import { VirtualCells } from "../../../VirtualCells";
+import { useSheetView } from "../../SheetView-Context";
 
 const keydown$ = fromEvent<KeyboardEvent>(window, "keydown");
 
@@ -48,9 +49,8 @@ export const arrow$ = keyWithZone$.pipe(
 
 export const useKeyboard = (
   inputCellRef: RefObject<QuickEditInputCellHandle | null>,
-  vcRef: RefObject<VirtualCells>
 ) => {
-
+  const { vcRef } = useSheetView();
   // enter 鍵邏輯
   useEffect(() => {
     const sub = enter$.subscribe(() => {
@@ -90,10 +90,10 @@ export const useKeyboard = (
       else if (event.key === "ArrowDown") newRow++;
       else if (event.key === "ArrowLeft") newCol--;
       else if (event.key === "ArrowRight") newCol++;
+      
       // 這裡直接修正
       const checked = checkRCValid(newRow, newCol, vc);
-      rc$.next({ row: checked.row, col: checked.col });
-
+      rc$.next({ row: checked.row, col: checked.col });      
     })
     return () => sub.unsubscribe();
   })
