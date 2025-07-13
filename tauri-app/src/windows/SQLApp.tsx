@@ -11,7 +11,7 @@ import { MyLexicalEditor } from "../my-components-v1/lexical-editor/LexicalEdito
 
 export const SQLApp = () => {
   const styles = useStyles();
-
+  
   return (
     <FluentProvider theme={webLightTheme}>
       <div className={styles.root}>

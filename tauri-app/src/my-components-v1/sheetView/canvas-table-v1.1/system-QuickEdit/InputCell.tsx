@@ -66,25 +66,27 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
   };
 
     return (
-      <Input 
-        data-zone = "system-quick-edit"
-        id="system-quick-edit-cell"
-        placeholder="輸入"
-        value={quickEditInputCellValue}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        onChange={(e) => setQuickEditInputCellValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        style={{
-          height: `${Math.round(vc.cellHeight)}px`,
-          width: `${Math.round(vc.cellWidth)}px`,
-          borderRadius: "0px",
-          border: "1px solid rgb(96, 151, 96)",
-          boxShadow: tokens.shadow2,
-          boxSizing: "border-box",
-        }}
-        input={{ref: inputRef}}
-      />
+      <div data-zone = "system-quick-edit">
+        <Input 
+          id="system-quick-edit-cell"
+          placeholder="輸入"
+          autoComplete="on"
+          value={quickEditInputCellValue}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onChange={(e) => setQuickEditInputCellValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          style={{
+            height: `${Math.round(vc.cellHeight)}px`,
+            width: `${Math.round(vc.cellWidth)}px`,
+            borderRadius: "0px",
+            border: "1px solid rgb(96, 151, 96)",
+            boxShadow: tokens.shadow2,
+            boxSizing: "border-box",
+          }}
+          input={{ref: inputRef}}
+        />
+      </div>
     );
 
   }

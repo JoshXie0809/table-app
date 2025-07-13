@@ -4,21 +4,22 @@ import { ContentEditable } from "@lexical/react/LexicalContentEditable";
 import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { HeadingNode } from "@lexical/rich-text";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
-import { makeStyles } from "@fluentui/react-components";
+import { makeStyles, Text, tokens } from "@fluentui/react-components";
 import { LexicalHeadingInputRulePlugin } from "./Lexical-Heading-Inputrule";
+import { LexicalTreeViewPlugin } from "./Lexical-TreeView";
+import { LexicalToolBar } from "./Lexical-ToolBar";
+import { LexicalCalcInputRulePlugin } from "./Lexical-Calc";
+
 
 const useStyles = makeStyles({
   "editor-container": {
     minWidth: "400px",
-    maxWidth: "800px", 
-    margin: "40px auto", 
-    border: "2px solid #ccc", 
-    borderRadius: "8px", 
+    maxWidth: "1000px", 
+    margin: "24px auto 16px", 
+    backgroundColor: tokens.colorNeutralBackground3,
+    borderRadius: tokens.fontSizeBase300, 
     padding: "24px",
-
-    "& > *:first-child": {
-      marginTop: "0px",
-    }
+    position: "relative",
   },
   "editor-input": {
     padding: "12px",
@@ -28,8 +29,20 @@ const useStyles = makeStyles({
 
     "& > *:last-child": {
       marginBottom: "0px",
-    }
-  }
+    },
+    
+  },
+  "editor-input-container": {
+    position: "relative", 
+  },
+  "divider": {
+    width: "100%",
+    border: "none",
+    borderTop: `2px solid ${tokens.colorNeutralStroke1}`,
+    margin: "24px 0",
+    height: "0",
+    background: "linear-gradient(to right, #0a5acf 0%, #00ff99 100%)", // 例
+  },
 })
 
 
@@ -43,20 +56,31 @@ const initialConfig = {
 
 export function MyLexicalEditor() {
   const styles = useStyles();
-
+  
   return (
     <div className={styles["editor-container"]}>
-      <h2>Lexical Rich Text Editor DEMO</h2>
       <LexicalComposer initialConfig={initialConfig}>
-        <RichTextPlugin
-          contentEditable={
-            <ContentEditable className={styles["editor-input"]}>
-            </ContentEditable>
-          }
-          ErrorBoundary={LexicalErrorBoundary}
-        />
-        <HistoryPlugin />
-        <LexicalHeadingInputRulePlugin />
+        <LexicalToolBar />
+        <div className={styles["editor-input-container"]}>
+          <RichTextPlugin
+            placeholder={
+              <Text 
+                className={styles["editor-input"]} 
+                style = {{ position: "absolute", top: "0", left: "0", pointerEvents: "none"}}
+              >
+                Enter some text...
+              </Text>
+            }
+            contentEditable={<ContentEditable className={styles["editor-input"]} spellCheck={false}/>}
+            ErrorBoundary={LexicalErrorBoundary}
+          />
+          <HistoryPlugin />
+          <LexicalHeadingInputRulePlugin />
+          <LexicalCalcInputRulePlugin />
+          {/* 我要在這裡分割出上半和下半 */}
+          <hr className={styles.divider} />
+          <LexicalTreeViewPlugin />
+        </div>
       </LexicalComposer>
     </div>
     

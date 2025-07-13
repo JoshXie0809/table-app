@@ -47,6 +47,11 @@ export const arrow$ = keyWithZone$.pipe(
   filter(({focusedZone}) => focusedZone === undefined)
 );
 
+export const tab$ = keyWithZone$.pipe(
+  filter(({event}) => event.key === "Tab"),
+  filter(({focusedZone}) => focusedZone === undefined)
+);
+
 export const useKeyboard = (
   inputCellRef: RefObject<QuickEditInputCellHandle | null>,
 ) => {
