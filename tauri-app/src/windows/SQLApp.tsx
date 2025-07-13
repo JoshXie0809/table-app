@@ -7,6 +7,7 @@ import LuaRunner from "../my-components-v1/lua/LuaRunner";
 import { MyTiptapEditor } from "../my-components-v1/tiptap-editor/TipTap";
 
 import "./SQLApp.css"
+import { MyLexicalEditor } from "../my-components-v1/lexical-editor/LexicalEditor";
 
 export const SQLApp = () => {
   const styles = useStyles();
@@ -21,9 +22,11 @@ export const SQLApp = () => {
               onClick={() => confirm("開啟檔案")}/>
           </RibbonGroup>
         </ButtonToolBox>
+
         <main className={styles.content}>
           <div style={{overflow: "auto"}}>
-            <MyTiptapEditor />
+            {/* <MyTiptapEditor /> */}
+            <MyLexicalEditor />
             <h1>vm</h1>
             <LuaRunner />
           </div>

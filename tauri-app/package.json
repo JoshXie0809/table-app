@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fluentui/react-components": "^9.64.1",
+    "@lexical/react": "^0.33.1",
     "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.10",
     "@tauri-apps/api": "^2.6.0",
@@ -20,6 +21,7 @@
     "@tauri-apps/plugin-window": "^2.0.0-alpha.1",
     "@tiptap/react": "^2.26.1",
     "@tiptap/starter-kit": "^2.26.1",
+    "lexical": "^0.33.1",
     "lit": "^3.3.0",
     "lodash": "^4.17.21",
     "react": "^18.3.1",

@@ -1,0 +1,13 @@
+/* 針對 Tiptap 內層可編輯 div 加 padding */
+.ProseMirror {
+  padding: 12px;              /* ← 這裡就是內部空間 */
+  min-height: 160px;          /* 保底高度 */
+  box-sizing: border-box;     /* 保證 padding 不會撐爆寬度 */
+}
+
+.ProseMirror {
+  :first-child {
+    margin-top: 0;
+  }
+}
+
