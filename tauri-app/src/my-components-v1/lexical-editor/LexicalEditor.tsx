@@ -9,7 +9,7 @@ import { LexicalHeadingInputRulePlugin } from "./Lexical-Heading-Inputrule";
 import { LexicalTreeViewPlugin } from "./Lexical-TreeView";
 import { LexicalToolBar } from "./Lexical-ToolBar";
 import { LexicalCalcInputRulePlugin } from "./Lexical-Calc";
-
+import { MyCodeNode } from "./NodePlugin/MyCodeNode";
 
 const useStyles = makeStyles({
   "editor-container": {
@@ -30,11 +30,23 @@ const useStyles = makeStyles({
     "& > *:last-child": {
       marginBottom: "0px",
     },
-    
+    // ✅ 改這裡：鎖定你在 CodeNode 裡加的 class
+    "& .my-code-wrapper": {
+      border: `2px dashed ${tokens.colorBrandBackground3Static}`,
+      padding: "12px 16px",
+      borderRadius: "8px",
+      whiteSpace: "pre-wrap",
+      overflowX: "auto",
+      display: "block", // 🟢 非常重要，<code> 不是 block 預設
+      marginBottom: "4px"
+    }
   },
+  
   "editor-input-container": {
     position: "relative", 
   },
+
+
   "divider": {
     width: "100%",
     border: "none",
@@ -47,11 +59,11 @@ const useStyles = makeStyles({
 
 
 const initialConfig = {
-  namespace: "MyEditor",
+  namespace: "MyLexicalEditor",
   onError(error: Error) {
     throw error;
   },
-  nodes: [HeadingNode],
+  nodes: [HeadingNode, MyCodeNode],
 };
 
 export function MyLexicalEditor() {
@@ -77,7 +89,6 @@ export function MyLexicalEditor() {
           <HistoryPlugin />
           <LexicalHeadingInputRulePlugin />
           <LexicalCalcInputRulePlugin />
-          {/* 我要在這裡分割出上半和下半 */}
           <hr className={styles.divider} />
           <LexicalTreeViewPlugin />
         </div>

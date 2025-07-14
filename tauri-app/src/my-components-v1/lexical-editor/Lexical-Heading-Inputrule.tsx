@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect } from "react";
-import { $getSelection, $isRangeSelection, $isTextNode, KEY_SPACE_COMMAND, $createTextNode } from "lexical";
+import { $getSelection, $isRangeSelection, $isTextNode, KEY_DOWN_COMMAND, $createTextNode } from "lexical";
 import { $createHeadingNode } from "@lexical/rich-text";
 
 export function LexicalHeadingInputRulePlugin() {
@@ -8,8 +8,11 @@ export function LexicalHeadingInputRulePlugin() {
 
   useEffect(() => {
     return editor.registerCommand(
-      KEY_SPACE_COMMAND,
-      () => {
+      KEY_DOWN_COMMAND,
+      (event: KeyboardEvent) => {
+        if (event.key !== " ") return false; // 只攔空白鍵
+
+        // Lexical 還沒插空白！你可以自由控制
         editor.getEditorState().read(() => {
           const selection = $getSelection();
           if ($isRangeSelection(selection) && selection.isCollapsed()) {
@@ -19,17 +22,16 @@ export function LexicalHeadingInputRulePlugin() {
               const parent = node.getParent();
               if (parent && parent.getType() === "paragraph") {
                 const textContent = node.getTextContent();
-                // 偵測 :## (空白) 格式
-                const match = textContent.match(/^:(#{1,6})$/);
+                const match = textContent.match(/^(#{1,6})$/); // 無空白
                 if (match) {
                   const level = match[1].length;
-                  // 替換 paragraph → heading
                   editor.update(() => {
                     const heading = $createHeadingNode(`h${level}` as any);
                     heading.append($createTextNode(""));
                     parent.replace(heading);
                     heading.selectEnd();
                   });
+                  event.preventDefault(); // 阻止插入空白
                 }
               }
             }

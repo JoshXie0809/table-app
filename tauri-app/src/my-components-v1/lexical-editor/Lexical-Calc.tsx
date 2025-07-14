@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect } from "react";
-import { $getSelection, $isRangeSelection, $isTextNode, KEY_SPACE_COMMAND } from "lexical";
+import { $getSelection, $isRangeSelection, $isTextNode, KEY_DOWN_COMMAND } from "lexical";
 import { LuaFactory } from "wasmoon";
 
 // Lua 虛擬機初始化
@@ -8,8 +8,8 @@ const factory = new LuaFactory();
 const luaVMPromise = factory.createEngine();
 
 function matchCalcCommand(str: string) {
-  // 支援 :calc( ... ):，抓內容
-  const m = str.match(/:calc\((.*?)\):/);
+  // 如允許分號後有空白可改成 /:=(.*?);\s*$/
+  const m = str.match(/:=(.*?);\s*$/);
   return m ? m[1] : null;
 }
 
@@ -18,8 +18,9 @@ export function LexicalCalcInputRulePlugin() {
 
   useEffect(() => {
     return editor.registerCommand(
-      KEY_SPACE_COMMAND,
-      () => {
+      KEY_DOWN_COMMAND,
+      (event: KeyboardEvent) => {
+        if (event.key !== " ") return false; // 只攔空白鍵
         editor.getEditorState().read(async () => {
           const selection = $getSelection();
           if ($isRangeSelection(selection) && selection.isCollapsed()) {
@@ -38,9 +39,10 @@ export function LexicalCalcInputRulePlugin() {
                 }
                 editor.update(() => {
                   node.setTextContent(
-                    textContent.replace(/:calc\((.*?)\):/, result + " ")
+                    textContent.replace(/:=(.*?);\s*$/, result + " ")
                   );
                 });
+                event.preventDefault()
               }
             }
           }

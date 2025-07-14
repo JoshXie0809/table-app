@@ -4,14 +4,14 @@ import { ButtonToolBox } from "../my-components-v1/button-toolbox/ButtonToolBox"
 import { RibbonGroup, RibbonSmallButton } from "../my-components-v1/button-toolbox/RibbonGroup";
 import { BsDatabaseAdd } from "react-icons/bs";
 import LuaRunner from "../my-components-v1/lua/LuaRunner";
-import { MyTiptapEditor } from "../my-components-v1/tiptap-editor/TipTap";
+// import { MyTiptapEditor } from "../my-components-v1/tiptap-editor/TipTap";
 
 import "./SQLApp.css"
 import { MyLexicalEditor } from "../my-components-v1/lexical-editor/LexicalEditor";
 
 export const SQLApp = () => {
   const styles = useStyles();
-  
+
   return (
     <FluentProvider theme={webLightTheme}>
       <div className={styles.root}>

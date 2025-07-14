@@ -5,12 +5,14 @@ import { useEffect, useState } from "react";
 import { IoIosUndo, IoIosRedo } from "react-icons/io";
 import { LockClosed24Regular, LockOpen24Regular } from "@fluentui/react-icons"; // 用更明顯的鎖icon
 import { Subject } from "rxjs";
+import { InsertCodeBlockButton } from "./Button/Lexical-InsertCodeNodeButton";
+
 
 export const editable$ = new Subject<boolean>();
 export const undoable$ = new Subject<boolean>();
 export const redoable$ = new Subject<boolean>();
 
-function useStreamState<T>(observable: Subject<T>, initial: T): T {
+export function useStreamState<T>(observable: Subject<T>, initial: T): T {
   const [value, setValue] = useState(initial);
   useEffect(() => {
     const sub = observable.subscribe(setValue);
@@ -18,7 +20,8 @@ function useStreamState<T>(observable: Subject<T>, initial: T): T {
   }, [observable]);
   return value;
 }
-const useStyles = makeStyles({
+
+export const useLexicalToolBarStyles = makeStyles({
   "toolbar": { 
     position: "sticky", 
     top: "0px", 
@@ -31,7 +34,7 @@ const useStyles = makeStyles({
 });
 
 export const LexicalToolBar = () => {
-  const styles = useStyles();
+  const styles = useLexicalToolBarStyles();
   const [editor] = useLexicalComposerContext();
 
   // 【註冊 Lexical 狀態改變→推送到 stream】
@@ -72,6 +75,7 @@ export const LexicalToolBar = () => {
       <ToolbarDivider />
       <Undo /> <Redo />
       <ToolbarDivider />
+      <InsertCodeBlockButton />
     </Toolbar>
   );
 };
@@ -79,7 +83,7 @@ export const LexicalToolBar = () => {
 // ---------------------------
 
 const Lock = () => {
-  const styles = useStyles();
+  const styles = useLexicalToolBarStyles();
   const [editor] = useLexicalComposerContext();
   const editable = useStreamState(editable$, true);
 
@@ -104,7 +108,7 @@ const Lock = () => {
 };
 
 const Undo = () => {
-  const styles = useStyles();
+  const styles = useLexicalToolBarStyles();
   const [editor] = useLexicalComposerContext();
   const editable = useStreamState(editable$, true);
   const undoable = useStreamState(undoable$, false);
@@ -122,7 +126,7 @@ const Undo = () => {
 };
 
 const Redo = () => {
-  const styles = useStyles();
+  const styles = useLexicalToolBarStyles();
   const [editor] = useLexicalComposerContext();
   const editable = useStreamState(editable$, true);
   const redoable = useStreamState(redoable$, false);
@@ -138,3 +142,4 @@ const Redo = () => {
     />
   );
 };
+
