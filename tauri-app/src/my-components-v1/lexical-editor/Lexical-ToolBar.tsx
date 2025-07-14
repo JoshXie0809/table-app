@@ -6,6 +6,7 @@ import { IoIosUndo, IoIosRedo } from "react-icons/io";
 import { LockClosed24Regular, LockOpen24Regular } from "@fluentui/react-icons"; // 用更明顯的鎖icon
 import { Subject } from "rxjs";
 import { InsertCodeBlockButton } from "./Button/Lexical-InsertCodeNodeButton";
+import { InsertLinkButton } from "./Button/Lexical-HyperLinkButton";
 
 
 export const editable$ = new Subject<boolean>();
@@ -76,6 +77,7 @@ export const LexicalToolBar = () => {
       <Undo /> <Redo />
       <ToolbarDivider />
       <InsertCodeBlockButton />
+      <InsertLinkButton />
     </Toolbar>
   );
 };

@@ -16,11 +16,9 @@ export function InsertCodeBlockButton() {
   const editable = useStreamState(editable$, true);
   const styles = useLexicalToolBarStyles();
 
-
   const handleClick = () => {
     editor.update(() => {
       const selection = $getSelection();
-
       if (!$isRangeSelection(selection)) return;
 
       const anchorNode = selection.anchor.getNode();
@@ -45,7 +43,6 @@ export function InsertCodeBlockButton() {
         paragraph.select(); // 移動游標到下一行
       }
     });
-
   };
 
   return (

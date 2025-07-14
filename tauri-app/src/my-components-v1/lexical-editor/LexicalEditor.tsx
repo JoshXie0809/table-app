@@ -10,6 +10,10 @@ import { LexicalTreeViewPlugin } from "./Lexical-TreeView";
 import { LexicalToolBar } from "./Lexical-ToolBar";
 import { LexicalCalcInputRulePlugin } from "./Lexical-Calc";
 import { MyCodeNode } from "./NodePlugin/MyCodeNode";
+import { LinkNode } from "@lexical/link";
+import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
+
+
 
 const useStyles = makeStyles({
   "editor-container": {
@@ -23,52 +27,51 @@ const useStyles = makeStyles({
   },
   "editor-input": {
     padding: "12px",
+    fontSize: "15px",  
+    "&:focus": {
+      outline: "none"
+    },
     "& > *:first-child": {
       marginTop: "0px",
     },
-
     "& > *:last-child": {
       marginBottom: "0px",
     },
     // ✅ 改這裡：鎖定你在 CodeNode 裡加的 class
     "& .my-code-wrapper": {
-      border: `2px dashed ${tokens.colorBrandBackground3Static}`,
+      border: `2px solid ${tokens.colorBrandBackground3Static}`,
       padding: "12px 16px",
-      borderRadius: "8px",
+      borderRadius: "4px",
       whiteSpace: "pre-wrap",
-      overflowX: "auto",
+      maxHeight: "400px",
+      overflow: "auto",
       display: "block", // 🟢 非常重要，<code> 不是 block 預設
       marginBottom: "4px"
     }
   },
-  
   "editor-input-container": {
     position: "relative", 
   },
-
-
   "divider": {
-    width: "100%",
+    width: "95%",
     border: "none",
     borderTop: `2px solid ${tokens.colorNeutralStroke1}`,
-    margin: "24px 0",
+    margin: "12px auto 24px",
     height: "0",
-    background: "linear-gradient(to right, #0a5acf 0%, #00ff99 100%)", // 例
   },
 })
-
 
 const initialConfig = {
   namespace: "MyLexicalEditor",
   onError(error: Error) {
     throw error;
   },
-  nodes: [HeadingNode, MyCodeNode],
+  nodes: [HeadingNode, MyCodeNode, LinkNode],
 };
+
 
 export function MyLexicalEditor() {
   const styles = useStyles();
-  
   return (
     <div className={styles["editor-container"]}>
       <LexicalComposer initialConfig={initialConfig}>
@@ -89,14 +92,11 @@ export function MyLexicalEditor() {
           <HistoryPlugin />
           <LexicalHeadingInputRulePlugin />
           <LexicalCalcInputRulePlugin />
+          <LinkPlugin />
           <hr className={styles.divider} />
           <LexicalTreeViewPlugin />
         </div>
       </LexicalComposer>
     </div>
-    
   );
 }
-
-            
-
