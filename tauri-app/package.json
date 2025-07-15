@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fluentui/react-components": "^9.66.7",
+    "@js-temporal/polyfill": "^0.5.1",
     "@lexical/code": "^0.33.1",
     "@lexical/react": "^0.33.1",
     "@tanstack/react-table": "^8.21.3",

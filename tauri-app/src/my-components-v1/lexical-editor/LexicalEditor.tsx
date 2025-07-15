@@ -20,6 +20,8 @@ import {
   ListItemNode,
 } from "@lexical/list";
 import { LexicalListInputRulePlugin } from "./Lexical-List-Inputrule";
+import { TimestampNode } from "./NodePlugin/TimeStampNode";
+import { TimestampPlugin } from "./NodePlugin/TimeStampNodePlugin";
 
 const initialConfig = {
   namespace: "MyLexicalEditor",
@@ -29,11 +31,12 @@ const initialConfig = {
   nodes: [
     HeadingNode, MyCodeNode, LinkNode,
     ListItemNode, ListNode,
+    TimestampNode
   ],
 };
 
 export function MyLexicalEditor() {
-  const styles = useStyles();
+  const styles = useLexicalStyles();
   return (
     <div className={styles["editor-container"]}>
       <LexicalComposer initialConfig={initialConfig}>
@@ -58,6 +61,7 @@ export function MyLexicalEditor() {
           <LinkPlugin />
           <ListPlugin />
           <CheckListPlugin />
+          <TimestampPlugin />
           <hr className={styles.divider} />
           <LexicalTreeViewPlugin />
         </div>
@@ -66,9 +70,7 @@ export function MyLexicalEditor() {
   );
 }
 
-
-
-const useStyles = makeStyles({
+export const useLexicalStyles = makeStyles({
   "editor-container": {
     minWidth: "400px",
     maxWidth: "1000px",
@@ -81,7 +83,7 @@ const useStyles = makeStyles({
 
   "editor-input": {
     padding: "12px",
-    fontSize: "15px",
+    fontSize: "16px",
     "&:focus": {
       outline: "none",
     },
@@ -160,4 +162,10 @@ const useStyles = makeStyles({
     margin: "12px auto 24px",
     height: "0",
   },
+
+  timstamp: {
+    backgroundColor: tokens.colorNeutralBackground6,
+    padding: "2px 4px",
+    borderRadius: "4px",
+  }
 });

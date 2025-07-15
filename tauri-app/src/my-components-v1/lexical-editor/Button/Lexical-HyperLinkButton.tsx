@@ -23,7 +23,7 @@ export function InsertLinkButton() {
     editor.update(() => {
       console.log("Button clicked!")
       const selection = $getSelection();
-      console.log(selection);
+
       if (!$isRangeSelection(selection)) {
         // 如果不是範圍選取，則不做任何操作或處理其他選取類型
         return;
@@ -44,7 +44,7 @@ export function InsertLinkButton() {
       // 它會自動處理選取、展開、以及正確地包裹或替換節點。
       // 當有選取時，它會將選取的文字變成連結。
       // 當沒有選取時，它會插入一個新的 LinkNode，其文字內容就是 URL 本身。
-      console.log(url)
+
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, url);
 
       // 如果你希望在沒有選取時，插入的文字不是 URL 本身，而是自定義的文字

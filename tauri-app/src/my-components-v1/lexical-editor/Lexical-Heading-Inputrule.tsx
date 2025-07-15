@@ -11,7 +11,6 @@ export function LexicalHeadingInputRulePlugin() {
       KEY_DOWN_COMMAND,
       (event: KeyboardEvent) => {
         if (event.key !== " ") return false; // 只攔空白鍵
-
         // Lexical 還沒插空白！你可以自由控制
         editor.getEditorState().read(() => {
           const selection = $getSelection();

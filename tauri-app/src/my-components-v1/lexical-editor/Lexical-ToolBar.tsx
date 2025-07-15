@@ -7,6 +7,7 @@ import { LockClosed24Regular, LockOpen24Regular } from "@fluentui/react-icons"; 
 import { Subject } from "rxjs";
 import { InsertCodeBlockButton } from "./Button/Lexical-InsertCodeNodeButton";
 import { InsertLinkButton } from "./Button/Lexical-HyperLinkButton";
+import { InsertTimestampButton } from "./Button/Lexical-InsertTimeStamp";
 
 
 export const editable$ = new Subject<boolean>();
@@ -78,6 +79,7 @@ export const LexicalToolBar = () => {
       <ToolbarDivider />
       <InsertCodeBlockButton />
       <InsertLinkButton />
+      <InsertTimestampButton />
     </Toolbar>
   );
 };
