@@ -12,6 +12,8 @@ import { LexicalCalcInputRulePlugin } from "./Lexical-Calc";
 import { MyCodeNode } from "./NodePlugin/MyCodeNode";
 import { LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
+import { ListPlugin } from "@lexical/react/LexicalListPlugin"
+import { CheckListPlugin } from "@lexical/react/LexicalCheckListPlugin"
 
 import {
   ListNode,
@@ -54,7 +56,8 @@ export function MyLexicalEditor() {
           <LexicalListInputRulePlugin />
           <LexicalCalcInputRulePlugin />
           <LinkPlugin />
-          
+          <ListPlugin />
+          <CheckListPlugin />
           <hr className={styles.divider} />
           <LexicalTreeViewPlugin />
         </div>
@@ -75,6 +78,7 @@ const useStyles = makeStyles({
     padding: "24px",
     position: "relative",
   },
+
   "editor-input": {
     padding: "12px",
     fontSize: "15px",
@@ -100,34 +104,47 @@ const useStyles = makeStyles({
       marginBottom: "4px",
     },
 
-    // ✅ checklist item
     "& li[role='checkbox']": {
       listStyle: "none",
-      display: "flex",
-      alignItems: "center",
-      gap: "1rem",
+      display: "flex", // 使用 Flexbox 保持對齊
+      alignItems: "flex-start", // ✨ 讓 check box 自身與文本內容的頂部對齊
+      gap: "12px", // ✨ 調整為更精確的像素值，或繼續使用 rem 如果你喜歡
       paddingLeft: "0",
       position: "relative",
-      outline: "none",
+      outline: "none", // 移除 li 本身的預設 outline
+      marginLeft: "-20px", // 確保這個值與 ul 的 paddingLeft 以及 ::before 的 left 負值對應
+                            // 它會讓 li 元素的內容框和可點擊區域向左移動
 
       "&::before": {
         content: '""',
-        display: "inline-block",
+        display: "inline-block", // 保持，或使用 flex 容器的一部分
+        flexShrink: 0, // ✨ 確保 checkbox 不會被壓縮
         width: "16px",
         height: "16px",
-        minWidth: "16px",
+        minWidth: "16px", // 確保最小寬度
         border: `2px solid ${tokens.colorNeutralStroke2}`,
-        borderRadius: "4px",
+        borderRadius: "4px", // 使用 4px 圓角與 Fluent UI 風格更接近
         backgroundColor: tokens.colorNeutralBackground1,
         boxSizing: "border-box",
+        cursor: "pointer", // ✨ 增加游標，表示可點擊
       },
+
+      // ✨ 當項目被選中時的 ::before 樣式
       '&[aria-checked="true"]::before': {
-        backgroundColor: "red",
-        border: `2px solid ${tokens.colorCompoundBrandBackgroundHover}`, // Example: assuming 2px solid border
+        backgroundColor: tokens.colorBrandBackgroundHover, // 使用 Fluent UI 的品牌色
+        border: `2px solid ${tokens.colorBrandBackgroundHover}`,
+        // 添加一個 SVG 來模擬打勾圖標 (更美觀)
+        // 注意：這裡的背景圖需要經過 URL encode，或者單獨作為一個 SVG 組件
+        // 為了簡潔，我使用一個簡化的 CSS 打勾
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='white' d='M9.5 17.5L4 12l1.5-1.5L9.5 14.5 18 6l1.5 1.5z'/%3E%3C/svg%3E")`,
+        backgroundSize: "80%",
+        backgroundRepeat: "no-repeat",
+        backgroundPosition: "center",
       },
-      "&:focus-within::before": { // 或者 "&:focus::before" 取決於你希望哪個元素獲得焦點
-        outline: `2px solid red`, // outline-color: red; 只是 outline 的一部分
-        outlineOffset: "2px", // 讓 outline 顯示在邊框外
+
+      // 也可以考慮添加 active 狀態的樣式
+      "&:active::before": {
+          transform: "scale(0.85)", // 點擊時輕微縮小
       },
     },
   },
