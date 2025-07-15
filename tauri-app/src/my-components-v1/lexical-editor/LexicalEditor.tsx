@@ -13,62 +13,22 @@ import { MyCodeNode } from "./NodePlugin/MyCodeNode";
 import { LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";
 
-
-
-const useStyles = makeStyles({
-  "editor-container": {
-    minWidth: "400px",
-    maxWidth: "1000px", 
-    margin: "24px auto 16px", 
-    backgroundColor: tokens.colorNeutralBackground3,
-    borderRadius: tokens.fontSizeBase300, 
-    padding: "24px",
-    position: "relative",
-  },
-  "editor-input": {
-    padding: "12px",
-    fontSize: "15px",  
-    "&:focus": {
-      outline: "none"
-    },
-    "& > *:first-child": {
-      marginTop: "0px",
-    },
-    "& > *:last-child": {
-      marginBottom: "0px",
-    },
-    // ✅ 改這裡：鎖定你在 CodeNode 裡加的 class
-    "& .my-code-wrapper": {
-      border: `2px solid ${tokens.colorBrandBackground3Static}`,
-      padding: "12px 16px",
-      borderRadius: "4px",
-      whiteSpace: "pre-wrap",
-      maxHeight: "400px",
-      overflow: "auto",
-      display: "block", // 🟢 非常重要，<code> 不是 block 預設
-      marginBottom: "4px"
-    }
-  },
-  "editor-input-container": {
-    position: "relative", 
-  },
-  "divider": {
-    width: "95%",
-    border: "none",
-    borderTop: `2px solid ${tokens.colorNeutralStroke1}`,
-    margin: "12px auto 24px",
-    height: "0",
-  },
-})
+import {
+  ListNode,
+  ListItemNode,
+} from "@lexical/list";
+import { LexicalListInputRulePlugin } from "./Lexical-List-Inputrule";
 
 const initialConfig = {
   namespace: "MyLexicalEditor",
   onError(error: Error) {
     throw error;
   },
-  nodes: [HeadingNode, MyCodeNode, LinkNode],
+  nodes: [
+    HeadingNode, MyCodeNode, LinkNode,
+    ListItemNode, ListNode,
+  ],
 };
-
 
 export function MyLexicalEditor() {
   const styles = useStyles();
@@ -91,8 +51,10 @@ export function MyLexicalEditor() {
           />
           <HistoryPlugin />
           <LexicalHeadingInputRulePlugin />
+          <LexicalListInputRulePlugin />
           <LexicalCalcInputRulePlugin />
           <LinkPlugin />
+          
           <hr className={styles.divider} />
           <LexicalTreeViewPlugin />
         </div>
@@ -100,3 +62,85 @@ export function MyLexicalEditor() {
     </div>
   );
 }
+
+
+
+const useStyles = makeStyles({
+  "editor-container": {
+    minWidth: "400px",
+    maxWidth: "1000px",
+    margin: "24px auto 16px",
+    backgroundColor: tokens.colorNeutralBackground3,
+    borderRadius: tokens.fontSizeBase300,
+    padding: "24px",
+    position: "relative",
+  },
+  "editor-input": {
+    padding: "12px",
+    fontSize: "15px",
+    "&:focus": {
+      outline: "none",
+    },
+    "& > *:first-child": {
+      marginTop: "0px",
+    },
+    "& > *:last-child": {
+      marginBottom: "0px",
+    },
+
+    // ✅ code block
+    "& .my-code-wrapper": {
+      border: `2px solid ${tokens.colorBrandBackground3Static}`,
+      padding: "12px 16px",
+      borderRadius: "4px",
+      whiteSpace: "pre-wrap",
+      maxHeight: "400px",
+      overflow: "auto",
+      display: "block",
+      marginBottom: "4px",
+    },
+
+    // ✅ checklist item
+    "& li[role='checkbox']": {
+      listStyle: "none",
+      display: "flex",
+      alignItems: "center",
+      gap: "1rem",
+      paddingLeft: "0",
+      position: "relative",
+      outline: "none",
+
+      "&::before": {
+        content: '""',
+        display: "inline-block",
+        width: "16px",
+        height: "16px",
+        minWidth: "16px",
+        border: `2px solid ${tokens.colorNeutralStroke2}`,
+        borderRadius: "4px",
+        backgroundColor: tokens.colorNeutralBackground1,
+        boxSizing: "border-box",
+      },
+      '&[aria-checked="true"]::before': {
+        backgroundColor: "red",
+        border: `2px solid ${tokens.colorCompoundBrandBackgroundHover}`, // Example: assuming 2px solid border
+      },
+      "&:focus-within::before": { // 或者 "&:focus::before" 取決於你希望哪個元素獲得焦點
+        outline: `2px solid red`, // outline-color: red; 只是 outline 的一部分
+        outlineOffset: "2px", // 讓 outline 顯示在邊框外
+      },
+    },
+  },
+
+  "editor-input-container": {
+    position: "relative",
+  },
+
+  "divider": {
+    width: "95%",
+    border: "none",
+    borderTop: `2px solid ${tokens.colorNeutralStroke1}`,
+    margin: "12px auto 24px",
+    height: "0",
+  },
+});
