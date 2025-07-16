@@ -173,7 +173,7 @@ mod tests {
             meta: BaseSheet {
                 sheet_id: "sheet1".to_string(),
                 sheet_type: "DefaultGridSheet".to_string(),
-                sheet_name: "hello-world-2".to_string(),
+                sheet_name: "測試用表".to_string(),
                 has_col_header: false,
                 has_row_header: false,
                 row_count: 1024,
@@ -187,7 +187,7 @@ mod tests {
                 for r in 0..1000_u32 {
                     for c in 0..5_u32 {
                         let k = format!("{},{}", r, c);
-                        let v = format!("ggg-{}", k);
+                        let v = format!("zzz-{}", k);
                         cell_content.payload.value = json!(v);
                         map.insert(k, cell_content.clone());
                     }
@@ -208,7 +208,7 @@ mod tests {
         // save_data(&data, &path).map_err(|err| err.to_string())?;
 
         // 測試 save_to_zip_file
-        let path = "./hello-world.sheetpkg.zip";
+        let path = "./test.sheetpkg.zip";
         save_to_zip_file(&meta, &data, path)?;
 
         Ok(())

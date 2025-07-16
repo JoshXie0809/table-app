@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use crate::cell_plugins::{
-    cell::{BasePayload, CellContent, CellMeta},
+    cell::{BasePayload, CellContent},
     CellPlugin,
 };
 
@@ -25,7 +25,7 @@ impl Default for NullCellConfig {
             payload: BasePayload {
                 value: json!(""),
                 display_value: None,
-                display_style: None,
+                display_style_class: None,
                 extra_fields: None,
             },
         }

@@ -16,6 +16,7 @@ import { SystemHover } from "./my-components-v1/sheetView/canvas-table-v1.1/syst
 import { SystemQuickEdit } from "./my-components-v1/sheetView/canvas-table-v1.1/system-QuickEdit/SystemQuickEdit.tsx";
 import { PointerStateManager } from "./my-components-v1/pointer-state-manager/PointerStateManger.ts";
 import { ButtonSQL } from "./my-components-v1/button-toolbox/button-sql-tool/ButtonSQL.tsx";
+import { loadCellPluginCellMetaMap } from "./tauri-api/loadAllCellPluginCellMetaMap.ts";
 
 
 export const useStyles = makeStyles({
@@ -54,13 +55,16 @@ function App() {
     async function fetch(sheetName: string) {
       const arg: LoadSheetRequest = { sheetName };
       const test = await loadSheet(arg);
-      if (test.success) {
-        let vc = createVirtualCellsFromBackend(test.data!);
+      const cellMetaMap = await loadCellPluginCellMetaMap();
+      if (test.data && cellMetaMap.data) {
+        let vc = createVirtualCellsFromBackend(test.data, cellMetaMap.data);
         vcRef.current = vc;
+        console.log(vc);
         setVirtualCellsReady(true);
       }
       const css_map = await loadCellPluginCssMap();
       if (css_map.data) injectCellPluginCSS(css_map.data);
+
     }
     if(sheetName)
       fetch(sheetName);

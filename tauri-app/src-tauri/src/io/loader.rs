@@ -149,8 +149,8 @@ fn parse_payload(value_str: &str, other_payload_str: &str) -> Result<BasePayload
         .cloned()
         .and_then(|v| v.as_str().map(|s| s.to_string()));
 
-    let display_style = obj
-        .get("display_style")
+    let display_style_class = obj
+        .get("display_style_class")
         .cloned()
         .and_then(|v| v.as_str().map(|s| s.to_string()));
 
@@ -162,7 +162,7 @@ fn parse_payload(value_str: &str, other_payload_str: &str) -> Result<BasePayload
     Ok(BasePayload {
         value,
         display_value,
-        display_style,
+        display_style_class,
         extra_fields,
     })
 }

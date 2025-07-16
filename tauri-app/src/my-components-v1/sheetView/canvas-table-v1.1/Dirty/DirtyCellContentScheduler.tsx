@@ -47,6 +47,7 @@ export class DirtyCellContentScheduler {
     if(!root || !vc) return; 
     
     const displayText = vc.getCellDisplayValue(row, col);
+    const displayStyleClass = vc.getCellDisplayStyleClass(row, col);
 
     if(displayText === null) {
       // 不刪除即可 不用再加入
@@ -54,7 +55,7 @@ export class DirtyCellContentScheduler {
       root.render(<SimpleCellSkeleton />);
     }
     else {
-      root.render(<Text className="cell-plugin-text">{displayText}</Text>)
+      root.render(<Text className={displayStyleClass}>{displayText}</Text>)
       // 更新完取消 dirty 狀態
       this.dirtyCells.delete(cell);
     }   

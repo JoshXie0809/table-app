@@ -1,6 +1,7 @@
 import { VirtualCells } from "./VirtualCells";
 import type { FrontedSheet } from "../tauri-api/types/FrontedSheet";
 import { CellContent } from "../tauri-api/types/CellContent";
+import { CellMetaMap } from "../tauri-api/types/CellMetaMap";
 
 export type HeaderType = "column" | "row";
 
@@ -13,7 +14,10 @@ function makeHeader(headerType: HeaderType, n: number, prefix: string, def: Cell
   });
 }
 
-export function createVirtualCellsFromBackend(data: FrontedSheet): VirtualCells {
+export function createVirtualCellsFromBackend(
+  data: FrontedSheet,
+  cellMetaMap: CellMetaMap
+): VirtualCells {
   
   let nRow = data.rowCount;
   let nCol = data.colCount;
@@ -29,7 +33,6 @@ export function createVirtualCellsFromBackend(data: FrontedSheet): VirtualCells 
     ? data.colHeader ?? []
     : makeHeader("column", nCol, "C", defaultCellContent);
   
-  
   return new VirtualCells(
     data.sheetName,
     data.sheetType, // 這裡是 gridType
@@ -39,6 +42,7 @@ export function createVirtualCellsFromBackend(data: FrontedSheet): VirtualCells 
     data.cells,
     rowHeader,
     colHeader,
+    cellMetaMap
   );
 }
 
@@ -57,7 +61,10 @@ export function createHeaderVC(headerType:HeaderType, mainVC: VirtualCells): Vir
     [], // 先給空 因為我們需要的是 ref to VirtualCells
     [],
     [],
+    {}
   );
+
+  VC.cellMetaMap = mainVC.cellMetaMap;
 
   // ✅ 將 rowHeaderMap 賦值給 rowVC 的 cellsMap
   VC.cellsMap = headerType === "row" ? mainVC.rowHeaderMap! : mainVC.colHeaderMap!;

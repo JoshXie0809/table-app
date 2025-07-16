@@ -1,7 +1,7 @@
 .cell-plugin-text {
     font-size: 14px;
     font-family: 'Segoe UI', 'Roboto', sans-serif;
-    color: #222;
+    color: rgb(45, 37, 54);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

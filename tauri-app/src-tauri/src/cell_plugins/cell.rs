@@ -1,4 +1,3 @@
-use duckdb::arrow::util::display;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value; // 確保導入 serde_json::Value
@@ -24,7 +23,7 @@ pub struct BasePayload {
     pub display_value: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     #[ts(type = "string | null")]
-    pub display_style: Option<String>, // 回傳 css-class
+    pub display_style_class: Option<String>, // 回傳 css-class
 
     // 都收集到 'extra_fields' 這個 HashMap 中。
     // 這保留了 payload 的彈性，允許不同 CellType 有不同的額外字段。

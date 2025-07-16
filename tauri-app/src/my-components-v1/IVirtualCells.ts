@@ -54,4 +54,6 @@ export interface IVirtualCells {
   toRC(key: string): { row: number; col: number };
 
   requestDisplayValueAndUpdate: () => Promise<void>;
+
+  getCellDisplayStyleClass: (row: number, col: number) => string;
 }

@@ -3,6 +3,6 @@
 export type BasePayload = {
   value: any;
   displayValue: string | null;
-  displayStyle: string | null;
+  displayStyleClass: string | null;
   extraFields: Map<string, any> | null;
 };

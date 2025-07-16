@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
+use crate::cell_plugins::cell::{BasePayload, CellContent};
 
 use super::CellPlugin;
 use schemars::{schema_for, JsonSchema};
@@ -23,7 +23,7 @@ impl Default for TextCellConfig {
             payload: BasePayload {
                 value: json!(""),
                 display_value: None,
-                display_style: None,
+                display_style_class: None,
                 extra_fields: None,
             },
         }

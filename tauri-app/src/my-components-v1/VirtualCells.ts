@@ -1,5 +1,9 @@
 import { getDisplayValue } from "../tauri-api/getDisplayValue";
+
 import { CellContent } from "../tauri-api/types/CellContent";
+import { CellMeta } from "../tauri-api/types/CellMeta";
+import { CellMetaMap } from "../tauri-api/types/CellMetaMap";
+
 import { DisplayCellResult } from "../tauri-api/types/DisplayCellResult";
 import { ICell } from "../tauri-api/types/ICell";
 import { IVirtualCells } from "./IVirtualCells";
@@ -9,6 +13,7 @@ export class VirtualCells implements IVirtualCells {
   cellsMap: Map<string, CellContent> = new Map();
   rowHeaderMap: Map<string, CellContent> = new Map(); 
   colHeaderMap: Map<string, CellContent> = new Map();
+  cellMetaMap: Map<string, CellMeta | undefined>;
 
   private dirtyCells: Set<string> = new Set();
   constructor(
@@ -20,10 +25,12 @@ export class VirtualCells implements IVirtualCells {
     cells: [string, CellContent][],
     rowHeader: [string, CellContent][],
     colHeader: [string, CellContent][],
+    cellMetaMap: CellMetaMap,
   ) {
     cells.forEach(cell => this.cellsMap.set(cell[0], cell[1]));
     rowHeader.forEach(cell => this.rowHeaderMap.set(cell[0], cell[1]));
     colHeader.forEach(cell => this.colHeaderMap.set(cell[0], cell[1]));
+    this.cellMetaMap = new Map(Object.entries(cellMetaMap));
   }
 
   toKey(row: number, col: number): string {
@@ -50,22 +57,43 @@ export class VirtualCells implements IVirtualCells {
 
   getCellDisplayValue(row: number, col: number): string | null {
     const cell = this.getCell(row, col);
+    
     // 暫定邏輯 要改成去取得 textCell default value
     if (!cell) return "";
 
-    const { displayValue, value } = cell.payload;
+    // 檢查對應 plugin 是否含有 formatter
+    // 沒有的話直接回傳 value 當作 displayvalue
+    if( !this.hasCellFormatter(cell) )  return String(cell.payload.value);
+    
+    // 如果有 formatter
+    // 檢查是否有 displayValue
+    if(cell.payload.displayValue) return cell.payload.displayValue;
+    // 如果沒有在 markdirty
+    this.markDirty(row, col);
+    return null;
+    
+  }
 
-    if (displayValue !== undefined && displayValue !== null)
-      return displayValue;
+  hasCellFormatter(cell: CellContent | undefined) {
+    if(!cell) return false;
+    const type = cell.type;
+    const cellMeta = this.cellMetaMap.get(type);
+    if( !cellMeta ) return false;
+    if( cellMeta.hasDisplayFormatter === null) return false;
+    return cellMeta.hasDisplayFormatter;
+  }
 
-    if (displayValue === null) {
-      this.markDirty(row, col);
-      return null;
+  getCellDisplayStyleClass(row: number, col: number): string {
+    const cell = this.getCell(row, col);
+    if(!cell) return "";
+    if(Object.hasOwn(cell.payload, "displayStyleClass")) {
+      const styleClass = cell.payload.displayStyleClass!;
+      return styleClass;
     }
-
-    if (displayValue === undefined)
-      return String(value);
-
+    const type = cell.type;
+    const cellMeta = this.cellMetaMap.get(type);
+    if(!cellMeta) return ""
+    if(cellMeta.displayStyleClass !== null) return cellMeta.displayStyleClass;
     return "";
   }
 

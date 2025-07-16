@@ -1,7 +1,7 @@
 use schemars::Schema;
 use serde_json::Value;
 
-use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
+use crate::cell_plugins::cell::{BasePayload, CellContent};
 
 // 在 mod.rs 中聲明子模組
 pub mod cell;

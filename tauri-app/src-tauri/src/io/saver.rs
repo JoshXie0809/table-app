@@ -88,7 +88,7 @@ pub fn save_data(data: &StoredSheetData, path: &str) -> Result<(), Box<dyn std::
 
         let other_payload = json!({
             "display_value": cell.payload.display_value,
-            "display_style": cell.payload.display_style,
+            "display_style_class": cell.payload.display_style_class,
             "extra_fields": cell.payload.extra_fields,
         });
 
@@ -113,7 +113,7 @@ pub fn save_data(data: &StoredSheetData, path: &str) -> Result<(), Box<dyn std::
                 let value_str = cell.payload.value.to_string();
                 let other_payload_str = serde_json::to_string(&json!({
                     "display_value": cell.payload.display_value,
-                    "display_style": cell.payload.display_style,
+                    "display_style_class": cell.payload.display_style_class,
                     "extra_fields": cell.payload.extra_fields,
                 }))?;
                 rows.push((
@@ -133,7 +133,7 @@ pub fn save_data(data: &StoredSheetData, path: &str) -> Result<(), Box<dyn std::
                         let value_str = cell.payload.value.to_string();
                         let other_payload_str = serde_json::to_string(&json!({
                             "display_value": cell.payload.display_value,
-                            "display_style": cell.payload.display_style,
+                            "display_style_class": cell.payload.display_style_class,
                             "extra_fields": cell.payload.extra_fields,
                         }))?;
 
