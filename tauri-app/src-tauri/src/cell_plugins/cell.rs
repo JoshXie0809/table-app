@@ -1,3 +1,4 @@
+use duckdb::arrow::util::display;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value; // 確保導入 serde_json::Value
@@ -35,6 +36,24 @@ pub struct BasePayload {
 #[derive(Debug, Clone, Serialize, Deserialize, TS, JsonSchema)]
 #[serde(rename_all = "camelCase")] // 自動處理 camelCase 命名
 pub struct CellMeta {
-    pub has_display_value: bool,
-    pub has_display_style: bool,
+    pub has_display_formatter: Option<bool>,
+    pub display_style_class: Option<String>,
+}
+
+impl CellMeta {
+    pub fn from_value_to_cell_meta(value: Value) -> CellMeta {
+        let has_display_formatter_opt = value.get("has_display_formatter");
+        let has_display_formatter = match has_display_formatter_opt {
+            Some(formatter) => formatter.as_bool(),
+            None => None
+        };
+
+        let display_style_class_opt = value.get("display_style_class");
+        let display_style_class = match display_style_class_opt {
+            Some(class) => class.as_str().map(|str| str.to_string()),
+            None => None
+        };
+
+        CellMeta { has_display_formatter, display_style_class}
+    }
 }

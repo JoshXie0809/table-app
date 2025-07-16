@@ -1,4 +1,5 @@
 use schemars::Schema;
+use serde_json::Value;
 
 use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
 
@@ -10,7 +11,7 @@ pub mod text_cell;
 pub mod registry; // 稍後會建立這個模組來管理所有插件
 
 pub trait CellPlugin: Send + Sync {
-    fn get_meta(&self) -> CellMeta;
+    fn get_meta(&self) -> Value;
 
     fn get_schema(&self) -> Schema;
 

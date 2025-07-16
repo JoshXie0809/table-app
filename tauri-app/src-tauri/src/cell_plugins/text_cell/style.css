@@ -1,0 +1,9 @@
+.cell-plugin-text {
+    font-size: 14px;
+    font-family: 'Segoe UI', 'Roboto', sans-serif;
+    color: #222;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}

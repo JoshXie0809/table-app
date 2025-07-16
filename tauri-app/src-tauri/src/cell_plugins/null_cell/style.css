@@ -1,0 +1,8 @@
+.cell-plugin-null {
+    font-size: 14px;
+    font-family: monospace;
+    color: #aaa;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

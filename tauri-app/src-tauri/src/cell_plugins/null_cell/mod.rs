@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::cell_plugins::{
     cell::{BasePayload, CellContent, CellMeta},
     CellPlugin,
@@ -5,7 +7,7 @@ use crate::cell_plugins::{
 
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json, Value};
 
 use plugin_macros::Plugin;
 
@@ -34,11 +36,11 @@ impl Default for NullCellConfig {
 pub struct NullCellPlugin;
 
 impl CellPlugin for NullCellPlugin {
-    fn get_meta(&self) -> CellMeta {
-        CellMeta {
-            has_display_value: false,
-            has_display_style: false,
-        }
+    fn get_meta(&self) -> Value {
+        let mut map: HashMap<String, Value> = HashMap::new();
+        map.insert("has_display_formatter".to_string(), json!(false));
+        map.insert("display_style_class".to_string(), json!("cell-plugin-null"));
+        json!(map)
     }
 
     fn get_schema(&self) -> schemars::Schema {
@@ -78,15 +80,7 @@ impl CellPlugin for NullCellPlugin {
     }
 
     fn get_css(&self) -> String {
-        ".cell-plugin-null {
-            font-size: 14px;
-            font-family: monospace;
-            color: #aaa;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }"
-        .to_string()
+        include_str!("./style.css").to_string()
     }
 }
 

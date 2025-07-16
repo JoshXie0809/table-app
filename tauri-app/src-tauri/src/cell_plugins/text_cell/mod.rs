@@ -1,9 +1,11 @@
+use std::collections::HashMap;
+
 use crate::cell_plugins::cell::{BasePayload, CellContent, CellMeta};
 
 use super::CellPlugin;
 use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
-use serde_json::json;
+use serde_json::{json, Value};
 
 pub struct TextCellPlugin;
 
@@ -29,11 +31,11 @@ impl Default for TextCellConfig {
 }
 
 impl CellPlugin for TextCellPlugin {
-    fn get_meta(&self) -> super::cell::CellMeta {
-        CellMeta {
-            has_display_value: false,
-            has_display_style: false,
-        }
+    fn get_meta(&self) -> Value {
+        let mut map: HashMap<String, Value> = HashMap::new();
+        map.insert("has_display_formatter".to_string(), json!(false));
+        map.insert("display_style_class".to_string(), json!("cell-plugin-text"));
+        json!(map)
     }
 
     fn get_schema(&self) -> schemars::Schema {
@@ -76,15 +78,7 @@ impl CellPlugin for TextCellPlugin {
     }
 
     fn get_css(&self) -> String {
-        ".cell-plugin-text {
-            font-size: 14px;
-            font-family: 'Segoe UI', 'Roboto', sans-serif;
-            color: #222;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            line-height: 1.4;
-        }"
-        .to_string()
+        include_str!("./style.css")
+            .to_string()
     }
 }

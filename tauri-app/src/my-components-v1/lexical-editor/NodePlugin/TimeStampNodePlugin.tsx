@@ -19,7 +19,7 @@ export function TimestampPlugin() {
           const textNodeAfter = $createTextNode(" ");
           const textNodeBefore = $createTextNode(" ");
           selection.insertNodes([textNodeBefore, timestampNode, textNodeAfter]);
-          textNodeBefore.selectEnd();
+          textNodeAfter.selectEnd();
           return;
         }
       })

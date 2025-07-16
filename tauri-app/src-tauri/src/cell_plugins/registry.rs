@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::cell_plugins::cell::CellMeta;
+
 use super::null_cell::NullCellPlugin;
 use super::text_cell::TextCellPlugin; // 引入 TextCellPlugin
 use super::CellPlugin;
@@ -57,5 +59,17 @@ impl CellPluginRegistry {
         }
 
         css_map
+    }
+
+    pub fn get_all_cell_meta(&self) -> HashMap<String, CellMeta> {
+        let mut cell_meta_map = HashMap::new();
+
+        for (type_id, plugin) in &self.plugins {
+            let cell_meta_val = plugin.get_meta();
+            let cell_meta = CellMeta::from_value_to_cell_meta(cell_meta_val);
+            cell_meta_map.insert(type_id.clone(), cell_meta);
+        }
+
+        cell_meta_map
     }
 }
