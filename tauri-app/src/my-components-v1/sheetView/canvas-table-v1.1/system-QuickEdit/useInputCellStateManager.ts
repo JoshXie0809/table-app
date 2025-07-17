@@ -5,6 +5,7 @@ import { QuickEditInputCellHandle } from "./InputCell";
 import { TransSystemName } from "../RenderManager";
 import { useKeyboard } from "./useKeyboard";
 import { Subject } from "rxjs";
+import { useQuickEditAppender } from "./QuiclEditAppender";
 
 export const rc$ = new Subject<{row: number | null, col:number | null }>();
 
@@ -17,7 +18,6 @@ export const useInputCellStateManager = (
   // const colHeaderRefBundle = getRef("column-header");
   // const rowHeaderRefBundle = getRef("row-header");
   const cellsRefBundle = getRef("cells");
-
 
   useEffect(() => {
     const sub = target$.subscribe(({ target }) => {
@@ -38,6 +38,8 @@ export const useInputCellStateManager = (
 
     return () => sub.unsubscribe();
   })
+
+  useQuickEditAppender();
 
   useEffect(() => {
     const sub = rc$.subscribe(({row, col}) => {

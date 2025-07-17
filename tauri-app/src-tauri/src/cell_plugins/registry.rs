@@ -65,8 +65,7 @@ impl CellPluginRegistry {
         let mut cell_meta_map = HashMap::new();
 
         for (type_id, plugin) in &self.plugins {
-            let cell_meta_val = plugin.get_meta();
-            let cell_meta = CellMeta::from_value_to_cell_meta(cell_meta_val, plugin)?;
+            let cell_meta = CellMeta::cell_meta(plugin)?;
             cell_meta_map.insert(type_id.clone(), cell_meta);
         }
 

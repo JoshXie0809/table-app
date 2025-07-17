@@ -4,6 +4,7 @@ import { QuickEditInputCellHandle } from "./InputCell";
 import { rc$ } from "./useInputCellStateManager";
 import { VirtualCells } from "../../../VirtualCells";
 import { useSheetView } from "../../SheetView-Context";
+import { quickEditEnterEmit$ } from "./QuiclEditAppender";
 
 const keydown$ = fromEvent<KeyboardEvent>(window, "keydown");
 
@@ -52,6 +53,11 @@ export const tab$ = keyWithZone$.pipe(
   filter(({focusedZone}) => focusedZone === undefined)
 );
 
+export const esc$ = keyWithZone$.pipe(
+  filter(({event}) => event.key === "Escape"),
+  filter(({focusedZone}) => focusedZone === "system-quick-edit")
+)
+
 export const useKeyboard = (
   inputCellRef: RefObject<QuickEditInputCellHandle | null>,
 ) => {
@@ -63,10 +69,25 @@ export const useKeyboard = (
       if(!inputCell) return;
       if(!inputCell.isFocused)
         inputCell.focus();
-      else
+      else {
+        // 傳送編輯完成的訊號
+        quickEditEnterEmit$.next(inputCell);
         inputCell.blur();
+      }
     })
     
+    return () => sub.unsubscribe();
+  })
+
+  // esc 鍵邏輯
+  // 只負責無條件退出 focus 模式
+  useEffect(() => {
+    const sub = esc$.subscribe(() => {
+      const inputCell = inputCellRef.current;
+      if(!inputCell) return;
+      if(inputCell.isFocused) inputCell.blur();
+    })
+
     return () => sub.unsubscribe();
   })
 

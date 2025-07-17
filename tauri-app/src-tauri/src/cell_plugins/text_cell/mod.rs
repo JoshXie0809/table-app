@@ -9,19 +9,28 @@ use serde_json::{json, Value};
 
 pub struct TextCellPlugin;
 
+// 產生給前端的 schema
+#[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
+pub struct TextPayload {
+    pub value: String,
+    pub display_value: Option<String>,
+    pub display_style_class: Option<String>, // 回傳 css-class    
+    pub extra_fields: Option<HashMap<String, Value>>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TextCellConfig {
     pub cell_type_id: String,
-    pub payload: BasePayload,
+    pub payload: TextPayload,
 }
 
 impl Default for TextCellConfig {
     fn default() -> Self {
         Self {
             cell_type_id: "Text".to_string(),
-            payload: BasePayload {
-                value: json!(""),
+            payload: TextPayload {
+                value: "".to_string(),
                 display_value: None,
                 display_style_class: None,
                 extra_fields: None,
@@ -57,9 +66,17 @@ impl CellPlugin for TextCellPlugin {
     ) -> Result<serde_json::Value, String> {
         let payload = cell_content.payload;
         let cell_type_id = cell_content.cell_type_id;
+
+        let text_payload = TextPayload {
+            value: payload.value.as_str().map(|s| s.to_string()).unwrap_or_default(),
+            display_style_class: payload.display_style_class,
+            display_value: payload.display_value,
+            extra_fields: payload.extra_fields,
+        };
+
         Ok(json!(TextCellConfig {
             cell_type_id,
-            payload
+            payload: text_payload
         }))
     }
 
@@ -71,9 +88,17 @@ impl CellPlugin for TextCellPlugin {
             serde_json::from_value(cell_config).map_err(|err| err.to_string())?;
         let cell_type_id = text_cell_config.cell_type_id;
         let payload = text_cell_config.payload;
+
+        let base_payload = BasePayload {
+            value: json!(payload.value),
+            display_value: payload.display_value,
+            display_style_class: payload.display_style_class,
+            extra_fields: payload.extra_fields,
+        };
+
         Ok(CellContent {
             cell_type_id,
-            payload,
+            payload: base_payload,
         })
     }
 

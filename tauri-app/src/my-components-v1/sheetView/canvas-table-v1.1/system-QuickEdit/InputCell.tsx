@@ -14,6 +14,7 @@ export interface QuickEditInputCellHandle {
   isFocused: boolean;
   getInputElement: () => HTMLInputElement | null;
   setQuickEditInputCellValue: React.Dispatch<React.SetStateAction<string>>
+  quickEditInputCellValue: string;
 }
 
 export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEditInputCellProps>(
@@ -28,42 +29,41 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       blur: () => inputRef.current?.blur(),
       isFocused,
       getInputElement: () => inputRef.current,
-      setQuickEditInputCellValue: setQuickEditInputCellValue,
+      setQuickEditInputCellValue,
+      quickEditInputCellValue,
     }), [isFocused]);
-
     if (!vc) return null;
 
+    const handleKeyDown = () => {
+      requestAnimationFrame(() => {
+        const container = containerRef.current;
+        const vc = vcRef.current;
+        const inputEl = inputRef.current;
+        if (!container || !inputEl || !vc) return;
+
+        const containerRect = container.getBoundingClientRect();
+        const inputRect = inputEl.getBoundingClientRect();
+
+        const headerHeight = Math.round(vc.cellHeight) +2;
+        const headerWidth = Math.round(vc.cellWidth) +2;
+
+        const cond1 = (inputRect.top < containerRect.top + headerHeight);
+        const cond2 = (inputRect.left < containerRect.left + headerWidth)
+        const isCoveredByHeader =  cond1 || cond2;
+        if (!isCoveredByHeader) return;
+
+        if(cond1) {
+          const offsetY = containerRect.top + headerHeight - inputRect.top;
+          container.scrollTop -= offsetY;
+        }
+        
+        if(cond2) {
+          const offsetX = containerRect.left + headerWidth - inputRect.left;
+          container.scrollLeft -= offsetX;
+        }
       
-  const handleKeyDown = () => {
-    requestAnimationFrame(() => {
-      const container = containerRef.current;
-      const vc = vcRef.current;
-      const inputEl = inputRef.current;
-      if (!container || !inputEl || !vc) return;
-
-      const containerRect = container.getBoundingClientRect();
-      const inputRect = inputEl.getBoundingClientRect();
-
-      const headerHeight = Math.round(vc.cellHeight) +2;
-      const headerWidth = Math.round(vc.cellWidth) +2;
-
-      const cond1 = (inputRect.top < containerRect.top + headerHeight);
-      const cond2 = (inputRect.left < containerRect.left + headerWidth)
-      const isCoveredByHeader =  cond1 || cond2;
-      if (!isCoveredByHeader) return;
-
-      if(cond1) {
-        const offsetY = containerRect.top + headerHeight - inputRect.top;
-        container.scrollTop -= offsetY;
-      }
-      
-      if(cond2) {
-        const offsetX = containerRect.left + headerWidth - inputRect.left;
-        container.scrollLeft -= offsetX;
-      }
-    
-    });
-  };
+      });
+    };
 
     return (
       <div data-zone = "system-quick-edit">

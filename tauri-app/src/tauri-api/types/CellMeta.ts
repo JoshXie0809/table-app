@@ -5,4 +5,5 @@ export type CellMeta = {
   hasDisplayFormatter: boolean | null;
   displayStyleClass: string | null;
   defaultCellContent: CellContent;
+  cellSchema: Record<string, any>;
 };
