@@ -23,6 +23,7 @@ pub struct NullPayload {
 #[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NullCellConfig {
+    #[serde(rename = "type")] // 前端的 key 是 "type"，這裡需要指定
     pub cell_type_id: String,
     pub payload: NullPayload,
 }
@@ -107,7 +108,6 @@ impl CellPlugin for NullCellPlugin {
 #[cfg(test)]
 mod tests {
     use plugin_core::Plugin;
-
     use crate::cell_plugins::null_cell::NullCellPlugin;
 
     #[test]

@@ -21,6 +21,7 @@ pub struct TextPayload {
 #[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct TextCellConfig {
+    #[serde(rename = "type")] // 前端的 key 是 "type"，這裡需要指定
     pub cell_type_id: String,
     pub payload: TextPayload,
 }

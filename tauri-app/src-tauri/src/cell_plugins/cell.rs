@@ -3,9 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value; // 確保導入 serde_json::Value
 use std::{collections::HashMap, sync::Arc};
 use ts_rs::TS;
-
 use crate::cell_plugins::CellPlugin;
-
 // 這個結構體代表前端傳來的 { type, payload } 部分
 #[derive(Debug, Deserialize, Serialize, Clone, TS, JsonSchema)]
 #[serde(rename_all = "camelCase")] // 前端可能是 camelCase，例如 cellType, cellPayload

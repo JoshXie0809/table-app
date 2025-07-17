@@ -1,3 +1,4 @@
+import "./App.css";
 import React, { useEffect } from "react";
 import { FluentProvider, webLightTheme, Text, makeStyles, tokens } from "@fluentui/react-components";
 import { SheetView11 } from "./my-components-v1/sheetView/SheetView-v1.tsx";
@@ -7,8 +8,6 @@ import { loadCellPluginCssMap, injectCellPluginCSS } from "./tauri-api/loadAllCs
 import { createVirtualCellsFromBackend } from "./my-components-v1/createVirtualCells.ts";
 import { VirtualCells } from "./my-components-v1/VirtualCells.ts";
 import { CustomTitleBar } from "./my-components-v1/titlebar/CustomTitleBar.tsx";
-
-import "./App.css";
 import { ButtonToolBox } from "./my-components-v1/button-toolbox/ButtonToolBox.tsx";
 import { ButtonLoadSheet } from "./my-components-v1/button-toolbox/ButtonLoadSheet.tsx";
 import { RibbonGroup } from "./my-components-v1/button-toolbox/RibbonGroup.tsx";
@@ -17,7 +16,6 @@ import { SystemQuickEdit } from "./my-components-v1/sheetView/canvas-table-v1.1/
 import { PointerStateManager } from "./my-components-v1/pointer-state-manager/PointerStateManger.ts";
 import { ButtonSQL } from "./my-components-v1/button-toolbox/button-sql-tool/ButtonSQL.tsx";
 import { loadCellPluginCellMetaMap } from "./tauri-api/loadAllCellPluginCellMetaMap.ts";
-
 
 export const useStyles = makeStyles({
   root: {
