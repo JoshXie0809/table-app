@@ -17,7 +17,6 @@ export interface IVirtualizationManager {
 export class VManager implements IVirtualizationManager {
   nplctrler: NestedPoolController; // poolController
   cellMap: Map<string, Cell> = new Map();
-
   private _buildCellMap() {
     this.nplctrler.pool.forEach((cell) => {
       this.cellMap.set(cell.shellId, cell);
@@ -33,23 +32,30 @@ export class VManager implements IVirtualizationManager {
     const col = cell.indexPath[n - 1];
     return {row, col};
   }
+
+  getCellByRowCol(row: number, col: number) 
+  {
+    for(const kv of this.cellMap) {
+      const [shellId, cell] = kv;
+      const cellRC = this.getCellRowColByShellId(shellId);
+      if(cellRC.row === row && cellRC.col === col) 
+        return cell;
+    }
+  }
   
   containerDims: {width: number, height: number};
   overScanRow: number = 0;
   overScanCol: number = 0;
-
   // pool controller 實際控制的 Cell 位置
   topRowIndex: number = 0;
   bottomRowIndex: number = 0;
   leftColIndex: number = 0;
   rightColIndex: number = 0;
-
   // cover 區控制的 Cell 位置
   coverTopRowIndex: number = 0;
   coverBottomRowIndex: number = 0;
   coverLeftColIndex: number = 0;
   coverRigthColIndex: number = 0;
-
   dataTotalRow: number;
   dataTotalCol: number;
   rowHeight: number = 0;
@@ -116,7 +122,6 @@ export class VManager implements IVirtualizationManager {
     this.coverRigthColIndex = this.rightColIndex - this.overScanCol;
   }
 
-
   transNum(
     a: number,
     b: number,
@@ -149,7 +154,6 @@ export class VManager implements IVirtualizationManager {
     return 0;
   }
 
-
   solveRowTrans(scrollTop: number) {
     const a = scrollTop / this.rowHeight;
     const b = (scrollTop + this.containerDims.height) / this.rowHeight;
@@ -166,7 +170,6 @@ export class VManager implements IVirtualizationManager {
     const ans = this.transNum(a, b, this.leftColIndex, this.rightColIndex, 
                               this.coverLeftColIndex, this.coverRigthColIndex, 
                               this.dataTotalCol-1, this.overScanCol)
-
     return ans;
   }
 

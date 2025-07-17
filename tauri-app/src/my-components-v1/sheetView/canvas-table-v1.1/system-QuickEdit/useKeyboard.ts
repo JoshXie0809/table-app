@@ -75,7 +75,6 @@ export const useKeyboard = (
         inputCell.blur();
       }
     })
-    
     return () => sub.unsubscribe();
   })
 
@@ -87,7 +86,6 @@ export const useKeyboard = (
       if(!inputCell) return;
       if(inputCell.isFocused) inputCell.blur();
     })
-
     return () => sub.unsubscribe();
   })
 
@@ -116,8 +114,7 @@ export const useKeyboard = (
       if (event.key === "ArrowUp") newRow--;
       else if (event.key === "ArrowDown") newRow++;
       else if (event.key === "ArrowLeft") newCol--;
-      else if (event.key === "ArrowRight") newCol++;
-      
+      else if (event.key === "ArrowRight") newCol++;     
       // 這裡直接修正
       const checked = checkRCValid(newRow, newCol, vc);
       rc$.next({ row: checked.row, col: checked.col });      
@@ -125,7 +122,6 @@ export const useKeyboard = (
     return () => sub.unsubscribe();
   })
 }
-
 
 function checkRCValid(row: number, col: number, vc: VirtualCells) {
   let valid = true;

@@ -17,10 +17,8 @@ export class RManager {
   private container: HTMLElement;
   private transSystemName: TransSystemName;
   private domPool: Map<string, HTMLElement> = new Map();
-
   transformScheduler: DirtyTranslateCellScheduler;
   contentScheduler: DirtyCellContentScheduler;
-
   constructor(
     transSystemName: TransSystemName, 
     rowHeight: number, cellWidth: number, 
@@ -60,15 +58,12 @@ export class RManager {
   mountCell(cell: Cell) {
     let el = this.domPool.get(cell.shellId);
     if(el) return el;
-
     el = document.createElement("div");
     this.initCellStyle(el, this.cellWidth, this.rowHeight, cell.shellId);
     // mount 上去
     this.container.appendChild(el);
     this.domPool.set(cell.shellId, el);
     cell.valueRef.el = el;
-    
-
     if(cell.valueRef.reactRoot) return;
     const root = createRoot(el);
     cell.valueRef.reactRoot = root;    
@@ -106,5 +101,4 @@ export class RManager {
     this.transformScheduler.clear();
     this.contentScheduler.clear();
   }
-
 }

@@ -1,4 +1,4 @@
-import React, { forwardRef, RefObject, useImperativeHandle, useRef, useState } from "react";
+import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useRef, useState } from "react";
 import { VirtualCells } from "../../../VirtualCells";
 import { Input, tokens } from "@fluentui/react-components";
 
@@ -14,7 +14,7 @@ export interface QuickEditInputCellHandle {
   isFocused: boolean;
   getInputElement: () => HTMLInputElement | null;
   setQuickEditInputCellValue: React.Dispatch<React.SetStateAction<string>>
-  quickEditInputCellValue: string;
+  latestValueRef: RefObject<string>;
 }
 
 export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEditInputCellProps>(
@@ -23,6 +23,11 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
     const inputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
     const [quickEditInputCellValue, setQuickEditInputCellValue] = useState("");
+    const latestValueRef = useRef("");
+
+    useEffect(() => {
+      latestValueRef.current = quickEditInputCellValue;
+    }, [quickEditInputCellValue])
 
     useImperativeHandle(ref, () => ({
       focus: () => inputRef.current?.focus(),
@@ -30,7 +35,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       isFocused,
       getInputElement: () => inputRef.current,
       setQuickEditInputCellValue,
-      quickEditInputCellValue,
+      latestValueRef,
     }), [isFocused]);
     if (!vc) return null;
 
