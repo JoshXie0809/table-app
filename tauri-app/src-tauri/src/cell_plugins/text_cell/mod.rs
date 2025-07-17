@@ -66,7 +66,6 @@ impl CellPlugin for TextCellPlugin {
     ) -> Result<serde_json::Value, String> {
         let payload = cell_content.payload;
         let cell_type_id = cell_content.cell_type_id;
-
         let text_payload = TextPayload {
             value: payload.value.as_str().map(|s| s.to_string()).unwrap_or_default(),
             display_style_class: payload.display_style_class,
@@ -88,7 +87,6 @@ impl CellPlugin for TextCellPlugin {
             serde_json::from_value(cell_config).map_err(|err| err.to_string())?;
         let cell_type_id = text_cell_config.cell_type_id;
         let payload = text_cell_config.payload;
-
         let base_payload = BasePayload {
             value: json!(payload.value),
             display_value: payload.display_value,

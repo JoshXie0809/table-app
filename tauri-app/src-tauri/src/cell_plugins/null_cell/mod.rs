@@ -11,19 +11,28 @@ use serde_json::{json, Value};
 
 use plugin_macros::Plugin;
 
+// 產生給前端的 schema
+#[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
+pub struct NullPayload {
+    pub value: String,
+    pub display_value: Option<String>,
+    pub display_style_class: Option<String>, // 回傳 css-class    
+    pub extra_fields: Option<HashMap<String, Value>>,
+}
+
 #[derive(Debug, Deserialize, Serialize, Clone, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct NullCellConfig {
     pub cell_type_id: String,
-    pub payload: BasePayload,
+    pub payload: NullPayload,
 }
 
 impl Default for NullCellConfig {
     fn default() -> Self {
         Self {
             cell_type_id: "Null".to_string(),
-            payload: BasePayload {
-                value: json!(""),
+            payload: NullPayload {
+                value: "".to_string(),
                 display_value: None,
                 display_style_class: None,
                 extra_fields: None,
@@ -54,23 +63,34 @@ impl CellPlugin for NullCellPlugin {
     fn to_cell_content(&self, cell_config: serde_json::Value) -> Result<CellContent, String> {
         let null_cell_config: NullCellConfig =
             serde_json::from_value(cell_config).map_err(|err| err.to_string())?;
-
         let cell_type_id = null_cell_config.cell_type_id;
         let payload = null_cell_config.payload;
+        let base_payload = BasePayload {
+            value: json!(payload.value),
+            display_value: payload.display_value,
+            display_style_class: payload.display_style_class,
+            extra_fields: payload.extra_fields,
+        };
 
         Ok(CellContent {
             cell_type_id,
-            payload,
+            payload: base_payload,
         })
     }
 
     fn from_cell_content(&self, cell_content: CellContent) -> Result<serde_json::Value, String> {
         let cell_type_id = cell_content.cell_type_id;
         let payload = cell_content.payload;
+        let null_payload = NullPayload {
+            value: payload.value.as_str().map(|s| s.to_string()).unwrap_or_default(),
+            display_style_class: payload.display_style_class,
+            display_value: payload.display_value,
+            extra_fields: payload.extra_fields,
+        };
 
         Ok(json!(NullCellConfig {
             cell_type_id,
-            payload
+            payload: null_payload
         }))
     }
 
