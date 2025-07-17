@@ -9,11 +9,9 @@ import { InsertCodeBlockButton } from "./Button/Lexical-InsertCodeNodeButton";
 import { InsertLinkButton } from "./Button/Lexical-HyperLinkButton";
 import { InsertTimestampButton } from "./Button/Lexical-InsertTimeStamp";
 
-
 export const editable$ = new Subject<boolean>();
 export const undoable$ = new Subject<boolean>();
 export const redoable$ = new Subject<boolean>();
-
 export function useStreamState<T>(observable: Subject<T>, initial: T): T {
   const [value, setValue] = useState(initial);
   useEffect(() => {
@@ -31,8 +29,8 @@ export const useLexicalToolBarStyles = makeStyles({
     backgroundColor: tokens.colorNeutralBackground3, 
     margin: '2px'
   },
-  "toolbar-button": { fontSize: tokens.fontSizeBase300 },
-  "toolbar-button-icon": { fontSize: tokens.fontSizeBase300 }
+  "toolbar-button": { fontSize: tokens.fontSizeBase400 },
+  "toolbar-button-icon": { fontSize: tokens.fontSizeBase400 }
 });
 
 export const LexicalToolBar = () => {

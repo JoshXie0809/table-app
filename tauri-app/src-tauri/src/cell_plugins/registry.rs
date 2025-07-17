@@ -61,15 +61,15 @@ impl CellPluginRegistry {
         css_map
     }
 
-    pub fn get_all_cell_meta(&self) -> HashMap<String, CellMeta> {
+    pub fn get_all_cell_meta(&self) -> Result<HashMap<String, CellMeta>, String> {
         let mut cell_meta_map = HashMap::new();
 
         for (type_id, plugin) in &self.plugins {
             let cell_meta_val = plugin.get_meta();
-            let cell_meta = CellMeta::from_value_to_cell_meta(cell_meta_val);
+            let cell_meta = CellMeta::from_value_to_cell_meta(cell_meta_val, plugin)?;
             cell_meta_map.insert(type_id.clone(), cell_meta);
         }
 
-        cell_meta_map
+        Ok(cell_meta_map)
     }
 }

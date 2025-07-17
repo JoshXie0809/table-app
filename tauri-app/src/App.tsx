@@ -59,7 +59,6 @@ function App() {
       if (test.data && cellMetaMap.data) {
         let vc = createVirtualCellsFromBackend(test.data, cellMetaMap.data);
         vcRef.current = vc;
-        console.log(vc);
         setVirtualCellsReady(true);
       }
       const css_map = await loadCellPluginCssMap();

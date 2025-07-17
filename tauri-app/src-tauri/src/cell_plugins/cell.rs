@@ -1,8 +1,10 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value; // 確保導入 serde_json::Value
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 use ts_rs::TS;
+
+use crate::cell_plugins::CellPlugin;
 
 // 這個結構體代表前端傳來的 { type, payload } 部分
 #[derive(Debug, Deserialize, Serialize, Clone, TS, JsonSchema)]
@@ -37,10 +39,12 @@ pub struct BasePayload {
 pub struct CellMeta {
     pub has_display_formatter: Option<bool>,
     pub display_style_class: Option<String>,
+    pub default_cell_content: CellContent,
 }
 
 impl CellMeta {
-    pub fn from_value_to_cell_meta(value: Value) -> CellMeta {
+    pub fn from_value_to_cell_meta(value: Value, plugin: &Arc<dyn CellPlugin>) -> Result<CellMeta, String> 
+    {
         let has_display_formatter_opt = value.get("has_display_formatter");
         let has_display_formatter = match has_display_formatter_opt {
             Some(formatter) => formatter.as_bool(),
@@ -53,6 +57,15 @@ impl CellMeta {
             None => None
         };
 
-        CellMeta { has_display_formatter, display_style_class}
+        let default_cell_config = plugin.default_cell_config();
+        let default_cell_content = plugin.to_cell_content(default_cell_config)?;
+
+        Ok(
+            CellMeta { 
+                has_display_formatter, 
+                display_style_class, 
+                default_cell_content
+            }
+        )
     }
 }

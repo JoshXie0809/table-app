@@ -1,6 +1,5 @@
 import { RefObject, useEffect, useRef } from "react";
-import { merge } from "rxjs";
-import { auditTime } from "rxjs/operators";
+import { auditTime, map, withLatestFrom } from "rxjs/operators";
 import { target$ } from "./SystemQuickEdit";
 import { rc$ } from "./useInputCellStateManager";
 import { useSheetView } from "../../SheetView-Context";
@@ -11,39 +10,32 @@ export const useTransformInputCell = (
 ) => {
   const { vcRef, containerRef } = useSheetView();
   const tickingRef = useRef(false);
-  const latestState = useRef<{ row: number, col: number, target: any }>({ row: 0, col: 0, target: null });
   const containerDims = useContainerDimensions(containerRef);
 
+  // ✅ 用於 resize 時重繪一次位置（不含 scroll）
   useEffect(() => {
-    // container resize 時也刷新 inputCell 位置
     const divEl = divRef.current;
-    const { row, col } = latestState.current;
     const vc = vcRef.current;
     if (!divEl || !vc) return;
-    const x = vc.cellWidth * (col + 1);
-    const y = vc.cellHeight * (row + 1);
-    divEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+
+    const sub = rc$.subscribe(({ row, col }) => {
+      if (row === null || col === null) return;
+      const x = vc.cellWidth * (col + 1);
+      const y = vc.cellHeight * (row + 1);
+      divEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+    });
+
+    return () => sub.unsubscribe();
   }, [containerDims, divRef, vcRef]);
 
+  // ✅ stream 合併與動畫滾動邏輯
   useEffect(() => {
-    const sub = merge(
-      rc$.pipe(auditTime(0)),
-      target$.pipe(auditTime(0)),
-      // ... 其他 stream 也可加入
-    ).subscribe((payload: any) => {
-      // 儲存最新狀態
-      if (payload.row !== undefined && payload.col !== undefined) {
-        latestState.current = { ...latestState.current, row: payload.row, col: payload.col };
-      }
-      if (payload.target !== undefined) {
-        latestState.current = { ...latestState.current, target: payload.target };
-      }
+    const sub = rc$.subscribe((payload) => {  // ✅ 加入 payload 作為參數
       if (tickingRef.current) return;
       tickingRef.current = true;
 
-      // STEP 1: 先定位 inputCell
       requestAnimationFrame(() => {
-        const { row, col } = latestState.current;
+        const { row, col } = payload;
         const vc = vcRef.current;
         const divEl = divRef.current;
         const container = containerRef.current;
@@ -51,25 +43,31 @@ export const useTransformInputCell = (
           tickingRef.current = false;
           return;
         }
+
+        if (row === null || col === null) {
+          tickingRef.current = false;
+          return;
+        }
+
         const cellHeight = vc.cellHeight;
         const cellWidth = vc.cellWidth;
         const x = cellWidth * (col + 1);
         const y = cellHeight * (row + 1);
 
         divEl.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-        divEl.style.transition = "transform 48ms cubic-bezier(.35,1.01,.36,.98)"; // 可自訂曲線
+        divEl.style.transition = "transform 48ms cubic-bezier(.35,1.01,.36,.98)";
 
-        // STEP 2: 再 scroll（用 raf 可避免 transform 與 scroll 同步導致跳動）
         requestAnimationFrame(() => {
           let targetScrollLeft = container.scrollLeft;
           let targetScrollTop = container.scrollTop;
 
-          // 檢查 inputCell 是否進入可視範圍，若否再捲動
+          // 使 cell 保持可見
           if (x <= container.scrollLeft + cellWidth) {
             targetScrollLeft = x - cellWidth;
           } else if (x + cellWidth > container.scrollLeft + container.clientWidth) {
             targetScrollLeft = x + cellWidth - container.clientWidth;
           }
+
           if (y <= container.scrollTop + cellHeight) {
             targetScrollTop = y - cellHeight;
           } else if (y + cellHeight > container.scrollTop + container.clientHeight) {
@@ -79,12 +77,14 @@ export const useTransformInputCell = (
           container.scrollTo({
             left: targetScrollLeft,
             top: targetScrollTop,
-            behavior: "smooth", // 支援平滑動畫
+            behavior: "smooth",
           });
+
           tickingRef.current = false;
         });
       });
     });
+
     return () => sub.unsubscribe();
   }, [vcRef, containerRef, divRef]);
 };

@@ -8,12 +8,24 @@ use ts_rs::TS;
 pub fn load_cell_plugin_cell_meta_map(
     state: State<'_, Arc<CellPluginRegistry>>,
 ) -> ApiResponse<HashMap<String, CellMeta>> {
-    let cell_meta_map = state.get_all_cell_meta();
-    ApiResponse {
-        success: true,
-        data: Some(cell_meta_map),
-        error: None,
+    let result = state.get_all_cell_meta();
+    match result {
+        Ok(cell_meta_map) => {
+            ApiResponse {
+                success: true,
+                data: Some(cell_meta_map),
+                error: None,
+            }
+        },
+        Err(err) => {
+            ApiResponse {
+                success: false,
+                data: None,
+                error: Some(err)
+            }
+        }
     }
+    
 }
 
 #[derive(Serialize, TS)]

@@ -22,7 +22,8 @@ export function createVirtualCellsFromBackend(
   let nRow = data.rowCount;
   let nCol = data.colCount;
 
-  const defaultCellContent = structuredClone(data.defaultCellContent);
+  let defaultCellContent = structuredClone(cellMetaMap["Text"]?.defaultCellContent);
+  if(defaultCellContent === undefined) defaultCellContent = structuredClone(data.defaultCellContent);
 
   const rowHeader: [string, CellContent][] = data.hasRowHeader
     ? data.rowHeader ?? []

@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect } from "react";
-import { $getSelection, $isRangeSelection, $isTextNode, KEY_DOWN_COMMAND, $createTextNode } from "lexical";
+import { $getSelection, $isRangeSelection, $isTextNode, KEY_SPACE_COMMAND, $createTextNode } from "lexical";
 import { $createHeadingNode } from "@lexical/rich-text";
 
 export function LexicalHeadingInputRulePlugin() {
@@ -8,9 +8,8 @@ export function LexicalHeadingInputRulePlugin() {
 
   useEffect(() => {
     return editor.registerCommand(
-      KEY_DOWN_COMMAND,
+      KEY_SPACE_COMMAND,
       (event: KeyboardEvent) => {
-        if (event.key !== " ") return false; // 只攔空白鍵
         // Lexical 還沒插空白！你可以自由控制
         editor.getEditorState().read(() => {
           const selection = $getSelection();

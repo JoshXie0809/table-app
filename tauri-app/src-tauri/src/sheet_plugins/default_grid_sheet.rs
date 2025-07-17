@@ -151,7 +151,7 @@ mod tests {
         println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     }
 
-    use crate::cell_plugins::text_cell::TextCellPlugin;
+    use crate::cell_plugins::null_cell::NullCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::io::loader::load_zip_file;
     use crate::io::saver::save_to_zip_file;
@@ -160,10 +160,10 @@ mod tests {
 
     #[test]
     fn test_default_grid_plugin_to_file() -> Result<(), String> {
-        let tcp = TextCellPlugin;
+        let ncp = NullCellPlugin;
 
-        let cell_config = tcp.default_cell_config();
-        let mut cell_content = tcp.to_cell_content(cell_config)?;
+        let cell_config = ncp.default_cell_config();
+        let mut cell_content = ncp.to_cell_content(cell_config)?;
         let default_cell_content = cell_content.clone();
 
         cell_content.payload.value = json!("");

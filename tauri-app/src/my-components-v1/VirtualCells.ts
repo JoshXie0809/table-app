@@ -55,11 +55,18 @@ export class VirtualCells implements IVirtualCells {
     return this.cellsMap.get(this.toKey(row, col));
   }
 
+  getDefaultCell() :CellContent | undefined {
+    const textCellMeta = this.cellMetaMap.get("Text");
+    if(textCellMeta === undefined) return undefined;
+    return textCellMeta.defaultCellContent;
+  }
+
   getCellDisplayValue(row: number, col: number): string | null {
-    const cell = this.getCell(row, col);
-    
+    let cell = this.getCell(row, col);
     // 暫定邏輯 要改成去取得 textCell default value
-    if (!cell) return "";
+    if (!cell) cell = this.getDefaultCell();
+    // 如果 meta 出問題
+    if (!cell) return ""
 
     // 檢查對應 plugin 是否含有 formatter
     // 沒有的話直接回傳 value 當作 displayvalue
@@ -84,8 +91,10 @@ export class VirtualCells implements IVirtualCells {
   }
 
   getCellDisplayStyleClass(row: number, col: number): string {
-    const cell = this.getCell(row, col);
+    let cell = this.getCell(row, col);
+    if(!cell) cell = this.getDefaultCell();
     if(!cell) return "";
+    
     if(Object.hasOwn(cell.payload, "displayStyleClass")) {
       const styleClass = cell.payload.displayStyleClass!;
       return styleClass;

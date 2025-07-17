@@ -4,7 +4,7 @@ import {
   $getSelection,
   $isRangeSelection,
   $isTextNode,
-  KEY_DOWN_COMMAND,
+  KEY_SPACE_COMMAND,
   TextNode,
   COMMAND_PRIORITY_HIGH, // ✨ 增加命令優先級，確保我們的輸入規則優先被處理
 } from "lexical";
@@ -20,13 +20,8 @@ export function LexicalListInputRulePlugin() {
 
   useEffect(() => {
     return editor.registerCommand(
-      KEY_DOWN_COMMAND,
+      KEY_SPACE_COMMAND,
       (event: KeyboardEvent) => {
-        // 我們只關心按下空格鍵來觸發輸入規則
-        if (event.key !== " ") {
-          return false;
-        }
-
         // 使用 editor.getEditorState().read() 在只讀模式下安全地讀取狀態
         const shouldApplyRule = editor.getEditorState().read(() => {
           const selection = $getSelection();

@@ -90,6 +90,7 @@ export const useKeyboard = (
       // 這裡統一修正 row/col
       const vc = vcRef.current;
       if (!vc) return;
+      if(row === null || col === null) return;
       let newRow = row, newCol = col;
       if (event.key === "ArrowUp") newRow--;
       else if (event.key === "ArrowDown") newRow++;

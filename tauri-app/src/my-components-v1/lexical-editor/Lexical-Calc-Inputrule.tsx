@@ -1,6 +1,6 @@
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { useEffect } from "react";
-import { $getSelection, $isRangeSelection, $isTextNode, KEY_DOWN_COMMAND } from "lexical";
+import { $getSelection, $isRangeSelection, $isTextNode, KEY_SPACE_COMMAND } from "lexical";
 import { LuaFactory } from "wasmoon";
 
 // Lua 虛擬機初始化
@@ -18,9 +18,8 @@ export function LexicalCalcInputRulePlugin() {
 
   useEffect(() => {
     return editor.registerCommand(
-      KEY_DOWN_COMMAND,
+      KEY_SPACE_COMMAND,
       (event: KeyboardEvent) => {
-        if (event.key !== " ") return false; // 只攔空白鍵
         editor.getEditorState().read(async () => {
           const selection = $getSelection();
           if ($isRangeSelection(selection) && selection.isCollapsed()) {

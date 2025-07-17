@@ -8,7 +8,7 @@ import { makeStyles, Text, tokens } from "@fluentui/react-components";
 import { LexicalHeadingInputRulePlugin } from "./Lexical-Heading-Inputrule";
 import { LexicalTreeViewPlugin } from "./Lexical-TreeView";
 import { LexicalToolBar } from "./Lexical-ToolBar";
-import { LexicalCalcInputRulePlugin } from "./Lexical-Calc";
+import { LexicalCalcInputRulePlugin } from "./Lexical-Calc-Inputrule";
 import { MyCodeNode } from "./NodePlugin/MyCodeNode";
 import { LinkNode } from "@lexical/link";
 import { LinkPlugin } from "@lexical/react/LexicalLinkPlugin";

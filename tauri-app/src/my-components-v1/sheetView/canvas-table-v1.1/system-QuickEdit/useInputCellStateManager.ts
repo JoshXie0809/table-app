@@ -6,8 +6,7 @@ import { TransSystemName } from "../RenderManager";
 import { useKeyboard } from "./useKeyboard";
 import { Subject } from "rxjs";
 
-
-export const rc$ = new Subject<{row: number, col:number}>();
+export const rc$ = new Subject<{row: number | null, col:number | null }>();
 
 export const useInputCellStateManager = (
   divRef: RefObject<HTMLDivElement | null>,
@@ -45,6 +44,7 @@ export const useInputCellStateManager = (
       const vc = vcRef.current;
       const inputCell = inputCellRef.current;
       if(!vc || !inputCell) return;
+      if(row === null || col === null) return;
       const val = vc.getCellDisplayValue(row, col);
       if(!val) inputCell.setQuickEditInputCellValue("");
       else inputCell.setQuickEditInputCellValue(val);
