@@ -86,6 +86,11 @@ export function useQuickEditAppender()
       const cell = qea.getCell(row, col, cellsVC);
       if(cell === undefined) return;
       const {initial, now} = cell;
+      const vmCell = cellsVM.getCellByRowCol(row, col)
+      if(vmCell === undefined) return;
+      cellsVC.setCell({row, col, cellData: now});
+      cellsRM.markDirty(vmCell)
+      cellsRM.flush();
       // case 1 如果 initial 和 now 相同代表可以刪除
       // case 2 如果 initial 未定義，並且 now == defaultCell
       if(isEqual(initial, now)) {
@@ -95,14 +100,7 @@ export function useQuickEditAppender()
       if(isEqual(now, cellsVC.getDefaultCell()) && initial === undefined) {
         qea.deleteCell(row, col, cellsVC);
       }
-      // 更新畫面
-      const cell2 = qea.getCell(row, col, cellsVC);
-      if(cell2 === undefined ) return;
-      console.log(cellsVM.getCellByRowCol(row, col))
-      console.log(qea);
-      // const {initial2, now2} = cell2;
-      // cellsRM.markDirty
-      
+      console.log(qea)
     });
 
     return () => sub.unsubscribe();

@@ -56,6 +56,4 @@ export const useInputCellStateManager = (
   })
 
   useKeyboard(inputCellRef);
-
 }
-

@@ -16,7 +16,6 @@ export const useInputCell = () => {
     const container = containerRef.current;
     const divEl = document.createElement("div");
     divRef.current = divEl;
-
     divEl.style.width = `0px`;
     divEl.style.height = `0px`;
     divEl.style.backgroundColor = "red";
@@ -51,6 +50,5 @@ export const useInputCell = () => {
     }
   }, []);
 
-  
   return ({divRef, rootRef, inputCellRef})
 }
