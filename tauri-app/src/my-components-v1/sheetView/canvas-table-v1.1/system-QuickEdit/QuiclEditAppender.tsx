@@ -8,6 +8,7 @@ import { isEqual } from "lodash";
 import { QuickEditInputCellHandle } from "./InputCell";
 import { fileSaveRequest$ } from "../../../button-toolbox/ButtonSaveSheet";
 import { ICell } from "../../../../tauri-api/types/ICell";
+import { saveSheet } from "../../../../tauri-api/saveSheet";
 export const quickEditEnterEmit$ = new Subject<QuickEditInputCellHandle>();
 interface QuickEditAppenderCell {
   initial: CellContent | undefined,
@@ -125,7 +126,9 @@ export function useQuickEditAppender()
       if(cellsVC === null) return;
       const qea = qeaRef.current;
       if(qea === null) return;
-      console.log(qea.getAllCellOnSave(cellsVC));
+      const cells = qea.getAllCellOnSave(cellsVC);
+      const sheetPath = cellsVC.sheetPath;
+      saveSheet({cells, sheetPath});
     })
     return () => sub.unsubscribe()
   }, [])

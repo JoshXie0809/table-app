@@ -16,6 +16,7 @@ use crate::api::get_display_value::get_display_value;
 use crate::api::load_cell_plugin_css_map::load_cell_plugin_css_map;
 use crate::api::load_sheet::load_sheet;
 use crate::api::load_cell_plugin_cell_meta_map::load_cell_plugin_cell_meta_map;
+use crate::api::save_sheet::save_sheet;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -32,6 +33,7 @@ pub fn run() {
             load_cell_plugin_css_map,
             get_display_value,
             load_cell_plugin_cell_meta_map,
+            save_sheet,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

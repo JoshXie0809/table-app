@@ -66,7 +66,6 @@ function App() {
 
     if(sheetName)
       fetch(sheetName);
-    console.log(vcRef);
   }, [sheetName]);
 
   return (
