@@ -25,7 +25,7 @@ pub trait SheetPlugin: Send + Sync {
         data: StoredSheetData,
     ) -> Result<serde_json::Value, String>;
 
-    fn to_fronted_sheet(&self, sheet_config: &serde_json::Value) -> Result<FrontedSheet, String>;
+    fn to_fronted_sheet(&self, sheet_config: &serde_json::Value, sheet_path: String) -> Result<FrontedSheet, String>;
 }
 
 pub mod default_grid_sheet; // 主要使用的標準網格 Sheet 實現

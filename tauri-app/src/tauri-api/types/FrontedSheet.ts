@@ -5,6 +5,7 @@ export type FrontedSheet = {
   cells: Array<[string, CellContent]>;
   rowHeader: Array<[string, CellContent]> | null;
   colHeader: Array<[string, CellContent]> | null;
+  sheetPath: string;
   sheetId: string;
   sheetType: string;
   sheetName: string;

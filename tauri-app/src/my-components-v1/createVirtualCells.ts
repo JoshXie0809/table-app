@@ -2,9 +2,7 @@ import { VirtualCells } from "./VirtualCells";
 import type { FrontedSheet } from "../tauri-api/types/FrontedSheet";
 import { CellContent } from "../tauri-api/types/CellContent";
 import { CellMetaMap } from "../tauri-api/types/CellMetaMap";
-
 export type HeaderType = "column" | "row";
-
 function makeHeader(headerType: HeaderType, n: number, prefix: string, def: CellContent): [string, CellContent][] {
   return Array.from({ length: n }, (_, i) => {
     const cell = structuredClone(def);
@@ -13,7 +11,6 @@ function makeHeader(headerType: HeaderType, n: number, prefix: string, def: Cell
     return [key, cell];
   });
 }
-
 export function createVirtualCellsFromBackend(
   data: FrontedSheet,
   cellMetaMap: CellMetaMap
@@ -43,11 +40,10 @@ export function createVirtualCellsFromBackend(
     data.cells,
     rowHeader,
     colHeader,
-    cellMetaMap
+    cellMetaMap,
+    data.sheetPath,
   );
 }
-
-
 export function createHeaderVC(headerType:HeaderType, mainVC: VirtualCells): VirtualCells {
   const nRow = headerType === "row" ? mainVC.sheetSize.nRow : 1;
   const nCol = headerType === "row" ? 1 : mainVC.sheetSize.nCol;
@@ -62,7 +58,8 @@ export function createHeaderVC(headerType:HeaderType, mainVC: VirtualCells): Vir
     [], // 先給空 因為我們需要的是 ref to VirtualCells
     [],
     [],
-    {}
+    {},
+    mainVC.sheetPath,
   );
 
   VC.cellMetaMap = mainVC.cellMetaMap;

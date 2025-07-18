@@ -6,7 +6,6 @@ use ts_rs::TS;
 
 use super::base::ApiResponse;
 use crate::{
-    // cell_plugins::{cell::CellContent, registry::CellPluginRegistry},
     cell_plugins::cell::CellContent,
     io::loader::load_zip_file,
     sheet_plugins::{fronted_sheet::FrontedSheet, registry::SheetPluginRegistry},
@@ -17,15 +16,15 @@ pub fn load_sheet(
     arg: LoadSheetRequest,
     registry: State<'_, Arc<SheetPluginRegistry>>,
 ) -> ApiResponse<FrontedSheet> {
-    load_sheet_inner(arg.sheet_name, &*registry)
+    load_sheet_inner(arg.sheet_path, &*registry)
 }
 
 pub fn load_sheet_inner(
-    sheet_name: String,
+    sheet_path: String,
     registry: &SheetPluginRegistry,
 ) -> ApiResponse<FrontedSheet> {
     
-    let load_result = load_zip_file(&sheet_name);
+    let load_result = load_zip_file(&sheet_path);
 
     let (meta, data) = match load_result {
         Ok(m_and_d) => m_and_d,
@@ -60,7 +59,7 @@ pub fn load_sheet_inner(
         }
     };
 
-    let fronted_sheet = match sheet_plugin.to_fronted_sheet(&sheet_config) {
+    let fronted_sheet = match sheet_plugin.to_fronted_sheet(&sheet_config, sheet_path) {
         Ok(fs) => fs,
         Err(err) => {
             return ApiResponse {
@@ -90,15 +89,13 @@ pub struct ICell {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct LoadSheetRequest {
-    pub sheet_name: String,
+    pub sheet_path: String,
 }
 
 #[cfg(test)]
 mod tests {
     use std::sync::Arc;
-
     use crate::{api::load_sheet::load_sheet_inner, sheet_plugins::registry::SheetPluginRegistry};
-
     #[test]
     fn test_load_sheet() {
         // 模擬 sheet registry

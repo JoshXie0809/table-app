@@ -2,7 +2,7 @@ use std::process::Command;
 
 use crate::{
     api::{
-        get_display_value::{DisplayCellResults, GetDisplayValueRequest}, load_cell_plugin_cell_meta_map::CellMetaMap, load_cell_plugin_css_map::CssMap, load_sheet::LoadSheetRequest
+        get_display_value::{DisplayCellResults, GetDisplayValueRequest}, load_cell_plugin_cell_meta_map::CellMetaMap, load_cell_plugin_css_map::CssMap, load_sheet::LoadSheetRequest, save_sheet::SaveSheetRequest
     },
     cell_plugins::cell::CellMeta,
     sheet_plugins::fronted_sheet::FrontedSheet,
@@ -30,6 +30,8 @@ pub fn export_ts() {
     CellMeta::export_all_to(&out_dir).unwrap();
 
     CellMetaMap::export_all_to(&out_dir).unwrap();
+
+    SaveSheetRequest::export_all_to(&out_dir).unwrap();
 
     let npx = if cfg!(target_os = "windows") {
         "npx.cmd"

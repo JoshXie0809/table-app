@@ -6,6 +6,8 @@ import { useSheetView } from "../../SheetView-Context";
 import { setCellContentValue, VirtualCells } from "../../../VirtualCells";
 import { isEqual } from "lodash";
 import { QuickEditInputCellHandle } from "./InputCell";
+import { fileSaveRequest$ } from "../../../button-toolbox/ButtonSaveSheet";
+import { ICell } from "../../../../tauri-api/types/ICell";
 export const quickEditEnterEmit$ = new Subject<QuickEditInputCellHandle>();
 interface QuickEditAppenderCell {
   initial: CellContent | undefined,
@@ -44,6 +46,17 @@ class QuickEditAppender {
     const key = vc.toKey(row, col);
     this.appender.delete(key)
   }
+  getAllCellOnSave(vc: VirtualCells): ICell[]
+  {
+    const arr: ICell[] = [];
+    for(const kv of this.appender) {
+      const [key, cell] = kv;
+      const {row, col} = vc.toRC(key);
+      const { now } = cell;
+      arr.push({row, col, cellData: now});
+    }
+    return arr;
+  }
 }
 
 export function useQuickEditAppender() 
@@ -52,14 +65,13 @@ export function useQuickEditAppender()
   useEffect(() => {
     qeaRef.current = new QuickEditAppender();
   }, [])
-
   const { getRef } = useSheetView();
   useEffect(() => {
-    const enterEmitAndRC$ = quickEditEnterEmit$.pipe(
+    const enterEmitWithRC$ = quickEditEnterEmit$.pipe(
       withLatestFrom(rc$),
       map(([inputCell, rc]) => ({inputCell, ...rc,}))
     )
-    const sub = enterEmitAndRC$.subscribe((payload) => {
+    const sub = enterEmitWithRC$.subscribe((payload) => {
       // 取得現在位置 rc$ 
       const {row, col} = payload;
       const cellsRefBundle = getRef("cells");
@@ -100,9 +112,21 @@ export function useQuickEditAppender()
       if(isEqual(now, cellsVC.getDefaultCell()) && initial === undefined) {
         qea.deleteCell(row, col, cellsVC);
       }
-      console.log(qea)
     });
 
     return () => sub.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const sub = fileSaveRequest$.subscribe(() => {
+      const cellsRefBundle = getRef("cells");
+      if(cellsRefBundle === undefined) return;
+      const cellsVC = cellsRefBundle.vcRef.current;
+      if(cellsVC === null) return;
+      const qea = qeaRef.current;
+      if(qea === null) return;
+      console.log(qea.getAllCellOnSave(cellsVC));
+    })
+    return () => sub.unsubscribe()
+  }, [])
 }

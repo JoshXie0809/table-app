@@ -117,6 +117,7 @@ impl SheetPlugin for DefaultGridSheet {
     fn to_fronted_sheet(
         &self,
         sheet_config: &serde_json::Value,
+        sheet_path: String,
     ) -> Result<super::fronted_sheet::FrontedSheet, String> {
         let dgs_config: DefaultGridSheetConfig =
             serde_json::from_value(sheet_config.clone()).map_err(|err| err.to_string())?;
@@ -133,6 +134,7 @@ impl SheetPlugin for DefaultGridSheet {
             cells,
             row_header: None,
             col_header: None,
+            sheet_path
         };
 
         Ok(fronted_sheet)

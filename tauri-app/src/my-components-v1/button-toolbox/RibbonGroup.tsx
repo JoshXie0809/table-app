@@ -1,4 +1,4 @@
-import { Button, makeStyles, Slot, Text, tokens, ToolbarDivider, Tooltip } from "@fluentui/react-components";
+import { Button, makeStyles, Text, tokens, ToolbarDivider, Tooltip } from "@fluentui/react-components";
 import React from "react";
 
 
@@ -28,15 +28,22 @@ const useStyles = makeStyles({
     textAlign: "center",
   },
 
-  smallButton: {
-    gridRow: "span 1",
+  "small-icon-container": {
+    width: "20px", // ✅ 固定 icon 寬度，和 VSCode 工具列類似
+    height: "20px",
     display: "flex",
-    flexDirection: "row",
-    justifyContent: "flex-start", // ✅ Fluent UI className 可以覆蓋內部 slot
-    textAlign: "left",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
   },
 
-  smallButtonText: {},
+  "small-label-text": {
+    marginLeft: "8px",
+    flex: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+  },
 
   largeButton: {
     gridRow: "span 3",
@@ -62,7 +69,6 @@ const useStyles = makeStyles({
     textAlign: "center",
     width: "100%",
   },
-
 });
 
 export const RibbonGroup: React.FC<{ label: string; children?: React.ReactNode }> = ({ label, children }) => {
@@ -80,29 +86,28 @@ export const RibbonGroup: React.FC<{ label: string; children?: React.ReactNode }
 
 
 export const RibbonSmallButton: React.FC<{
-  icon: Slot<"span">;
+  icon: React.ReactNode;
   label: string;
   onClick?: () => void;
-  tipContent?: string
-}> = ({icon, label, onClick, tipContent }) => {
+  tipContent?: string;
+}> = ({ icon, label, onClick, tipContent }) => {
   const styles = useStyles();
-  const button = 
-    <Button
-      onClick={onClick}
-      appearance="subtle"
-      icon={icon}
-      className={styles.smallButtonText}
-    >
-      <Text size={200}>{label}</Text>
-    </Button>;
 
-  return (
-    tipContent ? 
-    
-      <Tooltip content={tipContent} relationship="description">
-        {button}
-      </Tooltip>
-    : button
+  const button = (
+    <Button onClick={onClick} appearance="subtle">
+      <span className={styles["small-icon-container"]}>{icon}</span>
+      <span className={styles["small-label-text"]}>
+        <Text size={200}>{label}</Text>
+      </span>
+    </Button>
+  );
+
+  return tipContent ? (
+    <Tooltip content={tipContent} relationship="description">
+      {button}
+    </Tooltip>
+  ) : (
+    button
   );
 };
 

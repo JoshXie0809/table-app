@@ -16,6 +16,7 @@ import { SystemQuickEdit } from "./my-components-v1/sheetView/canvas-table-v1.1/
 import { PointerStateManager } from "./my-components-v1/pointer-state-manager/PointerStateManger.ts";
 import { ButtonSQL } from "./my-components-v1/button-toolbox/button-sql-tool/ButtonSQL.tsx";
 import { loadCellPluginCellMetaMap } from "./tauri-api/loadAllCellPluginCellMetaMap.ts";
+import { ButtonSaveSheet } from "./my-components-v1/button-toolbox/ButtonSaveSheet.tsx";
 
 export const useStyles = makeStyles({
   root: {
@@ -50,8 +51,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    async function fetch(sheetName: string) {
-      const arg: LoadSheetRequest = { sheetName };
+    async function fetch(sheetPath: string) {
+      const arg: LoadSheetRequest = { sheetPath };
       const test = await loadSheet(arg);
       const cellMetaMap = await loadCellPluginCellMetaMap();
       if (test.data && cellMetaMap.data) {
@@ -61,11 +62,11 @@ function App() {
       }
       const css_map = await loadCellPluginCssMap();
       if (css_map.data) injectCellPluginCSS(css_map.data);
-
     }
+
     if(sheetName)
       fetch(sheetName);
-
+    console.log(vcRef);
   }, [sheetName]);
 
   return (
@@ -73,8 +74,9 @@ function App() {
       <div className={styles.root}>
         <CustomTitleBar /> 
         <ButtonToolBox>
-          <RibbonGroup label="檔案讀取">
+          <RibbonGroup label="檔案">
             <ButtonLoadSheet setSheetName={setSheetName} setVCReady={setVirtualCellsReady} />
+            <ButtonSaveSheet />
           </RibbonGroup>
 
           <RibbonGroup label="SQL 工具">

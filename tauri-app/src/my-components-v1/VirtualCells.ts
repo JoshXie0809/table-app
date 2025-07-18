@@ -14,6 +14,7 @@ export class VirtualCells implements IVirtualCells {
   colHeaderMap: Map<string, CellContent> = new Map();
   cellMetaMap: Map<string, CellMeta | undefined>;
   validatorMap = new Map<string, ValidateFunction>();
+  sheetPath: string;
   private ajv: Ajv;
   private dirtyCells: Set<string> = new Set();
   constructor(
@@ -26,7 +27,9 @@ export class VirtualCells implements IVirtualCells {
     rowHeader: [string, CellContent][],
     colHeader: [string, CellContent][],
     cellMetaMap: CellMetaMap,
+    sheetPath: string,
   ) {
+    this.sheetPath = sheetPath;
     cells.forEach(cell => this.cellsMap.set(cell[0], cell[1]));
     rowHeader.forEach(cell => this.rowHeaderMap.set(cell[0], cell[1]));
     colHeader.forEach(cell => this.colHeaderMap.set(cell[0], cell[1]));
