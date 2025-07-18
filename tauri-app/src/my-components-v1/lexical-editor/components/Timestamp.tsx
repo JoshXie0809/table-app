@@ -5,7 +5,7 @@ import { useLexicalStyles } from "../LexicalEditor";
 export function TimestampComponent({ initialTimestamp }: { initialTimestamp?: string }) {
   const styles = useLexicalStyles();
   const instant = useNowTime();
-
+  console.log(initialTimestamp)
   // const jsDate = new Date(instant.epochMilliseconds); // ✅ JS Date 物件
   // const formatter = new Intl.DateTimeFormat("en-US", {
   //   weekday: "long",

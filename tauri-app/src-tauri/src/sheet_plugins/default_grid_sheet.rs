@@ -153,7 +153,7 @@ mod tests {
         println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     }
 
-    use crate::cell_plugins::null_cell::NullCellPlugin;
+    use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::io::loader::load_zip_file;
     use crate::io::saver::save_to_zip_file;
@@ -162,14 +162,12 @@ mod tests {
 
     #[test]
     fn test_default_grid_plugin_to_file() -> Result<(), String> {
-        let ncp = NullCellPlugin;
-
-        let cell_config = ncp.default_cell_config();
-        let mut cell_content = ncp.to_cell_content(cell_config)?;
+        let tcp = TextCellPlugin;
+        let cell_config = tcp.default_cell_config();
+        let mut cell_content = tcp.to_cell_content(cell_config)?;
         let default_cell_content = cell_content.clone();
 
         cell_content.payload.value = json!("");
-
         // 1. 準備一個 plugin config
         let config = DefaultGridSheetConfig {
             meta: BaseSheet {
@@ -178,15 +176,15 @@ mod tests {
                 sheet_name: "測試用表".to_string(),
                 has_col_header: false,
                 has_row_header: false,
-                row_count: 1024,
-                col_count: 64,
+                row_count: 10240,
+                col_count: 640,
                 cell_width: 160,
                 cell_height: 52,
                 default_cell_content: default_cell_content,
             },
             cells: {
                 let mut map = HashMap::new();
-                for r in 0..1000_u32 {
+                for r in 0..10_u32 {
                     for c in 0..5_u32 {
                         let k = format!("{},{}", r, c);
                         let v = format!("zzz-{}", k);

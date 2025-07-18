@@ -169,7 +169,6 @@ pub fn save_sheet_append_cells(path: &str, cells: Vec<ICell>)
         let zip_file = File::open(path)?;
         let mut archive = ZipArchive::new(zip_file)?;
         let mut duckdb_entry = archive.by_name("data.duckdb")?;
-
         let mut temp_db_file = NamedTempFile::new()?;
         std::io::copy(&mut duckdb_entry, &mut temp_db_file)?;
 
@@ -197,6 +196,8 @@ pub fn save_sheet_append_cells(path: &str, cells: Vec<ICell>)
             }  
             tx.commit()?;
             // conn 和 tx 在此 scope 結束時自動 drop，關閉 DB 連線
+            // 清除快照
+            conn.execute_batch("CHECKPOINT;")?; 
         }
 
         // 回傳暫存 DB 的路徑。

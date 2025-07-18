@@ -66,6 +66,10 @@ function App() {
 
     if(sheetName)
       fetch(sheetName);
+
+    return () => {
+      vcRef.current = null;
+    }
   }, [sheetName]);
 
   return (
