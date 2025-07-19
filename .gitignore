@@ -27,6 +27,12 @@ tauri-app/src-tauri/target
 tauri-app/src-tauri/.cargo
 tauri-app/src-tauri/Cargo.lock
 
+# === Data File ===
+*.csv
+*.sqlite
+*.duckdb
+*.db
+
 # === Editor / OS junk ===
 .vscode/
 !.vscode/extensions.json

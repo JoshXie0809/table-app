@@ -5,10 +5,6 @@ import { Toast, Toaster, ToastTitle, useId, useToastController } from "@fluentui
 import { LogicalPosition, Window } from "@tauri-apps/api/window";
 
 const label = `window-sql-tool`;
-
-
-  
-
 async function openNewWindow(dispatchToast: (content: React.ReactNode, options?: any) => void) {
   const mainWindow = await Window.getByLabel("main");
   const size = await mainWindow?.innerSize();
@@ -32,10 +28,6 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
     )
     return;
   }
-
-  
-  
-
   const win = new WebviewWindow(label, {
     url: `src/windows/sql.html`,
     width,
@@ -45,7 +37,6 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
     x, 
     y
   });
-
   win.once('tauri://created', () => {
     const notify = () => {
       dispatchToast(
@@ -57,7 +48,6 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
     }
     notify()
   });
-
   win.once('tauri://error', (e) => {
     
     const notify = () => {
@@ -83,7 +73,6 @@ export const ButtonSQL = () => {
         label="SQL"
         onClick={() => openNewWindow(dispatchToast)}
       />
-    </>
-    
+    </>   
   )
 }

@@ -1,27 +1,25 @@
+pub mod sql;
+
 use std::error::Error;
-use duckdb::{polars::{error::PolarsResult, frame::DataFrame, prelude::{AnyValue, SchemaExt}, series::ChunkCompareEq}, Connection};
+use duckdb::{polars::{error::PolarsResult, frame::DataFrame, prelude::{AnyValue, SchemaExt}}, Connection};
 use serde_json::{Value as JsonValue};
 
-fn reduce_vstack(dfs: Vec<DataFrame>) -> PolarsResult<DataFrame> {
+pub fn reduce_vstack(dfs: Vec<DataFrame>) -> PolarsResult<DataFrame> {
     let mut base = DataFrame::default();
-    
     for df in dfs {
         base.vstack_mut(&df)?;
     }
-
     Ok(base)
 }
 
 pub fn query_all_as_polars_df(path: &str, sql: &str) -> Result<(), Box<dyn Error>> {
     let conn: Connection = Connection::open(path)?;
-
     let pls: Vec<DataFrame> = conn
         .prepare(sql)?
         .query_polars([])?
         .collect();
 
     // println!("{:#?}", pls);
-
     let pl = reduce_vstack(pls)?;
 
     for field in pl.schema().iter_fields() {
@@ -51,7 +49,6 @@ pub fn query_all_as_polars_df(path: &str, sql: &str) -> Result<(), Box<dyn Error
     Ok(())
 }
 
-
 fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn Error>> {
     let conn = Connection::open_in_memory()?; // 或用你自己的 .duckdb
 
@@ -75,7 +72,6 @@ fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn 
     // let mask = pl.column("game")?.str()?.equal("Game1");
     // let filtered = pl.filter(&mask)?;
 
-    
     let cols = ["game", "push"];
     let gb = pl.group_by(cols)?;
     
@@ -93,11 +89,9 @@ fn read_sqlite_via_duckdb(sqlite_path: &str, table: &str) -> Result<(), Box<dyn 
     //         println!("group {name:?}:\n{subdf:?}");
     //     }
     // }
-
     
     Ok(())
 }
-
 
 fn convert_any_value_to_json_value(av: AnyValue) -> JsonValue {
     match av {

@@ -5,21 +5,22 @@ import { RibbonGroup, RibbonSmallButton } from "../my-components-v1/button-toolb
 import { BsDatabaseAdd } from "react-icons/bs";
 import LuaRunner from "../my-components-v1/lua/LuaRunner";
 // import { MyTiptapEditor } from "../my-components-v1/tiptap-editor/TipTap";
-
 import "./SQLApp.css"
 import { MyLexicalEditor } from "../my-components-v1/lexical-editor/LexicalEditor";
 
 export const SQLApp = () => {
   const styles = useStyles();
-
   return (
     <FluentProvider theme={webLightTheme}>
       <div className={styles.root}>
         <ButtonToolBox>
-          <RibbonGroup label="子視窗測試">
-            <RibbonSmallButton icon={<BsDatabaseAdd size={32}/>} 
+          <RibbonGroup label="檔案">
+            <RibbonSmallButton 
+              icon={<BsDatabaseAdd size={32}/>} 
               label="加載" 
-              onClick={() => confirm("開啟檔案")}/>
+              onClick={() => confirm("開啟檔案")}
+              tipContent="開啟 .db .sqlite .duckdb 連線"
+            />  
           </RibbonGroup>
         </ButtonToolBox>
 
