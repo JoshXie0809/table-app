@@ -17,6 +17,7 @@ import { PointerStateManager } from "./my-components-v1/pointer-state-manager/Po
 import { ButtonSQL } from "./my-components-v1/button-toolbox/button-sql-tool/ButtonSQL.tsx";
 import { loadCellPluginCellMetaMap } from "./tauri-api/loadAllCellPluginCellMetaMap.ts";
 import { ButtonSaveSheet } from "./my-components-v1/button-toolbox/ButtonSaveSheet.tsx";
+import { ButtonLexicalTextEditor } from "./my-components-v1/button-toolbox/button-editor-tool/ButtonEditor.tsx";
 
 export const useStyles = makeStyles({
   root: {
@@ -85,6 +86,11 @@ function App() {
           <RibbonGroup label="SQL 工具">
             <ButtonSQL />
           </RibbonGroup>
+
+          <RibbonGroup label="文字編輯器">
+            <ButtonLexicalTextEditor />
+          </RibbonGroup>
+
         </ButtonToolBox>
 
         <main className={styles.content}
@@ -101,7 +107,6 @@ function App() {
           }
         </main>
       </div>
-
       <div id="canvas-table-quickEdit-portal-root" />
     </FluentProvider>
   );

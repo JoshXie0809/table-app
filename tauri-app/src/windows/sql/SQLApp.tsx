@@ -1,12 +1,10 @@
 import { FluentProvider, webLightTheme } from "@fluentui/react-components";
-import { useStyles } from "../App";
-import { ButtonToolBox } from "../my-components-v1/button-toolbox/ButtonToolBox";
-import { RibbonGroup, RibbonSmallButton } from "../my-components-v1/button-toolbox/RibbonGroup";
+import { useStyles } from "../../App";
+import { ButtonToolBox } from "../../my-components-v1/button-toolbox/ButtonToolBox";
+import { RibbonGroup, RibbonSmallButton } from "../../my-components-v1/button-toolbox/RibbonGroup";
 import { BsDatabaseAdd } from "react-icons/bs";
-import LuaRunner from "../my-components-v1/lua/LuaRunner";
-// import { MyTiptapEditor } from "../my-components-v1/tiptap-editor/TipTap";
+import LuaRunner from "../../my-components-v1/lua/LuaRunner";
 import "./SQLApp.css"
-import { MyLexicalEditor } from "../my-components-v1/lexical-editor/LexicalEditor";
 
 export const SQLApp = () => {
   const styles = useStyles();
@@ -26,8 +24,6 @@ export const SQLApp = () => {
 
         <main className={styles.content}>
           <div style={{overflow: "auto"}}>
-            {/* <MyTiptapEditor /> */}
-            <MyLexicalEditor />
             <h1>vm</h1>
             <LuaRunner />
           </div>

@@ -1,10 +1,10 @@
 import { RibbonLargeButton } from "../RibbonGroup"
-import { BsDatabaseFill } from "react-icons/bs";
+import { BsFileTextFill  } from "react-icons/bs";
 import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { Toast, Toaster, ToastTitle, useId, useToastController } from "@fluentui/react-components";
 import { LogicalPosition, Window } from "@tauri-apps/api/window";
 
-const label = `window-sql-tool`;
+const label = `window-lexical-rich-text-editor`;
 async function openNewWindow(dispatchToast: (content: React.ReactNode, options?: any) => void) {
   const mainWindow = await Window.getByLabel("main");
   const size = await mainWindow?.innerSize();
@@ -22,18 +22,18 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
     await sqlWindow.setFocus();
     dispatchToast(
       <Toast>
-        <ToastTitle>SQL工具頁面已經存在</ToastTitle>
+        <ToastTitle>文字編輯器頁面已經存在</ToastTitle>
       </Toast>,
       {intent: "info"}
     )
     return;
   }
   const win = new WebviewWindow(label, {
-    url: `src/windows/sql/sql.html`,
+    url: "/src/windows/editor/editor.html",
     width,
     height,
     resizable: true,
-    title: `SQL 工具`,
+    title: "文字編輯器",
     x, 
     y
   });
@@ -41,7 +41,7 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
     const notify = () => {
       dispatchToast(
         <Toast>
-          <ToastTitle>SQL工具頁面成功開啟</ToastTitle>
+          <ToastTitle>文字編輯器頁面成功開啟</ToastTitle>
         </Toast>,
         {intent: "success"}
       )
@@ -62,15 +62,15 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
   });
 }
 
-export const ButtonSQL = () => {
+export const ButtonLexicalTextEditor = () => {
   const toasterId = useId(`${label}-open-toaster`)
   const { dispatchToast } = useToastController(toasterId);
   return(
     <>
       <Toaster toasterId={toasterId} />
       <RibbonLargeButton
-        icon={<BsDatabaseFill size={52} color="rgba(180, 189, 221, 1)"/>}
-        label="SQL"
+        icon={<BsFileTextFill size={52} />}
+        label="編輯器"
         onClick={() => openNewWindow(dispatchToast)}
       />
     </>   

@@ -39,7 +39,8 @@ export default defineConfig(async () => ({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
-        sql: resolve(__dirname, 'src/windows/sql.html') 
+        sql: resolve(__dirname, 'src/windows/sql/sql.html'),
+        editor: resolve(__dirname, 'src/windows/editor/editor.thml')
       }
     }
   }
