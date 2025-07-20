@@ -80,8 +80,23 @@ mod tests {
             let rb = conn.table_info(&table)?;
             if let Some(batches) = rb {
                 let schema = batches[0].schema();
-                let table = arrow::compute::concat_batches(&schema, &batches)?;
+                let mut buffer = Vec::with_capacity(1024); 
+                {
+                    let mut writer = 
+                        arrow::ipc::writer::StreamWriter::try_new(&mut buffer, &schema)?;
+                    for batch in &batches {
+                        writer.write(batch)?;
+                    }
+                }
                 println!("{table:#?}");
+                {
+                    let mut cursor = std::io::Cursor::new(&buffer);
+                    let reader = arrow::ipc::reader::StreamReader::try_new(&mut cursor, None)?;
+                    for maybe_batch in reader {
+                        let batch = maybe_batch?;
+                        println!("{batch:#?}");
+                    }
+                }
             }
         }
         Ok(())

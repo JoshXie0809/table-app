@@ -12,3 +12,8 @@ export function sqlListTable(arg: SQLConnectRequest) : Promise<TauriApiResponse<
 {
   return invoke("sql_list_table", { arg } );
 }
+
+export function sqlTableInfo(arg: SQLConnectRequest) : Promise<ArrayBuffer>
+{
+  return invoke("sql_table_info", { arg } );
+}
