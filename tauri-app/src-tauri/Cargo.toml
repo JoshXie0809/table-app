@@ -20,6 +20,7 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 plugin-core = { path = "../../plugin-core" }
 plugin-macros = { path = "../../plugin-macros" }
+sql-tool = { path = "../../sql-tool" }
 tauri = { version = "2.5.1", features = [] }
 tauri-plugin-opener = "2"
 serde = { workspace = true }

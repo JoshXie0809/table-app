@@ -32,6 +32,9 @@ tauri-app/src-tauri/Cargo.lock
 *.sqlite
 *.duckdb
 *.db
+*.arrows
+*.arrow
+*.parquet
 
 # === Editor / OS junk ===
 .vscode/
