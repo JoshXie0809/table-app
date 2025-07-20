@@ -5,9 +5,23 @@ import { RibbonGroup, RibbonSmallButton } from "../../my-components-v1/button-to
 import { BsDatabaseAdd } from "react-icons/bs";
 import LuaRunner from "../../my-components-v1/lua/LuaRunner";
 import "./SQLApp.css"
+import { useEffect } from "react";
+import { sqlConnect, sqlListTable } from "../../tauri-api/sqlConnection";
 
 export const SQLApp = () => {
   const styles = useStyles();
+  useEffect(() => {
+    const fetch = async () => {
+      const path = "C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/data.duckdb";
+      let result = await sqlConnect({ path });
+      if (!result.success) return;
+      let tables = await sqlListTable({ path });
+      console.log(tables);
+    }
+
+    fetch();
+  }, [])
+
   return (
     <FluentProvider theme={webLightTheme}>
       <div className={styles.root}>

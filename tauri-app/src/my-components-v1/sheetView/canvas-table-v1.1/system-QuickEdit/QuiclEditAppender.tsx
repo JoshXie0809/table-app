@@ -47,6 +47,9 @@ class QuickEditAppender {
     const key = vc.toKey(row, col);
     this.appender.delete(key)
   }
+  deleteAllCell() {
+    this.appender.clear();
+  }
   getAllCellOnSave(vc: VirtualCells): ICell[]
   {
     const arr: ICell[] = [];
@@ -119,7 +122,7 @@ export function useQuickEditAppender()
   }, []);
 
   useEffect(() => {
-    const sub = fileSaveRequest$.subscribe(() => {
+    const sub = fileSaveRequest$.subscribe(async () => {
       const cellsRefBundle = getRef("cells");
       if(cellsRefBundle === undefined) return;
       const cellsVC = cellsRefBundle.vcRef.current;
@@ -128,7 +131,8 @@ export function useQuickEditAppender()
       if(qea === null) return;
       const cells = qea.getAllCellOnSave(cellsVC);
       const sheetPath = cellsVC.sheetPath;
-      saveSheet({cells, sheetPath});
+      let res = await saveSheet({cells, sheetPath});
+      if(res.success) qea.deleteAllCell();
     })
     return () => sub.unsubscribe()
   }, [])
