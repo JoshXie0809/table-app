@@ -21,6 +21,7 @@ const useArrowTableStyles = makeStyles({
     minWidth: "160px",
   },
   tableHeader: {
+    display: "grid",
     backgroundColor: tokens.colorNeutralBackground2,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
   },
@@ -30,22 +31,34 @@ const useArrowTableStyles = makeStyles({
     paddingTop: "6px",
     paddingBottom: "6px",
     fontWeight: "bolder", // 圖片中的表頭文字沒有粗體
-    fontSize: "13px",
+    fontSize: "14px",
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
     "&:first-of-type > div" : {
       display: "flex",
       justifyContent: "end",
     }
   },
+  tableBody: {
+    display: "grid",
+    position: "relative",
+  },
   tableRow: {
+    display: "flex",
+    width: "100%",
+    borderBottom: "none",
+  },
+  virtualRow: {
+    display: "flex",
+    width: "100%",
     // 新增第一欄 (Row Number) 的特殊樣式
     "& > td:first-of-type": {
       backgroundColor: tokens.colorNeutralBackground2,
       color: tokens.colorBrandForeground1,
-      fontWeight: "bold",
-      textAlign: "right",
+      justifyContent: "end",
+      fontWeight: "bolder",
       paddingRight: "10px",
-      borderRight: `1px solid ${tokens.colorNeutralStroke1}`
+      borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+      fontSize: "12px",
     },
     "&:last-of-type": {
       borderBottom: "none"
@@ -57,11 +70,13 @@ const useArrowTableStyles = makeStyles({
     paddingTop: "6px",
     paddingBottom: "6px",
     textAlign: "left",
-    fontSize: "13px",
+    fontSize: "14px",
     whiteSpace: "nowrap", // 避免內文換行
     overflow: "hidden",
     textOverflow: "ellipsis", // 超出範圍時顯示...
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    display: "flex",
+    alignItems: "center",
   },
   nullValue: {
     color: tokens.colorPaletteRedForeground3,
@@ -94,7 +109,7 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
       <Table className={styles.table}>
         <TableHeader className={styles.tableHeader}>
             {tableInstance.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className={styles.tableRow}>
                 {headerGroup.headers.map(header => (
                   <TableHeaderCell 
                     key={header.id} colSpan={header.colSpan} className={styles.tableHeaderCell}
@@ -113,9 +128,9 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
               </TableRow>
             ))}
         </TableHeader>
-        <TableBody>
+        <TableBody className={styles.tableBody}>
           {tableInstance.getRowModel().rows.map(row => (
-            <TableRow key={row.id} className={styles.tableRow}>
+            <TableRow key={row.id} className={styles.virtualRow}>
               {row.getVisibleCells().map(cell => (
                 <TableCell key={cell.id} 
                   className={styles.tableCell} 
@@ -135,7 +150,7 @@ function tableToObjects(table: ATable): Record<string, any>[] {
   const rows = [];
   let counter = 0;
   for(const row of table.toArray()) {
-    if(++counter > 150) break;
+    if(++counter > 50) break;
     rows.push(row.toJSON())
   }
   return rows;
