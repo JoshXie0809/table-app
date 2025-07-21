@@ -61,6 +61,7 @@ impl MyConnection {
         let conn = &self.conn;
         let id = self.index;
         let sql = format!("pragma table_info('db_{id}.{table_name}')");
+        // let sql = format!("select * from db_{id}.{table_name}");
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn.prepare(&sql)?.query_arrow([])?.collect();
         conn.execute_batch("CHECKPOINT;")?;
         if record_batchs.len() == 0 { return  Ok(None); }

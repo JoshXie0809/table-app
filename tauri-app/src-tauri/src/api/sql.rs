@@ -12,8 +12,8 @@ pub fn sql_connect(arg: SQLConnectRequest)
     let conn_res = sql_tool::sql::conn::MyConnection::new(&path)
         .map_err(|e| e.to_string());
     match conn_res {
-        Ok(_conn) => ApiResponse { success: true, data: None, error: None },
-        Err(err) => ApiResponse { success: false, data: None, error: Some(err) },
+        Ok(_conn) => ApiResponse::success(None),
+        Err(err) => ApiResponse::error(err),
     }
 }
 
@@ -25,13 +25,13 @@ pub fn sql_list_table(arg: SQLConnectRequest) -> ApiResponse<Vec<String>>
         .map_err(|e| e.to_string());
     let conn = match conn_res {
         Ok(conn) => conn,
-        Err(err) => return ApiResponse { success: false, data: None, error: Some(err) },
+        Err(err) => return ApiResponse::error(err),
     };
     let table_names = match conn.list_tables() {
         Ok(names) => names,
-        Err(err) => return ApiResponse { success: false, data: None, error: Some(err.to_string()) },
+        Err(err) => return ApiResponse::error(err.to_string()),
     };
-    ApiResponse { success: true, data: Some(table_names), error: None }
+    ApiResponse::success(Some(table_names))
 }
 
 #[command]
