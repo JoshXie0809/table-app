@@ -31,7 +31,7 @@ export const SQLApp = () => {
   }, [])
 
   return (
-    <FluentProvider theme={webLightTheme}>
+    <FluentProvider theme={webDarkTheme}>
       <div className={styles.root}>
         <ButtonToolBox>
           <RibbonGroup label="檔案">

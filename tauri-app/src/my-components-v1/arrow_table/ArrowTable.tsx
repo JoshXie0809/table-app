@@ -1,8 +1,13 @@
 import { Table as ATable} from "apache-arrow";
-import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, useReactTable, } from "@tanstack/react-table";
-import { useMemo } from "react";
-import { makeStyles, shorthands, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
+import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
+import { useMemo, useRef } from "react";
+import { makeStyles, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
 import { MdNumbers } from "react-icons/md";
+import {
+  useVirtualizer,
+  VirtualItem,
+  Virtualizer,
+} from '@tanstack/react-virtual'
 
 const useArrowTableStyles = makeStyles({
   container: {
@@ -13,6 +18,7 @@ const useArrowTableStyles = makeStyles({
     border : `1px solid ${tokens.colorNeutralStroke1}`,
     borderRadius: "8px",
     fontFamily: "'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace", // 使用等寬字體更像IDE
+    position: "relative",
   },
   table: {
     borderCollapse: "collapse",
@@ -24,6 +30,11 @@ const useArrowTableStyles = makeStyles({
     display: "grid",
     backgroundColor: tokens.colorNeutralBackground2,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
+    position: "sticky",
+    top: "0px",
+    left: "0px",
+    willChange: "transform",
+    zIndex: 1,
   },
   tableHeaderCell: {
     paddingLeft: "8px",
@@ -42,14 +53,17 @@ const useArrowTableStyles = makeStyles({
     display: "grid",
     position: "relative",
   },
-  tableRow: {
+  headerRow: {
     display: "flex",
     width: "100%",
     borderBottom: "none",
   },
   virtualRow: {
     display: "flex",
-    width: "100%",
+    position: "absolute",
+    top: "0px",
+    left: "0px",
+    willChange: "transform",
     // 新增第一欄 (Row Number) 的特殊樣式
     "& > td:first-of-type": {
       backgroundColor: tokens.colorNeutralBackground2,
@@ -65,6 +79,7 @@ const useArrowTableStyles = makeStyles({
     }
   },
   tableCell: {
+    boxSizing: "border-box",
     paddingLeft: "8px",
     paddingRight: "8px",
     paddingTop: "6px",
@@ -72,11 +87,14 @@ const useArrowTableStyles = makeStyles({
     textAlign: "left",
     fontSize: "14px",
     whiteSpace: "nowrap", // 避免內文換行
-    overflow: "hidden",
-    textOverflow: "ellipsis", // 超出範圍時顯示...
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     display: "flex",
     alignItems: "center",
+    "& > span": {
+      overflow: "hidden",
+      textOverflow: "ellipsis", // 超出範圍時顯示...
+    }
   },
   nullValue: {
     color: tokens.colorPaletteRedForeground3,
@@ -94,6 +112,7 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
   table,
 }) => 
 {
+  const tableContainerRef = useRef<HTMLDivElement>(null);
   const styles = useArrowTableStyles();
   const tableObj = useMemo(() => tableToObjects(table), [table]);
   const columns = useMemo(() => inferColumnsFromTable(table, styles), [table, styles]);
@@ -103,13 +122,26 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
+  const { rows } = useMemo(() => tableInstance.getRowModel(), [tableInstance]);
+  const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
+    count: rows.length,
+    estimateSize: () => 44, //estimate row height for accurate scrollbar dragging
+    getScrollElement: () => tableContainerRef.current,
+    //measure dynamic row height, except in firefox because it measures table border height incorrectly
+    measureElement:
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? element => element?.getBoundingClientRect().height
+        : undefined,
+    overscan: 16,
+  })
 
   return (
-    <div id="arrow-table-container" className={styles.container}>
+    <div id="arrow-table-container" className={styles.container} ref={tableContainerRef}>
       <Table className={styles.table}>
         <TableHeader className={styles.tableHeader}>
             {tableInstance.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id} className={styles.tableRow}>
+              <TableRow key={headerGroup.id} className={styles.headerRow}>
                 {headerGroup.headers.map(header => (
                   <TableHeaderCell 
                     key={header.id} colSpan={header.colSpan} className={styles.tableHeaderCell}
@@ -128,18 +160,27 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
               </TableRow>
             ))}
         </TableHeader>
-        <TableBody className={styles.tableBody}>
-          {tableInstance.getRowModel().rows.map(row => (
-            <TableRow key={row.id} className={styles.virtualRow}>
-              {row.getVisibleCells().map(cell => (
-                <TableCell key={cell.id} 
-                  className={styles.tableCell} 
-                  style={{ width: cell.column.getSize() }} >
-                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
+        <TableBody className={styles.tableBody} style={{ height: rowVirtualizer.getTotalSize() }}>
+          {
+            rowVirtualizer.getVirtualItems().map(item => {
+              const row = rows[item.index] as Row<any>
+              return (
+                <TableRow key={row.id} className={styles.virtualRow} 
+                  style={{ 
+                    transform: `translateY(${item.start}px)`, //this should always be a `style` as it changes on scroll
+                  }}
+                >
+                  {row.getVisibleCells().map(cell => (
+                    <TableCell key={cell.id} 
+                      className={styles.tableCell} 
+                      style={{ width: cell.column.getSize() }} >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )
+            })
+          }
         </TableBody>
       </Table>
     </div>
@@ -150,7 +191,7 @@ function tableToObjects(table: ATable): Record<string, any>[] {
   const rows = [];
   let counter = 0;
   for(const row of table.toArray()) {
-    if(++counter > 50) break;
+    if(++counter > 25000) break;
     rows.push(row.toJSON())
   }
   return rows;
