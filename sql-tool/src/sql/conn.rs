@@ -38,7 +38,7 @@ impl MyConnection {
         let conn = self.give_connection();
        // 取得 db 內所有的 table
         let sql = format!(
-            "select table_name from information_schema.tables where table_catalog = 'db_{}'",
+            "select table_name from information_schema.tables where table_catalog = 'db_{}';",
             self.index
         );
         let mut stmt = conn.prepare(&sql)?;
@@ -58,11 +58,24 @@ impl MyConnection {
         let table_names = self.list_tables()?;
         let is_contained = table_names.contains(&table_name.to_string());
         if !is_contained { return Ok(None); }
-        let conn = &self.conn;
+        let conn = self.give_connection();
+        // ✅ 啟用 SQLite scanner
+        conn.execute("INSTALL sqlite_scanner;", [])?;
+        conn.execute("LOAD sqlite_scanner;", [])?;
+        // ✅ 附加 SQLite 資料庫
+        let attach_sql: String = format!("ATTACH '{}' AS sqlite_db (TYPE SQLITE);", 
+            "C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/vote.sqlite"
+        );
+        conn.execute(&attach_sql, [])?;
         let id = self.index;
-        let sql = format!("pragma table_info('db_{id}.{table_name}')");
+        // let sql = format!("pragma table_info('db_{id}.{table_name}')");
         // let sql = format!("select * from db_{id}.{table_name}");
-        let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn.prepare(&sql)?.query_arrow([])?.collect();
+        let sql = format!("select * from sqlite_db.content_tbl limit 5000;");
+        let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
+            .prepare(&sql)?
+            .query_arrow([])?
+            .collect();
+        
         conn.execute_batch("CHECKPOINT;")?;
         if record_batchs.len() == 0 { return  Ok(None); }
         Ok(Some(record_batchs))
@@ -72,6 +85,15 @@ impl MyConnection {
 #[cfg(test)]
 mod tests {
     use crate::sql::conn::MyConnection;
+    #[test]
+    fn test2() -> Result<(), Box<dyn std::error::Error>>
+    {
+        let conn = MyConnection::new("../data.duckdb")?;
+        let rbs = conn.table_info("cells")?;
+        println!("{rbs:#?}");
+        Ok(())
+    }
+
     #[test]
     fn test() -> Result<(), Box<dyn std::error::Error>>
     {

@@ -1,4 +1,4 @@
-import { FluentProvider, Text, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider, Text, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useStyles } from "../../App";
 import { ButtonToolBox } from "../../my-components-v1/button-toolbox/ButtonToolBox";
 import { RibbonGroup } from "../../my-components-v1/button-toolbox/RibbonGroup";
@@ -44,9 +44,9 @@ export const SQLApp = () => {
             <Text>
               nowPath: {dbPath ? dbPath : "尚未連線"}
             </Text>
-            <ArrowTable table={table} />
-            <h1>vm</h1>
-            <LuaRunner />
+            {table ? <ArrowTable table={table} /> : null}
+            {/* <h1>vm</h1>
+            <LuaRunner /> */}
           </div>
         </main>
       </div>
