@@ -5,10 +5,7 @@ import { DirtyCellContentScheduler } from "./Dirty/DirtyCellContentScheduler";
 import { RefObject } from "react";
 import { IVirtualCells } from "../../IVirtualCells";
 import { tokens } from "@fluentui/react-components";
-
-
 export type TransSystemName = "cells" | "row-header" | "column-header" | "tlc";
-
 
 // render-manager
 export class RManager {

@@ -1,6 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { SQLConnectRequest } from "./types/SQLConnectRequest";
 import { TauriApiResponse } from "./api";
+import { SQLTableInfoRequest } from "./types/SQLTableInfoRequest";
 
 export function sqlConnect(arg: SQLConnectRequest) : Promise<TauriApiResponse<string>>
 {
@@ -13,7 +14,7 @@ export function sqlListTable(arg: SQLConnectRequest) : Promise<TauriApiResponse<
   return invoke("sql_list_table", { arg } );
 }
 
-export function sqlTableInfo(arg: SQLConnectRequest) : Promise<ArrayBuffer>
+export function sqlTableInfo(arg: SQLTableInfoRequest) : Promise<ArrayBuffer>
 {
   return invoke("sql_table_info", { arg } );
 }

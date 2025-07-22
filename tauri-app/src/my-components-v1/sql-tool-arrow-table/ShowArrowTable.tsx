@@ -109,11 +109,19 @@ const useArrowTableStyles = makeStyles({
   },
   nullValue: {
     color: tokens.colorPaletteRedForeground3,
+    backgroundColor: tokens.colorNeutralStroke3,
+    paddingRight: "2px",
+    paddingLeft: "2px",
+    borderRadius: "4px",
     fontStyle: "italic",
     fontWeight: "bold",
   },
   boolValue: {
-    color: tokens.colorPaletteBlueForeground2,
+    color: tokens.colorPaletteNavyBorderActive,
+    paddingRight: "2px",
+    paddingLeft: "2px",
+    borderRadius: "4px",
+    backgroundColor: tokens.colorNeutralStroke3,
     fontWeight: "bold",
   }
 });
@@ -123,7 +131,7 @@ export interface ArrowTableProps {
   table: ATable,
 }
 
-export const ArrowTable: React.FC<ArrowTableProps> = ({
+export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   table,
 }) => 
 {
@@ -139,7 +147,7 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
     columnResizeMode,
     getCoreRowModel: getCoreRowModel(),
   });
-  const { rows } = useMemo(() => tableInstance.getRowModel(), [tableInstance]);
+  const { rows } = useMemo(() => tableInstance.getRowModel(), [tableObj]);
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
     estimateSize: () => 44, //estimate row height for accurate scrollbar dragging
@@ -240,7 +248,7 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>): Colu
       {
         id: colName,
         header: colName,
-        size: 200,
+        size: 160,
         cell: info => {
           const value: any = info.getValue();
           if (value === null) return <span className={styles.nullValue}>{"<null>"}</span>;

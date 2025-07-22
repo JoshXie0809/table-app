@@ -35,13 +35,14 @@ pub fn sql_list_table(arg: SQLConnectRequest) -> ApiResponse<Vec<String>>
 }
 
 #[command]
-pub fn sql_table_info(arg: SQLConnectRequest) 
+pub fn sql_table_info(arg: SQLTableInfoRequest) 
     -> Result<tauri::ipc::Response, String>
 {
     let path = arg.path;
+    let table_name = arg.table_name;
     let conn = sql_tool::sql::conn::MyConnection::new(&path)
         .map_err(|e| e.to_string())?;
-    let batches = match conn.table_info("iris").map_err(|e| e.to_string())? {
+    let batches = match conn.table_info(&table_name).map_err(|e| e.to_string())? {
         Some(b) => b,
         None => return Err("there is no row in table_info".into())
     };
@@ -63,4 +64,12 @@ pub fn sql_table_info(arg: SQLConnectRequest)
 #[ts(export)]
 pub struct SQLConnectRequest {
     path: String
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct SQLTableInfoRequest {
+    path: String,
+    table_name: String,
 }

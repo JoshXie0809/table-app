@@ -1,13 +1,9 @@
 import { open } from "@tauri-apps/plugin-dialog";
 import { RibbonSmallButton } from "../RibbonGroup"
 import { BsDatabaseAdd } from "react-icons/bs";
+import { latestLoadDB$ } from "../../sql-tool-db-list/ListDB";
 
-export interface ButtonLoadDBProps {
-  setDBPath: React.Dispatch<React.SetStateAction<string | null>>  
-}
-export const ButtonLoadDB: React.FC<ButtonLoadDBProps> = ({ 
-  setDBPath
-}) => {
+export const ButtonLoadDB = () => {
     const onClick = async () => {
       const file = await open({
         title: "load database",
@@ -21,7 +17,7 @@ export const ButtonLoadDB: React.FC<ButtonLoadDBProps> = ({
         ],
       });
       if(file === null) return;
-      setDBPath(file);
+      latestLoadDB$.next(file);
     }
     
     return (
