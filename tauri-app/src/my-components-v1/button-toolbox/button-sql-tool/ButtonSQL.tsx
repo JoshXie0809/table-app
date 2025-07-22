@@ -9,7 +9,7 @@ async function openNewWindow(dispatchToast: (content: React.ReactNode, options?:
   const mainWindow = await Window.getByLabel("main");
   const size = await mainWindow?.innerSize();
   const position = await mainWindow?.innerPosition();
-  const width = 800;
+  const width = 1200;
   const height = 600;
   if(!size || !position ) return;
   const x = position.x + Math.round((size.width - width) / 2);

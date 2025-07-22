@@ -1,13 +1,10 @@
 import { Table as ATable} from "apache-arrow";
 import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { makeStyles, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
+import { ColumnResizeMode } from '@tanstack/react-table';
 import { MdNumbers } from "react-icons/md";
-import {
-  useVirtualizer,
-  VirtualItem,
-  Virtualizer,
-} from '@tanstack/react-virtual'
+import { useVirtualizer } from '@tanstack/react-virtual'
 
 const useArrowTableStyles = makeStyles({
   container: {
@@ -28,8 +25,6 @@ const useArrowTableStyles = makeStyles({
   },
   tableHeader: {
     display: "grid",
-    backgroundColor: tokens.colorNeutralBackground2,
-    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     position: "sticky",
     top: "0px",
     left: "0px",
@@ -42,11 +37,27 @@ const useArrowTableStyles = makeStyles({
     paddingTop: "6px",
     paddingBottom: "6px",
     fontWeight: "bolder", // 圖片中的表頭文字沒有粗體
-    fontSize: "14px",
+    fontSize: "15px",
+    backgroundColor: tokens.colorNeutralBackground2,
+    borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
+    position: "relative",
     "&:first-of-type > div" : {
-      display: "flex",
       justifyContent: "end",
+    }
+  },
+  headerSizer: {
+    position: "absolute",
+    right: "-13px",
+    top: "-6px",
+    cursor: "w-resize",
+    userSelect: "none",
+    zIndex: 1,
+    "&:hover": {
+      backgroundColor: "rgba(59, 182, 231, 0.24)",
+    },
+    "&:active": {
+      backgroundColor: "rgba(4, 53, 214, 0.56)",
     }
   },
   tableBody: {
@@ -72,7 +83,7 @@ const useArrowTableStyles = makeStyles({
       fontWeight: "bolder",
       paddingRight: "10px",
       borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
-      fontSize: "12px",
+      fontSize: "16px",
     },
     "&:last-of-type": {
       borderBottom: "none"
@@ -101,6 +112,10 @@ const useArrowTableStyles = makeStyles({
     fontStyle: "italic",
     fontWeight: "bold",
   },
+  boolValue: {
+    color: tokens.colorPaletteBlueForeground2,
+    fontWeight: "bold",
+  }
 });
 
 // 傳入 arrow Table 然後呈現一個 tanstack 表格
@@ -113,6 +128,7 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
 }) => 
 {
   const tableContainerRef = useRef<HTMLDivElement>(null);
+  const [columnResizeMode] = useState<ColumnResizeMode>('onChange');
   const styles = useArrowTableStyles();
   const tableObj = useMemo(() => tableToObjects(table), [table]);
   const columns = useMemo(() => inferColumnsFromTable(table, styles), [table, styles]);
@@ -120,6 +136,7 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
   const tableInstance = useReactTable({
     data: tableObj,
     columns,
+    columnResizeMode,
     getCoreRowModel: getCoreRowModel(),
   });
   const { rows } = useMemo(() => tableInstance.getRowModel(), [tableInstance]);
@@ -154,7 +171,15 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
                           header.column.columnDef.header,
                           header.getContext()
                         )
-                    }
+                    } 
+                    <div
+                      className={styles.headerSizer}
+                      style={{ minWidth: "10px", minHeight: "44px"}}
+                      {...{
+                        onMouseDown: header.getResizeHandler(),
+                        onTouchStart: header.getResizeHandler(),
+                      }}
+                    />
                   </TableHeaderCell>
                 ))}
               </TableRow>
@@ -174,7 +199,9 @@ export const ArrowTable: React.FC<ArrowTableProps> = ({
                     <TableCell key={cell.id} 
                       className={styles.tableCell} 
                       style={{ width: cell.column.getSize() }} >
+                      
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      
                     </TableCell>
                   ))}
                 </TableRow>
@@ -213,10 +240,12 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>): Colu
       {
         id: colName,
         header: colName,
-        size: 160,
+        size: 200,
         cell: info => {
           const value: any = info.getValue();
           if (value === null) return <span className={styles.nullValue}>{"<null>"}</span>;
+          // boolean
+          if (field.typeId === 6) return <span className={styles.boolValue}>{`${value}`}</span>;
           return <span>{ String(value) }</span>;
         },
         footer: () => <span>{colName}</span>

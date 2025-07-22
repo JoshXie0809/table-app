@@ -59,18 +59,9 @@ impl MyConnection {
         let is_contained = table_names.contains(&table_name.to_string());
         if !is_contained { return Ok(None); }
         let conn = self.give_connection();
-        // ✅ 啟用 SQLite scanner
-        conn.execute("INSTALL sqlite_scanner;", [])?;
-        conn.execute("LOAD sqlite_scanner;", [])?;
-        // ✅ 附加 SQLite 資料庫
-        let attach_sql: String = format!("ATTACH '{}' AS sqlite_db (TYPE SQLITE);", 
-            "C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/vote.sqlite"
-        );
-        conn.execute(&attach_sql, [])?;
         let id = self.index;
-        // let sql = format!("pragma table_info('db_{id}.{table_name}')");
+        let sql = format!("pragma table_info('db_{id}.{table_name}')");
         // let sql = format!("select * from db_{id}.{table_name}");
-        let sql = format!("select * from sqlite_db.content_tbl limit 5000;");
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
             .prepare(&sql)?
             .query_arrow([])?

@@ -110,7 +110,6 @@ export class VManager implements IVirtualizationManager {
   }
 
   setPoolInfo() {
-
     this.topRowIndex = this.nplctrler.pool.startRowIndex;
     this.leftColIndex = this.nplctrler.pool.startColIndex;
     this.bottomRowIndex = this.topRowIndex + this.nplctrler.pool.size - 1 ;
