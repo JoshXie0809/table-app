@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { Subject } from "rxjs";
 import { sqlListTable } from "../../tauri-api/sqlConnection";
 import { Root, createRoot }  from "react-dom/client"
-import { tokens, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { ListTable } from "./ListTable";
 import { SiDuckdb } from "react-icons/si";
 export const latestLoadDB$ = new Subject<string>();
@@ -24,12 +24,12 @@ export const ListDB: React.FC = () => {
       const root = rootRef.current;
       const keys = Array.from(dbMap.keys());
       root.render(
-        <Tree aria-label="database connections list" >
+        <Tree aria-label="database connections list">
           {
             keys.map((k) => (
                 <TreeItem key={k} itemType="branch">
                   <TreeItemLayout iconBefore={<SiDuckdb />}>
-                    {k}
+                    table
                   </TreeItemLayout>
                   <ListTable dbPath={k} tableList={dbMap.get(k)} />
                 </TreeItem>
@@ -54,13 +54,8 @@ export const ListDB: React.FC = () => {
   return (
     <div 
       id="sql-tool-db-connection-tree-list" 
-      ref={divRef} 
-      style={{ 
-        backgroundColor: tokens.colorNeutralBackground3,
-        borderRadius: "8px",
-        padding: "8px 16px",
-        width: "fit-content",
-      }}
+      ref={divRef}
+      style={{width: "100%", height: "100%", userSelect: "none"}}
     />
   )
 }

@@ -44,6 +44,10 @@ export const SetShowArrowTable: React.FC = () => {
   }, [])
 
   return(
-    <div id="sql-tool-show-arrow-table" ref={divRef}/>
+    <div 
+      id="sql-tool-show-arrow-table" 
+      ref={divRef} 
+      style={{ height: "100%", width: "100%", userSelect: "none"}} // 加這行
+    />
   )
 }

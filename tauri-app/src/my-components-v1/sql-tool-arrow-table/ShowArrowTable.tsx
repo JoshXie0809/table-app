@@ -8,8 +8,7 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 
 const useArrowTableStyles = makeStyles({
   container: {
-    minHeight: "200px",
-    maxHeight: "600px",
+    height: "100%",
     overflow: "auto",
     // 增加外框線以符合圖片的整體感
     border : `1px solid ${tokens.colorNeutralStroke1}`,
@@ -90,9 +89,6 @@ const useArrowTableStyles = makeStyles({
       borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
       fontSize: "16px",
     },
-    "&:last-of-type > td": {
-      borderBottom: "none"
-    }
   },
   tableCell: {
     boxSizing: "border-box",

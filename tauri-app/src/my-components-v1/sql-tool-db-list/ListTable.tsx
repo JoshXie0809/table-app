@@ -1,4 +1,4 @@
-import { Button, Tooltip, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { Button, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { showDBTable$ } from "../sql-tool-arrow-table/SetShowArrowTable";
 import { ImTable2 } from "react-icons/im";
 import { LuInfo } from "react-icons/lu";
@@ -26,7 +26,6 @@ export const ListTable: React.FC<ListTableProps> = ({
                 actions={{
                   visible: true,
                   children: (
-                    <Tooltip content="show the schema of table" relationship="description" mountNode={document.getElementById("sql-tool-page-portal-root")}>
                     <Button
                       icon={<LuInfo/>}
                       appearance="subtle"
@@ -38,10 +37,10 @@ export const ListTable: React.FC<ListTableProps> = ({
                           type: "TableInfo"
                         })}
                       }
+                      title="show the schema of table"
                     >
                       info
                     </Button>
-                    </Tooltip>
                   )
                 }}
                 onClick={() => {

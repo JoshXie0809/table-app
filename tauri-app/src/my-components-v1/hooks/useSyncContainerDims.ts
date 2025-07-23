@@ -13,13 +13,11 @@ export function useSyncContainerDims(
   startPollingIfDirty: () => void,
 ) {
   useEffect(() => {
-
     if (!containerRef.current) return;
     if (!vmRef.current || !rmRef.current || !vcRef.current) return;
     const vm = vmRef.current;
     const rm = rmRef.current;
     const vc = vcRef.current;
-
     // 先暫停輪詢 
     stopPolling();
     // resize 計算差異
