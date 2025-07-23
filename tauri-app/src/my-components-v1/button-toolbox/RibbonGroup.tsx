@@ -92,7 +92,6 @@ export const RibbonSmallButton: React.FC<{
   tipContent?: string;
 }> = ({ icon, label, onClick, tipContent }) => {
   const styles = useStyles();
-
   const button = (
     <Button onClick={onClick} appearance="subtle">
       <span className={styles["small-icon-container"]}>{icon}</span>

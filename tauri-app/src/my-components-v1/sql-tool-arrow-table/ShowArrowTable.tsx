@@ -42,6 +42,10 @@ const useArrowTableStyles = makeStyles({
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
     position: "relative",
+    "& > div > span": {
+      overflow: "hidden",
+      textOverflow: "ellipsis", // 超出範圍時顯示...
+    },
     "&:first-of-type > div" : {
       justifyContent: "end",
     }
@@ -75,6 +79,7 @@ const useArrowTableStyles = makeStyles({
     top: "0px",
     left: "0px",
     willChange: "transform",
+    borderBottom: "none",
     // 新增第一欄 (Row Number) 的特殊樣式
     "& > td:first-of-type": {
       backgroundColor: tokens.colorNeutralBackground2,
@@ -85,7 +90,7 @@ const useArrowTableStyles = makeStyles({
       borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
       fontSize: "16px",
     },
-    "&:last-of-type": {
+    "&:last-of-type > td": {
       borderBottom: "none"
     }
   },
@@ -108,20 +113,18 @@ const useArrowTableStyles = makeStyles({
     }
   },
   nullValue: {
-    color: tokens.colorPaletteRedForeground3,
-    backgroundColor: tokens.colorNeutralStroke3,
-    paddingRight: "2px",
-    paddingLeft: "2px",
+    backgroundColor: tokens.colorNeutralStroke2,
+    paddingRight: "4px",
+    paddingLeft: "4px",
     borderRadius: "4px",
     fontStyle: "italic",
     fontWeight: "bold",
   },
   boolValue: {
-    color: tokens.colorPaletteNavyBorderActive,
-    paddingRight: "2px",
-    paddingLeft: "2px",
+    paddingRight: "4px",
+    paddingLeft: "4px",
     borderRadius: "4px",
-    backgroundColor: tokens.colorNeutralStroke3,
+    backgroundColor: tokens.colorNeutralStroke2,
     fontWeight: "bold",
   }
 });
@@ -247,11 +250,11 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>): Colu
       row => row[colName], 
       {
         id: colName,
-        header: colName,
+        header: () => <span>{colName}</span>,
         size: 160,
         cell: info => {
           const value: any = info.getValue();
-          if (value === null) return <span className={styles.nullValue}>{"<null>"}</span>;
+          if (value === null) return <span className={styles.nullValue}>{"null"}</span>;
           // boolean
           if (field.typeId === 6) return <span className={styles.boolValue}>{`${value}`}</span>;
           return <span>{ String(value) }</span>;

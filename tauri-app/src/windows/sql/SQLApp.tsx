@@ -1,4 +1,4 @@
-import { FluentProvider, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { useStyles } from "../../App";
 import { ButtonToolBox } from "../../my-components-v1/button-toolbox/ButtonToolBox";
 import { RibbonGroup } from "../../my-components-v1/button-toolbox/RibbonGroup";
@@ -11,7 +11,7 @@ export const SQLApp = () => {
   const styles = useStyles();
 
   return (
-    <FluentProvider theme={webLightTheme}>
+    <FluentProvider theme={webLightTheme} applyStylesToPortals={true}>
       <div className={styles.root}>
         <ButtonToolBox>
           <RibbonGroup label="檔案">
@@ -26,6 +26,7 @@ export const SQLApp = () => {
           </div>
         </main>
       </div>
+      <div id="sql-tool-page-portal-root" />
     </FluentProvider>
   )
 }

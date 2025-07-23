@@ -40,7 +40,7 @@ export default defineConfig(async () => ({
       input: {
         main: resolve(__dirname, 'index.html'),
         sql: resolve(__dirname, 'src/windows/sql/sql.html'),
-        editor: resolve(__dirname, 'src/windows/editor/editor.thml')
+        editor: resolve(__dirname, 'src/windows/editor/editor.html')
       }
     }
   }
