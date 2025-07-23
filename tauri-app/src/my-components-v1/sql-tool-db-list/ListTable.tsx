@@ -1,5 +1,8 @@
-import { Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { Button, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { showDBTable$ } from "../sql-tool-arrow-table/SetShowArrowTable";
+import { ImTable2 } from "react-icons/im";
+import { LuInfo } from "react-icons/lu";
+
 export interface ListTableProps {
   dbPath: string,
   tableList: string[] | undefined,
@@ -17,12 +20,32 @@ export const ListTable: React.FC<ListTableProps> = ({
             <TreeItem 
               key={`#${index}--${value}`} 
               itemType="leaf"
-              onClick={() => showDBTable$.next({
-                dbPath,
-                tableName: value
-              })}
+              aria-description="the table of a db connection"
             >
-              <TreeItemLayout>
+              <TreeItemLayout iconBefore={<ImTable2 />} 
+                actions={
+                  <Button 
+                    icon={<LuInfo/>}
+                    appearance="subtle"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      showDBTable$.next({
+                        dbPath,
+                        tableName: value,
+                        type: "TableInfo"
+                      })}
+                    }
+                    title="show the schema of the table"
+                  >info</Button>
+                }
+                onClick={() => {
+                  showDBTable$.next({
+                    dbPath,
+                    tableName: value,
+                    type: "ShowAllTable"
+                  })
+                }}
+              >
                 {value}
               </TreeItemLayout>
             </TreeItem>

@@ -17,7 +17,7 @@ use crate::api::load_cell_plugin_css_map::load_cell_plugin_css_map;
 use crate::api::load_sheet::load_sheet;
 use crate::api::load_cell_plugin_cell_meta_map::load_cell_plugin_cell_meta_map;
 use crate::api::save_sheet::save_sheet;
-use crate::api::sql::{sql_connect, sql_list_table, sql_table_info};
+use crate::api::sql::{sql_connect, sql_list_table, sql_table_info, sql_show_all_table};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -38,6 +38,7 @@ pub fn run() {
             sql_connect,
             sql_list_table,
             sql_table_info,
+            sql_show_all_table,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

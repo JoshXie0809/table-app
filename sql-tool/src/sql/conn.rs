@@ -71,6 +71,25 @@ impl MyConnection {
         if record_batchs.len() == 0 { return  Ok(None); }
         Ok(Some(record_batchs))
     }
+
+    pub fn show_all_table(&self, table_name: &str)
+        -> Result<Option<Vec<arrow::record_batch::RecordBatch>>, Box<dyn std::error::Error>>
+    {
+        let table_names = self.list_tables()?;
+        let is_contained = table_names.contains(&table_name.to_string());
+        if !is_contained { return Ok(None); }
+        let conn = self.give_connection();
+        let id = self.index;
+        let sql = format!("select * from db_{id}.{table_name};");
+        let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
+            .prepare(&sql)?
+            .query_arrow([])?
+            .collect();
+        
+        conn.execute_batch("CHECKPOINT;")?;
+        if record_batchs.len() == 0 { return  Ok(None); }
+        Ok(Some(record_batchs))
+    }
 }
 
 #[cfg(test)]

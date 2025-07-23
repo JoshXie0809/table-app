@@ -59,6 +59,31 @@ pub fn sql_table_info(arg: SQLTableInfoRequest)
     Ok(tauri::ipc::Response::new( buffer ))
 }
 
+#[command]
+pub fn sql_show_all_table(arg: SQLTableInfoRequest) 
+    -> Result<tauri::ipc::Response, String>
+{
+    let path = arg.path;
+    let table_name = arg.table_name;
+    let conn = sql_tool::sql::conn::MyConnection::new(&path)
+        .map_err(|e| e.to_string())?;
+    let batches = match conn.show_all_table(&table_name).map_err(|e| e.to_string())? {
+        Some(b) => b,
+        None => return Err("there is no row in table_info".into())
+    };
+    let mut buffer = vec![];
+    let schema = match batches.get(0) {
+        Some(batch) => batch.schema(),
+        None => return Err("there is no row in table_info".into()),
+    };
+    let mut writer = arrow::ipc::writer::StreamWriter::try_new(&mut buffer, &schema)
+        .map_err(|err| err.to_string())?;
+    for batch in &batches {
+        writer.write(batch).map_err(|err| err.to_string())?;
+    }
+    Ok(tauri::ipc::Response::new( buffer ))
+}
+
 #[derive(Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]

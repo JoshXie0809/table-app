@@ -18,3 +18,8 @@ export function sqlTableInfo(arg: SQLTableInfoRequest) : Promise<ArrayBuffer>
 {
   return invoke("sql_table_info", { arg } );
 }
+
+export function sqlShowAllTable(arg: SQLTableInfoRequest) : Promise<ArrayBuffer>
+{
+  return invoke("sql_show_all_table", { arg } );
+}

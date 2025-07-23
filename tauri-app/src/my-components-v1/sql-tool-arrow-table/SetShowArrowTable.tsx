@@ -1,19 +1,29 @@
 import { useEffect, useRef } from "react";
 import { Subject } from "rxjs";
 import { Root, createRoot }  from "react-dom/client"
-import { sqlTableInfo } from "../../tauri-api/sqlConnection";
+import { sqlShowAllTable, sqlTableInfo } from "../../tauri-api/sqlConnection";
 import { ShowArrowTable } from "./ShowArrowTable";
 import { tableFromIPC } from "apache-arrow"
-export const showDBTable$ = new Subject<{dbPath: string, tableName: string}>();
+
+export type ShowType =
+  | "TableInfo"
+  | "ShowAllTable";
+
+export const showDBTable$ = new Subject<{dbPath: string, tableName: string, type: ShowType}>();
 export const SetShowArrowTable: React.FC = () => {
   const divRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<null | Root>(null);
   
   useEffect(() => {
     const sub = showDBTable$.subscribe(async ({
-      dbPath, tableName,
+      dbPath, tableName, type,
     }) => {
-      const bufferArray = await sqlTableInfo({path: dbPath, tableName});
+      let bufferArray;
+      if(type === "TableInfo")
+        bufferArray  = await sqlTableInfo({path: dbPath, tableName});
+      else if(type === "ShowAllTable")
+        bufferArray  = await sqlShowAllTable({path: dbPath, tableName});
+      if(bufferArray === undefined) return;
       const table = tableFromIPC(bufferArray);
       const divEl = divRef.current;
       if(divEl === null) return;
