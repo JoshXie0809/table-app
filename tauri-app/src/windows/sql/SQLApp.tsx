@@ -100,7 +100,7 @@ export const SQLApp = () => {
         {/* 使用 PanelGroup 取代原本的 main 容器 */}
         <PanelGroup direction="horizontal" className={styles.content}>
           {/* 左半邊 Panel */}
-          <Panel defaultSize={10} minSize={5} order={1}>
+          <Panel defaultSize={20} minSize={5} order={1}>
             <div className={`${styles.pane} ${styles.leftPaneContent}`}>
                 <ListDB />
             </div>
@@ -112,7 +112,7 @@ export const SQLApp = () => {
           </PanelResizeHandle>
 
           {/* 右半邊 Panel，內部再嵌套一個垂直的 PanelGroup */}
-          <Panel defaultSize={90} minSize={30} order={2}>
+          <Panel defaultSize={80} minSize={30} order={2}>
             <PanelGroup direction="vertical">
               {/* 右上: Code Editor */}
               <Panel defaultSize={60} minSize={5} order={1}>

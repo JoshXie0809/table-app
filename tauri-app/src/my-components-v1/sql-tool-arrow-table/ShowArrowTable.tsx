@@ -253,6 +253,15 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>): Colu
           if (value === null) return <span className={styles.nullValue}>{"null"}</span>;
           // boolean
           if (field.typeId === 6) return <span className={styles.boolValue}>{`${value}`}</span>;
+          // Timestamp (typeId = 15)
+          if (field.typeId === 8) {
+            const unit = (field.type as any).unit; // e.g. "MILLISECOND" or "MICROSECOND"
+            const ms = unit === "MICROSECOND" ? Number(value) / 1000 : Number(value);
+            const date = new Date(ms);
+            // 轉成 YYYY-MM-DD HH:mm:ss
+            const formatted = date.toISOString().split("T")[0];
+            return <span>{formatted}</span>;
+          }
           return <span>{ String(value) }</span>;
         },
         footer: () => <span>{colName}</span>

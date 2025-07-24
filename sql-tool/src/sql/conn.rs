@@ -11,6 +11,12 @@ pub struct MyConnection {
 static COUNT: AtomicU32 = AtomicU32::new(0);
 
 impl MyConnection {
+    pub fn new_no_path() -> Result<Self, Box<dyn std::error::Error>> {
+        let conn = Connection::open_in_memory()?;
+        let index = Self::conn_accumulator();
+        Ok( Self { conn, path: "".to_string(), index } )
+    }
+
     pub fn new(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
         // 建立 in-memory 連線
         let conn = Connection::open_in_memory()?;
@@ -81,6 +87,20 @@ impl MyConnection {
         let conn = self.give_connection();
         let id = self.index;
         let sql = format!("select * from db_{id}.{table_name};");
+        let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
+            .prepare(&sql)?
+            .query_arrow([])?
+            .collect();
+        
+        conn.execute_batch("CHECKPOINT;")?;
+        if record_batchs.len() == 0 { return  Ok(None); }
+        Ok(Some(record_batchs))
+    }
+
+    pub fn sql_query(&self, sql: &str) 
+        -> Result<Option<Vec<arrow::record_batch::RecordBatch>>, Box<dyn std::error::Error>>
+    {
+        let conn = self.give_connection();
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
             .prepare(&sql)?
             .query_arrow([])?

@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { SQLConnectRequest } from "./types/SQLConnectRequest";
 import { TauriApiResponse } from "./api";
 import { SQLTableInfoRequest } from "./types/SQLTableInfoRequest";
+import { SQLQueryRequest } from "./types/SQLQueryRequest";
 
 export function sqlConnect(arg: SQLConnectRequest) : Promise<TauriApiResponse<string>>
 {
@@ -22,4 +23,9 @@ export function sqlTableInfo(arg: SQLTableInfoRequest) : Promise<ArrayBuffer>
 export function sqlShowAllTable(arg: SQLTableInfoRequest) : Promise<ArrayBuffer>
 {
   return invoke("sql_show_all_table", { arg } );
+}
+
+export function sqlQuery(arg: SQLQueryRequest) : Promise<ArrayBuffer>
+{
+  return invoke("sql_query", { arg } );
 }
