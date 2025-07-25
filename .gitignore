@@ -35,6 +35,7 @@ tauri-app/src-tauri/Cargo.lock
 *.arrows
 *.arrow
 *.parquet
+*.sheetpkg
 
 # === Editor / OS junk ===
 .vscode/
