@@ -1,12 +1,31 @@
-import { Button, tokens, Toolbar } from '@fluentui/react-components';
-import Editor from '@monaco-editor/react';
+import { Button, Divider, tokens, Toolbar } from '@fluentui/react-components';
+import Editor, { OnMount } from '@monaco-editor/react';
 import { useState } from 'react';
 import { showDBTable$ } from '../sql-tool-arrow-table/SetShowArrowTable';
 import { Play20Regular } from '@fluentui/react-icons';
 
 export const MonacoEditor: React.FC = () => {
   const [val, setVal] = useState("");
-  return(
+
+  const handleEditorMount: OnMount = (editor, monaco) => {
+    // Bind indent shortcut (Ctrl + ])
+    editor.addCommand(
+      monaco.KeyMod.Alt | monaco.KeyCode.BracketRight, // Corrected: Use BracketRight for ']'
+      () => {
+        editor.trigger('keyboard', 'editor.action.indentLines', null);
+      }
+    );
+
+    // Bind outdent shortcut (Ctrl + [)
+    editor.addCommand(
+      monaco.KeyMod.Alt | monaco.KeyCode.BracketLeft,
+      () => {
+        editor.trigger('keyboard', 'editor.action.outdentLines', null);
+      }
+    );
+  };
+
+  return (
     <div 
       style={{
         border: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -14,15 +33,10 @@ export const MonacoEditor: React.FC = () => {
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        gap: "4px",
         borderRadius: tokens.borderRadiusLarge,
       }}
     >
-      <Toolbar 
-        style= {{
-          backgroundColor: tokens.colorNeutralBackground2,
-        }}
-      >
+      <Toolbar style={{ backgroundColor: tokens.colorNeutralBackground2 }}>
         <Button 
           icon={<Play20Regular />}
           appearance='subtle'
@@ -32,18 +46,20 @@ export const MonacoEditor: React.FC = () => {
           }}
         />
       </Toolbar>
+      <Divider style={{marginBottom: "4px", boxShadow: tokens.shadow2,}}/>
       <Editor 
-        options={{ renderWhitespace: "all"}} 
+        options={{ 
+          renderWhitespace: "all",
+          tabSize: 2,
+          insertSpaces: true,
+          autoIndent: "full",
+          fontSize: 16,
+        }}
         language='sql'
         value={val}
-        onChange={(newVal) => {
-          if(newVal === undefined)
-            setVal("")
-          else
-            setVal(newVal)
-        }}
+        onChange={(newVal) => setVal(newVal ?? "")}
+        onMount={handleEditorMount}
       />
-      
     </div>
-  )
-}
+  );
+};

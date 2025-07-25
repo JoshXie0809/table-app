@@ -1,5 +1,4 @@
 pub mod sql;
-
 use std::error::Error;
 use duckdb::{polars::{error::PolarsResult, frame::DataFrame, prelude::{AnyValue, SchemaExt}}, Connection};
 use serde_json::{Value as JsonValue};

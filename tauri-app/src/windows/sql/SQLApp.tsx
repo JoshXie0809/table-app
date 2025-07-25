@@ -43,6 +43,8 @@ const useStyles = makeStyles({
   leftPaneContent: {
     backgroundColor: tokens.colorNeutralBackground3,
     padding: tokens.spacingHorizontalS, // 為 ListDB 內容增加一些內邊距
+    boxSizing: "border-box",
+    border: `1px solid ${tokens.colorNeutralStroke1}`,
   },
   // 拖動條的樣式
   resizeHandle: {
