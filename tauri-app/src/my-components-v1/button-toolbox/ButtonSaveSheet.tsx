@@ -12,7 +12,7 @@ export const ButtonSaveSheet: React.FC = () =>
       icon={<SaveFilled style={{fontSize: "32px", color: "rgba(91, 145, 177, 1)"}} />} 
       onClick={onClick}
       label="存檔"
-      tipContent="save .sheetpkg.zip file"
+      tipContent="save .sheetpkg file"
     />
   );
 }

@@ -31,7 +31,7 @@ const useArrowTableStyles = makeStyles({
     zIndex: 1,
   },
   tableHeaderCell: {
-    paddingLeft: "8px",
+    paddingLeft: "12px",
     paddingRight: "8px",
     paddingTop: "6px",
     paddingBottom: "6px",
@@ -51,8 +51,8 @@ const useArrowTableStyles = makeStyles({
   },
   headerSizer: {
     position: "absolute",
-    right: "-13px",
-    top: "-6px",
+    right: "-15px",
+    height: "calc(100% + 12px)",
     cursor: "w-resize",
     userSelect: "none",
     zIndex: 1,
@@ -92,7 +92,7 @@ const useArrowTableStyles = makeStyles({
   },
   tableCell: {
     boxSizing: "border-box",
-    paddingLeft: "8px",
+    paddingLeft: "12px",
     paddingRight: "8px",
     paddingTop: "6px",
     paddingBottom: "6px",
@@ -181,7 +181,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
                     } 
                     <div
                       className={styles.headerSizer}
-                      style={{ minWidth: "10px", minHeight: "44px"}}
+                      style={{ minWidth: "12px"}}
                       {...{
                         onMouseDown: header.getResizeHandler(),
                         onTouchStart: header.getResizeHandler(),

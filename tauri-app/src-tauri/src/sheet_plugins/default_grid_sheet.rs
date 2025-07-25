@@ -156,7 +156,7 @@ mod tests {
     use crate::cell_plugins::text_cell::TextCellPlugin;
     use crate::cell_plugins::CellPlugin;
     use crate::io::loader::load_zip_file;
-    use crate::io::saver::save_to_zip_file;
+    use crate::io::saver::save_to_fake_extension;
     use crate::sheet_plugins::base_sheet::BaseSheet;
     use std::collections::HashMap;
 
@@ -208,8 +208,8 @@ mod tests {
         // save_data(&data, &path).map_err(|err| err.to_string())?;
 
         // 測試 save_to_zip_file
-        let path = "./test.sheetpkg.zip";
-        save_to_zip_file(&meta, &data, path)?;
+        let path = "./test.sheetpkg";
+        save_to_fake_extension(&meta, &data, path)?;
 
         Ok(())
     }
@@ -217,7 +217,7 @@ mod tests {
     #[test]
     fn test_from_meta_and_data() -> Result<(), String> {
         let dgs = DefaultGridSheet;
-        let (meta, data) = load_zip_file("./test.sheetpkg.zip")?;
+        let (meta, data) = load_zip_file("./test.sheetpkg")?;
         let sheet_config = dgs.from_meta_and_data(meta, data)?;
         println!("{:#?}", sheet_config);
         let (meta, data) = dgs.to_meta_and_data(&sheet_config)?;

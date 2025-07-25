@@ -25,7 +25,7 @@ export const ButtonLoadDB = () => {
         icon={<BsDatabaseAdd size={32}/>} 
         label="加載" 
         onClick={onClick}
-        tipContent="開啟 .db .sqlite .duckdb 連線"
+        tipContent="開啟 .duckdb 連線"
       />  
     )
 }

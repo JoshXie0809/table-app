@@ -1,9 +1,7 @@
-use std::{collections::HashMap, fs::File, io::Read};
+use std::{collections::HashMap};
 
 use duckdb::Connection;
 use serde_json::Value;
-use tempfile::NamedTempFile;
-use zip::ZipArchive;
 
 use crate::{
     cell_plugins::cell::{BasePayload, CellContent},
@@ -11,46 +9,28 @@ use crate::{
 };
 
 pub fn load_zip_file(path: &str) -> Result<(StoredSheetMeta, StoredSheetData), String> {
-    let meta = load_meta_of_zip_file(path)?;
-    let data = load_data_of_zip_file(path, &meta)?;
+    let meta = load_meta_of_file(path)?;
+    let data = load_data_of_file(path, &meta)?;
 
     Ok((meta, data))
 }
 
-pub fn load_meta_of_zip_file(path: &str) -> Result<StoredSheetMeta, String> {
-    let zip_file = File::open(path).map_err(|err| err.to_string())?;
-    let mut archive = ZipArchive::new(zip_file).map_err(|err| err.to_string())?;
-
-    let meta_json_str = {
-        let mut meta_json = archive.by_name("meta.json").map_err(|e| e.to_string())?;
-        let mut buf = String::new();
-        meta_json
-            .read_to_string(&mut buf)
-            .map_err(|e| e.to_string())?;
-        buf
-    };
-
+pub fn load_meta_of_file(path: &str) -> Result<StoredSheetMeta, String> {
+    let meta_path = std::path::Path::new(path).join("meta.json");    
+    // 讀取檔案內容
+    let meta_json_str = std::fs::read_to_string(&meta_path)
+        .map_err(|e| format!("Failed to read meta.json: {}", e))?;
     let meta: StoredSheetMeta =
         serde_json::from_str(&meta_json_str).map_err(|err| err.to_string())?;
     Ok(meta)
 }
 
-pub fn load_data_of_zip_file(
+pub fn load_data_of_file(
     path: &str,
     meta: &StoredSheetMeta,
 ) -> Result<StoredSheetData, String> {
-    let zip_file = File::open(path).map_err(|err| err.to_string())?;
-    let mut archive = ZipArchive::new(zip_file).map_err(|err| err.to_string())?;
-
-    let mut duckdb_entry = archive
-        .by_name("data.duckdb")
-        .map_err(|err| err.to_string())?;
-
-    // 建立一個 temp 檔案 將 db 寫入
-    let mut temp_db_file = NamedTempFile::new().map_err(|err| err.to_string())?;
-    std::io::copy(&mut duckdb_entry, &mut temp_db_file).map_err(|err| err.to_string())?;
-
-    let db_path = temp_db_file.into_temp_path();
+    // 1. 直接拼接 Fake Extension 資料夾內的 data.duckdb 路徑
+    let db_path = std::path::Path::new(path).join("data.duckdb");
 
     // 建立 duck_db 連線
     let mut conn = Connection::open(&db_path).map_err(|err| err.to_string())?;
@@ -129,7 +109,7 @@ mod tests {
 
     #[test]
     fn read_file() -> Result<(), String> {
-        let (meta, data) = load_zip_file("./test.sheetpkg.zip")?;
+        let (meta, data) = load_zip_file("./test.sheetpkg")?;
 
         println!("{:#?}", meta);
         println!("{:#?}", data);
