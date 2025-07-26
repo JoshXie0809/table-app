@@ -46,7 +46,7 @@ export const MonacoEditor: React.FC = () => {
           }}
         />
       </Toolbar>
-      <Divider style={{marginBottom: "4px", boxShadow: tokens.shadow2,}}/>
+      <Divider style={{marginBottom: "4px", }}/>
       <Editor 
         options={{ 
           renderWhitespace: "all",

@@ -1,16 +1,20 @@
 import { invoke } from "@tauri-apps/api/core";
-import { SQLConnectRequest } from "./types/SQLConnectRequest";
+import { SQLListTableRequest } from "./types/SQLListTableRequest";
 import { TauriApiResponse } from "./api";
 import { SQLTableInfoRequest } from "./types/SQLTableInfoRequest";
 import { SQLQueryRequest } from "./types/SQLQueryRequest";
 
-export function sqlConnect(arg: SQLConnectRequest) : Promise<TauriApiResponse<string>>
+export function sqlConnect() : Promise<TauriApiResponse<string>>
 {
-  return invoke("sql_connect", { arg } );
+  return invoke("sql_connect", {} );
 }
 
+export function sqlAttachDB(arg: SQLListTableRequest) : Promise<TauriApiResponse<string[]>>
+{
+  return invoke("sql_attach_db", { arg } );
+}
 
-export function sqlListTable(arg: SQLConnectRequest) : Promise<TauriApiResponse<string[]>>
+export function sqlListTable(arg: SQLListTableRequest) : Promise<TauriApiResponse<string[]>>
 {
   return invoke("sql_list_table", { arg } );
 }

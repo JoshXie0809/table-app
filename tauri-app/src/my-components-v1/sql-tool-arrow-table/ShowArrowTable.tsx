@@ -1,10 +1,30 @@
+import React, { CSSProperties } from 'react'
 import { Table as ATable} from "apache-arrow";
-import { ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
+import { Header, Cell, ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
 import { useMemo, useRef, useState } from "react";
 import { makeStyles, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
 import { ColumnResizeMode } from '@tanstack/react-table';
 import { MdNumbers } from "react-icons/md";
 import { useVirtualizer } from '@tanstack/react-virtual'
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  horizontalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import { useSortable } from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
+
 
 const useArrowTableStyles = makeStyles({
   container: {
@@ -139,13 +159,35 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   const styles = useArrowTableStyles();
   const tableObj = useMemo(() => tableToObjects(table), [table]);
   const columns = useMemo(() => inferColumnsFromTable(table, styles), [table, styles]);
+  // 製作排序表
+  const [columnOrder, setColumnOrder] = useState<string[]>(() => columns.map(c => c.id!));
   // Initialize TanStack Table
   const tableInstance = useReactTable({
     data: tableObj,
     columns,
     columnResizeMode,
     getCoreRowModel: getCoreRowModel(),
+    state: { columnOrder },
+    onColumnOrderChange: setColumnOrder,
   });
+  // reorder columns after drag & drop
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
+    if (active && over && active.id !== over.id) {
+      setColumnOrder(columnOrder => {
+        const oldIndex = columnOrder.indexOf(active.id as string)
+        const newIndex = columnOrder.indexOf(over.id as string)
+        return arrayMove(columnOrder, oldIndex, newIndex) //this is just a splice util
+      })
+    }
+  }
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  )
+
   const { rows } = useMemo(() => tableInstance.getRowModel(), [tableObj]);
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
@@ -157,68 +199,140 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
       navigator.userAgent.indexOf('Firefox') === -1
         ? element => element?.getBoundingClientRect().height
         : undefined,
-    overscan: 16,
+    overscan: 8,
   })
 
   return (
-    <div id="arrow-table-container" className={styles.container} ref={tableContainerRef}>
-      <Table className={styles.table}>
-        <TableHeader className={styles.tableHeader}>
+    <DndContext
+      collisionDetection={closestCenter}
+      modifiers={[restrictToHorizontalAxis]}
+      onDragEnd={handleDragEnd}
+      sensors={sensors}
+    >
+      <div id="arrow-table-container" className={styles.container} ref={tableContainerRef}>
+        <Table className={styles.table}>
+          <TableHeader className={styles.tableHeader}>
             {tableInstance.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id} className={styles.headerRow}>
-                {headerGroup.headers.map(header => (
-                  <TableHeaderCell 
-                    key={header.id} colSpan={header.colSpan} className={styles.tableHeaderCell}
-                    style={{ width: header.getSize() }}
-                  >
-                    {
-                      header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )
-                    } 
-                    <div
-                      className={styles.headerSizer}
-                      style={{ minWidth: "12px"}}
-                      {...{
-                        onMouseDown: header.getResizeHandler(),
-                        onTouchStart: header.getResizeHandler(),
-                      }}
-                    />
-                  </TableHeaderCell>
-                ))}
-              </TableRow>
-            ))}
-        </TableHeader>
-        <TableBody className={styles.tableBody} style={{ height: rowVirtualizer.getTotalSize() }}>
-          {
-            rowVirtualizer.getVirtualItems().map(item => {
-              const row = rows[item.index] as Row<any>
-              return (
-                <TableRow key={row.id} className={styles.virtualRow} 
-                  style={{ 
-                    transform: `translateY(${item.start}px)`, //this should always be a `style` as it changes on scroll
-                  }}
-                >
-                  {row.getVisibleCells().map(cell => (
-                    <TableCell key={cell.id} 
-                      className={styles.tableCell} 
-                      style={{ width: cell.column.getSize() }} >
-                      
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      
-                    </TableCell>
+              <SortableContext
+                key={headerGroup.id}
+                items={columnOrder}
+                strategy={horizontalListSortingStrategy}
+              >
+                <TableRow className={styles.headerRow}>
+                  {headerGroup.headers.map(header => (
+                    <DraggableTableHeader key={header.id} header={header} styles={styles} />
                   ))}
                 </TableRow>
-              )
-            })
-          }
-        </TableBody>
-      </Table>
-    </div>
+              </SortableContext>
+            ))}
+          </TableHeader>
+          <TableBody className={styles.tableBody} style={{ height: rowVirtualizer.getTotalSize() }}>
+            {
+              rowVirtualizer.getVirtualItems().map(item => {
+                const row = rows[item.index] as Row<any>
+                return (
+                  <TableRow 
+                    key={row.id} 
+                    className={styles.virtualRow} 
+                    style={{ 
+                      transform: `translateY(${item.start}px)`, //this should always be a `style` as it changes on scroll
+                    }}
+                  >
+                    {row.getVisibleCells().map(cell => (
+                      <SortableContext
+                        key={cell.id}
+                        items={columnOrder}
+                        strategy={horizontalListSortingStrategy}
+                      >
+                        <DragAlongCell key={cell.id} cell={cell} styles={styles}/>
+                      </SortableContext>
+                    ))}
+                  </TableRow>
+                )
+              })
+            }
+          </TableBody>
+        </Table>
+      </div>
+    </DndContext>
   );
+}
+
+const DraggableTableHeader = ({
+  header, styles
+}: {
+  header: Header<any, unknown>
+  styles: any
+}) => {
+  const { attributes, isDragging, listeners, setNodeRef, transform } =
+    useSortable({
+      id: header.column.id,
+    })
+
+  const style: CSSProperties = {
+    opacity: isDragging ? 0.4 : 1,
+    position: 'relative',
+    transform: CSS.Translate.toString(transform), // translate instead of transform to avoid squishing
+    transition: 'width transform 0.2s ease-in-out',
+    whiteSpace: 'nowrap',
+    width: header.column.getSize(),
+    zIndex: isDragging ? 1 : 0,
+  }
+
+  return (
+    <TableHeaderCell 
+      key={header.id} 
+      colSpan={header.colSpan} 
+      ref={setNodeRef}
+      className={styles.tableHeaderCell}
+      style={{ ...style, width: header.getSize() }}
+    >
+      {
+        header.isPlaceholder
+        ? null
+        : flexRender(
+            header.column.columnDef.header,
+            header.getContext()
+          )
+      } 
+      <button {...attributes} {...listeners}>
+        🟰
+      </button>
+      <div
+        className={styles.headerSizer}
+        style={{ minWidth: "12px"}}
+        {...{
+          onMouseDown: header.getResizeHandler(),
+          onTouchStart: header.getResizeHandler(),
+        }}
+      />
+    </TableHeaderCell>
+  )
+}
+
+const DragAlongCell = ({ cell, styles }: { cell: Cell<any, unknown>, styles: any }) => {
+  const { isDragging, setNodeRef, transform } = useSortable({
+    id: cell.column.id,
+  })
+
+  const style: CSSProperties = {
+    opacity: isDragging ? 0.4 : 1,
+    position: 'relative',
+    transform: CSS.Translate.toString(transform), // translate instead of transform to avoid squishing
+    transition: 'width transform 0.2s ease-in-out',
+    width: cell.column.getSize(),
+    zIndex: isDragging ? 1 : 0,
+  }
+
+  return (
+    <TableCell key={cell.id} 
+      className={styles.tableCell} 
+      ref={setNodeRef}
+      style={{ ...style, width: cell.column.getSize() }} 
+    >
+      {flexRender(cell.column.columnDef.cell, cell.getContext())}                        
+    </TableCell>
+  )
 }
 
 function tableToObjects(table: ATable): Record<string, any>[] {

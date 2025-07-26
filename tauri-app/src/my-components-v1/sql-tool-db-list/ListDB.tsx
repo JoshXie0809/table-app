@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import { Subject } from "rxjs";
-import { sqlListTable } from "../../tauri-api/sqlConnection";
+import { sqlAttachDB, sqlListTable } from "../../tauri-api/sqlConnection";
 import { Root, createRoot }  from "react-dom/client"
-import { Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { Text, tokens, Tooltip, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { ListTable } from "./ListTable";
 import { SiDuckdb } from "react-icons/si";
+
 export const latestLoadDB$ = new Subject<string>();
 export const ListDB: React.FC = () => {
   const dbMapRef = useRef<null | Map<string, string[]>>(null);
@@ -15,7 +16,9 @@ export const ListDB: React.FC = () => {
     const sub = latestLoadDB$.subscribe(async (dbPath) => {
       const dbMap = dbMapRef.current;
       if(dbMap === null) return;
+      await sqlAttachDB({path: dbPath})
       const result = await sqlListTable({path: dbPath});
+      console.log(result);
       if(!result.success || !result.data) return;
       dbMap.set(dbPath, result.data);
       const divEl = divRef.current;
@@ -29,7 +32,14 @@ export const ListDB: React.FC = () => {
             keys.map((k) => (
                 <TreeItem key={k} itemType="branch">
                   <TreeItemLayout iconBefore={<SiDuckdb />}>
-                    table
+                    <Tooltip 
+                      content={k} 
+                      relationship="description" 
+                      mountNode={document.getElementById("sql-tool-page-portal-root")}>
+                      <div>
+                        table
+                      </div>
+                    </Tooltip>
                   </TreeItemLayout>
                   <ListTable dbPath={k} tableList={dbMap.get(k)} />
                 </TreeItem>
