@@ -1,11 +1,12 @@
-import React, { CSSProperties } from 'react'
+import React, { CSSProperties, useEffect } from 'react'
 import { Table as ATable} from "apache-arrow";
 import { Header, Cell, ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
 import { useMemo, useRef, useState } from "react";
-import { makeStyles, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
+import { Button, Divider, makeStyles, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
 import { ColumnResizeMode } from '@tanstack/react-table';
 import { MdNumbers } from "react-icons/md";
-import { useVirtualizer } from '@tanstack/react-virtual'
+import { useVirtualizer } from '@tanstack/react-virtual';
+import { MdOutlineDragIndicator } from "react-icons/md";
 import {
   DndContext,
   KeyboardSensor,
@@ -24,8 +25,6 @@ import {
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
-
-
 const useArrowTableStyles = makeStyles({
   container: {
     height: "100%",
@@ -52,15 +51,17 @@ const useArrowTableStyles = makeStyles({
   },
   tableHeaderCell: {
     paddingLeft: "12px",
-    paddingRight: "8px",
+    paddingRight: "12px",
     paddingTop: "6px",
     paddingBottom: "6px",
     fontWeight: "bolder", // 圖片中的表頭文字沒有粗體
     fontSize: "15px",
+    overflow: "hidden",
     backgroundColor: tokens.colorNeutralBackground2,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
     position: "relative",
+    minWidth: "60px",
     "& > div > span": {
       overflow: "hidden",
       textOverflow: "ellipsis", // 超出範圍時顯示...
@@ -69,10 +70,13 @@ const useArrowTableStyles = makeStyles({
       justifyContent: "end",
     }
   },
+  headerDragger: {
+  },
   headerSizer: {
     position: "absolute",
-    right: "-15px",
-    height: "calc(100% + 12px)",
+    right: "-10px",
+    height: "100%",
+    width: "6px",
     cursor: "w-resize",
     userSelect: "none",
     zIndex: 1,
@@ -105,7 +109,6 @@ const useArrowTableStyles = makeStyles({
       color: tokens.colorBrandForeground1,
       justifyContent: "end",
       fontWeight: "bolder",
-      paddingRight: "10px",
       borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
       fontSize: "16px",
     },
@@ -113,7 +116,7 @@ const useArrowTableStyles = makeStyles({
   tableCell: {
     boxSizing: "border-box",
     paddingLeft: "12px",
-    paddingRight: "8px",
+    paddingRight: "12px",
     paddingTop: "6px",
     paddingBottom: "6px",
     textAlign: "left",
@@ -122,6 +125,7 @@ const useArrowTableStyles = makeStyles({
     borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
     borderBottom: `1px solid ${tokens.colorNeutralStroke1}`,
     display: "flex",
+    minWidth: "60px",
     alignItems: "center",
     "& > span": {
       overflow: "hidden",
@@ -160,7 +164,11 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   const tableObj = useMemo(() => tableToObjects(table), [table]);
   const columns = useMemo(() => inferColumnsFromTable(table, styles), [table, styles]);
   // 製作排序表
-  const [columnOrder, setColumnOrder] = useState<string[]>(() => columns.map(c => c.id!));
+  const [columnOrder, setColumnOrder] = useState<string[]>([]);
+  // 切換表格時紀錄
+  useEffect(() => {
+    setColumnOrder(() => columns.map(c => c.id!))
+  }, [columns])
   // Initialize TanStack Table
   const tableInstance = useReactTable({
     data: tableObj,
@@ -170,14 +178,26 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
     state: { columnOrder },
     onColumnOrderChange: setColumnOrder,
   });
-  // reorder columns after drag & drop
-  function handleDragEnd(event: DragEndEvent) {
+  // ✨ 修改 handleDragStart
+  const handleDragStart = () => {
+    // 拖曳開始時，暫時禁用垂直捲動
+    if (tableContainerRef.current) {
+      tableContainerRef.current.style.overflowY = 'hidden';
+    }
+  };
+  // ✨ 修改 handleDragEnd
+  const handleDragEnd = (event: DragEndEvent) => {
+    // 拖曳結束時，恢復垂直捲動
+    if (tableContainerRef.current) {
+      tableContainerRef.current.style.overflowY = 'auto';
+    }
+
     const { active, over } = event
     if (active && over && active.id !== over.id) {
       setColumnOrder(columnOrder => {
         const oldIndex = columnOrder.indexOf(active.id as string)
         const newIndex = columnOrder.indexOf(over.id as string)
-        return arrayMove(columnOrder, oldIndex, newIndex) //this is just a splice util
+        return arrayMove(columnOrder, oldIndex, newIndex)
       })
     }
   }
@@ -204,8 +224,10 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
 
   return (
     <DndContext
+      autoScroll = {false}
       collisionDetection={closestCenter}
       modifiers={[restrictToHorizontalAxis]}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       sensors={sensors}
     >
@@ -270,13 +292,11 @@ const DraggableTableHeader = ({
     })
 
   const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : 1,
-    position: 'relative',
-    transform: CSS.Translate.toString(transform), // translate instead of transform to avoid squishing
+    transform: CSS.Translate.toString(transform),
+    boxShadow: isDragging ? tokens.shadow8 : "none",
     transition: 'width transform 0.2s ease-in-out',
-    whiteSpace: 'nowrap',
     width: header.column.getSize(),
-    zIndex: isDragging ? 1 : 0,
+    zIndex: isDragging ? 2 : 0,
   }
 
   return (
@@ -287,6 +307,11 @@ const DraggableTableHeader = ({
       className={styles.tableHeaderCell}
       style={{ ...style, width: header.getSize() }}
     >
+      <Button {...attributes} {...listeners} 
+        className={styles.headerDragger}
+        appearance='subtle'
+        icon={<MdOutlineDragIndicator/>}
+      />
       {
         header.isPlaceholder
         ? null
@@ -295,12 +320,11 @@ const DraggableTableHeader = ({
             header.getContext()
           )
       } 
-      <button {...attributes} {...listeners}>
-        🟰
-      </button>
-      <div
+      {/* <div
         className={styles.headerSizer}
-        style={{ minWidth: "12px"}}
+        
+      /> */}
+      <Divider vertical={true} className={styles.headerSizer}
         {...{
           onMouseDown: header.getResizeHandler(),
           onTouchStart: header.getResizeHandler(),
@@ -316,7 +340,7 @@ const DragAlongCell = ({ cell, styles }: { cell: Cell<any, unknown>, styles: any
   })
 
   const style: CSSProperties = {
-    opacity: isDragging ? 0.4 : 1,
+    opacity: isDragging ? 0.5 : 1,
     position: 'relative',
     transform: CSS.Translate.toString(transform), // translate instead of transform to avoid squishing
     transition: 'width transform 0.2s ease-in-out',
@@ -339,7 +363,7 @@ function tableToObjects(table: ATable): Record<string, any>[] {
   const rows = [];
   let counter = 0;
   for(const row of table.toArray()) {
-    if(++counter > 25000) break;
+    if(++counter > 100_000) break;
     rows.push(row.toJSON())
   }
   return rows;
@@ -348,11 +372,11 @@ function tableToObjects(table: ATable): Record<string, any>[] {
 function inferColumnsFromTable(table: ATable, styles: Record<any, string>): ColumnDef<any>[] {
   const columnHelper = createColumnHelper<any>();
   const rowNumberCol = columnHelper.display({
-      id: 'auto-add-row-number',
+      id: `auto-add-row-number-${Math.random().toString(36).slice(2)}`,
       header: (_row) => <MdNumbers />,
       // cell 的 info 物件包含 row 屬性，其 index 是從 0 開始的行索引
       cell: info => info.row.index + 1,
-      size: 64,
+      size: 80,
   });
   const dataCols = table.schema.fields.map((field) => {
     const colName = field.name;

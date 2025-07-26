@@ -1,4 +1,4 @@
-import { Button, Divider, tokens, Toolbar } from '@fluentui/react-components';
+import { Button, tokens, Toolbar } from '@fluentui/react-components';
 import Editor, { OnMount } from '@monaco-editor/react';
 import { useState } from 'react';
 import { showDBTable$ } from '../sql-tool-arrow-table/SetShowArrowTable';
@@ -46,7 +46,6 @@ export const MonacoEditor: React.FC = () => {
           }}
         />
       </Toolbar>
-      <Divider style={{marginBottom: "4px", }}/>
       <Editor 
         options={{ 
           renderWhitespace: "all",
