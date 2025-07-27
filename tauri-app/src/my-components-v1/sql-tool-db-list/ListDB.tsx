@@ -2,18 +2,18 @@ import { useEffect, useRef } from "react";
 import { Subject } from "rxjs";
 import { sqlAttachDB, sqlListTable } from "../../tauri-api/sqlConnection";
 import { Root, createRoot }  from "react-dom/client"
-import { Text, tokens, Tooltip, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
+import { Tooltip, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-components";
 import { ListTable } from "./ListTable";
 import { SiDuckdb } from "react-icons/si";
 
-export const latestLoadDB$ = new Subject<string>();
+export const latestLoadDB$ = new Subject<{dbPath: string, alias: string}>();
 export const ListDB: React.FC = () => {
   const dbMapRef = useRef<null | Map<string, string[]>>(null);
   const divRef = useRef<null | HTMLDivElement>(null);
   const rootRef = useRef<null | Root>(null);
   useEffect(() => {
     dbMapRef.current = new Map();
-    const sub = latestLoadDB$.subscribe(async (dbPath) => {
+    const sub = latestLoadDB$.subscribe(async ({dbPath}) => {
       const dbMap = dbMapRef.current;
       if(dbMap === null) return;
       await sqlAttachDB({path: dbPath})

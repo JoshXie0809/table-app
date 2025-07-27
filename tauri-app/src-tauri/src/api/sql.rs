@@ -29,7 +29,7 @@ pub fn sql_connect(state: State<'_, Arc<Mutex<Option<MyConnection>>>>)
 
 #[command]
 pub fn sql_attach_db (
-    arg: SQLListTableRequest,
+    arg: SQLAttachDBRequest,
     state: State<'_, Arc<Mutex<Option<MyConnection>>>>
 ) -> ApiResponse<String>
 {
@@ -41,8 +41,9 @@ pub fn sql_attach_db (
     };
     let conn = guard.as_mut().unwrap();
     let path: String = arg.path;
+    let alias: String = arg.alias;
 
-    match conn.attach_db(&path) {
+    match conn.attach_db(&path, &alias) {
         Ok(()) => ApiResponse::success(Some("Attached".to_string())),
         Err((e)) => ApiResponse::error(e.to_string())
     }
@@ -180,6 +181,14 @@ pub fn sql_query(
 #[ts(export)]
 pub struct SQLListTableRequest {
     path: String
+}
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct SQLAttachDBRequest {
+    path: String,
+    alias: String
 }
 
 #[derive(Deserialize, TS)]

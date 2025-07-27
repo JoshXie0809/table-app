@@ -6,7 +6,7 @@ use crate::{
         load_cell_plugin_cell_meta_map::CellMetaMap, 
         load_cell_plugin_css_map::CssMap, load_sheet::LoadSheetRequest, 
         save_sheet::SaveSheetRequest, 
-        sql::{SQLListTableRequest, SQLQueryRequest, SQLTableInfoRequest}
+        sql::{SQLListTableRequest, SQLQueryRequest, SQLTableInfoRequest, SQLAttachDBRequest}
     },
     cell_plugins::cell::CellMeta,
     sheet_plugins::fronted_sheet::FrontedSheet,
@@ -36,6 +36,8 @@ pub fn export_ts() {
     CellMetaMap::export_all_to(&out_dir).unwrap();
 
     SaveSheetRequest::export_all_to(&out_dir).unwrap();
+
+    SQLAttachDBRequest::export_all_to(&out_dir).unwrap();
 
     SQLListTableRequest::export_all_to(&out_dir).unwrap();
 

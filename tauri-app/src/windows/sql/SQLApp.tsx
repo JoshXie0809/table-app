@@ -1,5 +1,5 @@
 import "./SQLApp.css"
-import { FluentProvider, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider, makeStyles, tokens, webLightTheme } from "@fluentui/react-components";
 import { ButtonToolBox } from "../../my-components-v1/button-toolbox/ButtonToolBox";
 import { RibbonGroup } from "../../my-components-v1/button-toolbox/RibbonGroup";
 import { ButtonLoadDB } from "../../my-components-v1/button-toolbox/button-sql-tool/ButtonLoadDB";

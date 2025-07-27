@@ -1,13 +1,11 @@
-use std::{collections::HashMap, sync::atomic::{AtomicU32, Ordering}};
+use std::{collections::HashMap};
 use duckdb::{Connection, Result};
 
 #[derive(Debug)]
 pub struct MyConnection {
     conn: duckdb::Connection,
-    attach_map: HashMap<String, u32>,
+    attach_map: HashMap<String, String>,
 }
-
-static COUNT: AtomicU32 = AtomicU32::new(0);
 
 impl MyConnection {
     pub fn new() -> Result<Self, Box<dyn std::error::Error>> {
@@ -15,18 +13,29 @@ impl MyConnection {
         Ok( Self { conn, attach_map: HashMap::new() } )
     }
 
-    fn conn_accumulator () -> u32 {
-        COUNT.fetch_add(1, Ordering::Relaxed) + 1
-    }
-
-    pub fn attach_db(&mut self, path: &str) -> Result<(), Box<dyn std::error::Error>>
+    pub fn attach_db(&mut self, path: &str, alias: &str) -> Result<(), Box<dyn std::error::Error>>
     {
-        let index = Self::conn_accumulator();
-        let sql = format!("attach '{path}' as db_{index}");
+        let sql = format!("attach '{path}' as {alias}");
         let conn = self.give_connection();
         conn.execute(&sql, [])?;
         conn.execute_batch("CHECKPOINT;")?;
-        self.attach_map.insert(path.to_string(), index);
+        self.attach_map.insert(path.to_string(), alias.to_string());
+        Ok(())
+    }
+
+    pub fn detach_db(&mut self, path: &str) -> Result<(), Box<dyn std::error::Error>>
+    {
+        let alias = match self.attach_map.get(path) {
+            Some(a) => a,
+            None => return Err("does not has this attached db".into())
+        };
+        
+        let sql = format!("detach {alias};");
+        let conn = self.give_connection();
+        conn.execute(&sql, [])?;
+        conn.execute_batch("CHECKPOINT;")?;
+        self.attach_map.remove(path);
+        
         Ok(())
     }
 
@@ -34,22 +43,22 @@ impl MyConnection {
         &self.conn
     }
 
-    fn get_db_index(&self, path: &str) -> Option<u32>
+    fn get_db_alias(&self, path: &str) -> Option<String>
     {
         self.attach_map.get(&path.to_string()).map(|u| u.clone())
     }
 
     pub fn list_db_tables(&self, path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
         let conn = self.give_connection();
-        let index = match self.get_db_index(path) {
-            Some(u) => u,
+        let alias = match self.get_db_alias(path) {
+            Some(a) => a,
             None => return Err("connection does not contained this db.".into())
         }; 
 
         // 取得 db 內所有的 table
         let sql = format!(
-            "select table_name from information_schema.tables where table_catalog = 'db_{}';",
-            index
+            "select table_name from information_schema.tables where table_catalog = '{}';",
+            alias
         );
 
         let mut stmt = conn.prepare(&sql)?;
@@ -70,12 +79,11 @@ impl MyConnection {
         let is_contained = table_names.contains(&table_name.to_string());
         if !is_contained { return Ok(None); }
         let conn = self.give_connection();
-        let id = match self.get_db_index(path) {
-            Some(id) => id,
+        let alias = match self.get_db_alias(path) {
+            Some(a) => a,
             None => return Err("connection does not contained this db.".into())
         };
-        let sql = format!("pragma table_info('db_{id}.{table_name}')");
-        // let sql = format!("select * from db_{id}.{table_name}");
+        let sql = format!("describe {alias}.{table_name}");
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
             .prepare(&sql)?
             .query_arrow([])?
@@ -92,11 +100,11 @@ impl MyConnection {
         let is_contained = table_names.contains(&table_name.to_string());
         if !is_contained { return Ok(None); }
         let conn = self.give_connection();
-        let id = match self.get_db_index(path) {
-            Some(id) => id,
+        let alias = match self.get_db_alias(path) {
+            Some(a) => a,
             None => return Err("connection does not contained this db.".into())
         };
-        let sql = format!("select * from db_{id}.{table_name};");
+        let sql = format!("select * from {alias}.{table_name};");
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
             .prepare(&sql)?
             .query_arrow([])?
@@ -150,7 +158,7 @@ mod tests {
     {
         let mut conn = MyConnection::new()?;
         let path = "C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/data/data.duckdb";
-        conn.attach_db(path)?;
+        conn.attach_db(path, "db")?;
         let rbs = conn.table_info(path, "cells")?;
         println!("{rbs:#?}");
         Ok(())
