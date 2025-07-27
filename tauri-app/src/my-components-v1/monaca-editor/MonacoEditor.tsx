@@ -42,7 +42,7 @@ export const MonacoEditor: React.FC = () => {
           appearance='subtle'
           title='執行 sql 程式碼'
           onClick={() => {
-            showDBTable$.next({dbPath: "", tableName: "", sql: val, type: "Query"})
+            showDBTable$.next({alias: "", tableName: "", sql: val, type: "Query"})
           }}
         />
       </Toolbar>

@@ -2,14 +2,14 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { RibbonSmallButton } from "../RibbonGroup"
 import { BsDatabaseAdd } from "react-icons/bs";
 import { latestLoadDB$ } from "../../sql-tool-db-list/ListDB";
-import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, Divider, Input, Text, tokens } from "@fluentui/react-components";
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, DialogTrigger, Divider, Input, Text } from "@fluentui/react-components";
 import { useState } from "react";
 import { SiDuckdb } from "react-icons/si";
 
 export const ButtonLoadDB = () => {
     const [openLoadFileDialog, setOpenLoadFileDialog] = useState(false);
     const [dbPath, setDBPath] = useState<null | string>(null);
-
+    const [alias, setAlias] = useState<string>("");
     const onClick = async () => {
       const file = await open({
         title: "load database",
@@ -24,7 +24,6 @@ export const ButtonLoadDB = () => {
       });
       if(file === null) return;
       setDBPath(file)
-      // latestLoadDB$.next(file);
     }
     
     return (
@@ -35,6 +34,7 @@ export const ButtonLoadDB = () => {
           onClick={() => {
             setOpenLoadFileDialog(true)
             setDBPath(null)
+            setAlias("")
           }}
           tipContent="開啟 .duckdb 連線"
         />
@@ -75,10 +75,20 @@ export const ButtonLoadDB = () => {
                         Alias (資料庫別名)
                       </Button>
                     </div>
-                    <Input appearance="underline" placeholder="輸入 alias"></Input>
+                    <Input 
+                      value={alias} appearance="underline" 
+                      spellCheck={false}
+                      placeholder="輸入 alias" 
+                      onChange={(e) => setAlias(e.target.value)}
+                    />
                   </DialogContent>
                   <DialogActions>
-                    <Button appearance="primary">Attach</Button>
+                    <Button appearance="primary"
+                      onClick={() => {
+                        latestLoadDB$.next({dbPath: dbPath, alias})
+                        setOpenLoadFileDialog(false)
+                      }}
+                    >Attach</Button>
                     <DialogTrigger disableButtonEnhancement>
                       <Button
                         appearance="secondary" 

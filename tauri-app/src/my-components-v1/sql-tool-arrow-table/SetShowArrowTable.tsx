@@ -5,13 +5,14 @@ import { sqlQuery, sqlShowAllTable, sqlTableInfo } from "../../tauri-api/sqlConn
 import { ShowArrowTable } from "./ShowArrowTable";
 import { tableFromIPC } from "apache-arrow"
 import { Toast, ToastBody, Toaster, ToastTitle, useId, useToastController } from "@fluentui/react-components";
+import { updateDBList$ } from "../sql-tool-db-list/ListDB";
 
 export type ShowType =
   | "TableInfo"
   | "ShowAllTable"
   | "Query";
 
-export const showDBTable$ = new Subject<{dbPath: string, tableName: string, sql?: string, type: ShowType}>();
+export const showDBTable$ = new Subject<{alias: string, tableName: string, sql?: string, type: ShowType}>();
 export const SetShowArrowTable: React.FC = () => {
   const divRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<null | Root>(null);
@@ -30,22 +31,31 @@ export const SetShowArrowTable: React.FC = () => {
 
   useEffect(() => {
     const sub = showDBTable$.subscribe(async ({
-      dbPath, tableName, sql, type,
+      alias, tableName, sql, type,
     }) => {
       let bufferArray;
+      const lower = sql?.toLowerCase() ?? "";
+      const contained = 
+        lower.includes("attach") || 
+        lower.includes("detach") || 
+        lower.includes("drop") || 
+        lower.includes("create");
+
       try {
         if(type === "TableInfo")
-        bufferArray = await sqlTableInfo({path: dbPath, tableName});
+        bufferArray = await sqlTableInfo({alias, tableName});
         else if(type === "ShowAllTable")
-          bufferArray = await sqlShowAllTable({path: dbPath, tableName});
-        else if(type === "Query" && sql !== undefined) 
+          bufferArray = await sqlShowAllTable({alias, tableName});
+        else if(type === "Query" && sql !== undefined) {
           bufferArray = await sqlQuery({sql});
-        if(bufferArray === undefined) return;
+        }
       } catch (err) {
         console.error(err)
         notify(err)
       }
-      
+
+      if(contained) updateDBList$.next();
+      if(bufferArray === undefined) return;
       const table = tableFromIPC(bufferArray);
       const divEl = divRef.current;
       if(divEl === null) return;

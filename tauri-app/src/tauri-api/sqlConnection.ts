@@ -3,15 +3,21 @@ import { SQLListTableRequest } from "./types/SQLListTableRequest";
 import { TauriApiResponse } from "./api";
 import { SQLTableInfoRequest } from "./types/SQLTableInfoRequest";
 import { SQLQueryRequest } from "./types/SQLQueryRequest";
+import { SQLAttachDBRequest } from "./types/SQLAttachDBRequest";
 
 export function sqlConnect() : Promise<TauriApiResponse<string>>
 {
   return invoke("sql_connect", {} );
 }
 
-export function sqlAttachDB(arg: SQLListTableRequest) : Promise<TauriApiResponse<string[]>>
+export function sqlAttachDB(arg: SQLAttachDBRequest) : Promise<TauriApiResponse<string[]>>
 {
   return invoke("sql_attach_db", { arg } );
+}
+
+export function sqlListDatabase() : Promise<TauriApiResponse<[string, string?][]>>
+{
+  return invoke("sql_list_database", { } );
 }
 
 export function sqlListTable(arg: SQLListTableRequest) : Promise<TauriApiResponse<string[]>>

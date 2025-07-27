@@ -2,16 +2,18 @@ import { Button, Tree, TreeItem, TreeItemLayout } from "@fluentui/react-componen
 import { showDBTable$ } from "../sql-tool-arrow-table/SetShowArrowTable";
 import { ImTable2 } from "react-icons/im";
 import { LuInfo } from "react-icons/lu";
+import { DBInfo } from "./ListDB";
 
 export interface ListTableProps {
-  dbPath: string,
-  tableList: string[] | undefined,
+  alias: string,
+  dbInfo: DBInfo | undefined,
 }
 export const ListTable: React.FC<ListTableProps> = ({
-  dbPath,
-  tableList,
+  alias,
+  dbInfo,
 }) => {
-  if(tableList === undefined) return null;
+  if(dbInfo === undefined) return null;
+  const tableList = dbInfo.tableList;
   return (
     <Tree>
       {
@@ -32,7 +34,7 @@ export const ListTable: React.FC<ListTableProps> = ({
                       onClick={(event) => {
                         event.stopPropagation()
                         showDBTable$.next({
-                          dbPath,
+                          alias,
                           tableName: value,
                           type: "TableInfo"
                         })}
@@ -45,7 +47,7 @@ export const ListTable: React.FC<ListTableProps> = ({
                 }}
                 onClick={() => {
                   showDBTable$.next({
-                    dbPath,
+                    alias,
                     tableName: value,
                     type: "ShowAllTable"
                   })

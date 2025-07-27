@@ -51,6 +51,25 @@ pub fn sql_attach_db (
 }
 
 #[command]
+pub fn sql_list_database(
+    state: State<'_, Arc<Mutex<Option<MyConnection>>>>
+) -> ApiResponse<Vec<(String, Option<String>)>>
+{
+    // 確保有連線
+    sql_connect(state.clone());
+    let guard = match state.lock() {
+        Ok(g) => g,
+        Err(e) => return ApiResponse::error(e.to_string()),
+    };
+    let conn = guard.as_ref().unwrap();
+    let list = match conn.list_db() {
+        Ok(list) => list,
+        Err(err) => return ApiResponse::error(err.to_string()),
+    };
+    ApiResponse::success(Some(list))
+}
+
+#[command]
 pub fn sql_list_table(
     arg: SQLListTableRequest,
     state: State<'_, Arc<Mutex<Option<MyConnection>>>>
@@ -63,8 +82,8 @@ pub fn sql_list_table(
         Err(e) => return ApiResponse::error(e.to_string()),
     };
     let conn = guard.as_ref().unwrap();
-    let path: String = arg.path;
-    let table_names = match conn.list_db_tables(&path) {
+    let alias: String = arg.alias;
+    let table_names = match conn.list_db_tables(&alias) {
         Ok(names) => names,
         Err(err) => return ApiResponse::error(err.to_string()),
     };
@@ -78,7 +97,7 @@ pub fn sql_table_info(
 ) 
     -> Result<tauri::ipc::Response, String>
 {
-    let path = arg.path;
+    let alias = arg.alias;
     let table_name = arg.table_name;
     // 確保有連線
     sql_connect(state.clone());
@@ -87,7 +106,7 @@ pub fn sql_table_info(
         Err(e) => return Err(e.to_string()),
     };
     let conn = guard.as_ref().unwrap();
-    let batches = match conn.table_info(&path, &table_name).map_err(|e| e.to_string())? 
+    let batches = match conn.table_info(&alias, &table_name).map_err(|e| e.to_string())? 
     {
         Some(b) => b,
         None => return Err("there is no row in table_info".into())
@@ -113,7 +132,7 @@ pub fn sql_show_all_table(
 ) 
     -> Result<tauri::ipc::Response, String>
 {
-    let path = arg.path;
+    let alias = arg.alias;
     let table_name = arg.table_name;
     // 確保有連線
     sql_connect(state.clone());
@@ -123,7 +142,7 @@ pub fn sql_show_all_table(
     };
     let conn = guard.as_ref().unwrap();
     
-    let batches = match conn.show_all_table(&path, &table_name).map_err(|e| e.to_string())? {
+    let batches = match conn.show_all_table(&alias, &table_name).map_err(|e| e.to_string())? {
         Some(b) => b,
         None => return Err("there is no row in table_info".into())
     };
@@ -180,7 +199,7 @@ pub fn sql_query(
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct SQLListTableRequest {
-    path: String
+    alias: String
 }
 
 #[derive(Deserialize, TS)]
@@ -195,7 +214,7 @@ pub struct SQLAttachDBRequest {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct SQLTableInfoRequest {
-    path: String,
+    alias: String,
     table_name: String,
 }
 

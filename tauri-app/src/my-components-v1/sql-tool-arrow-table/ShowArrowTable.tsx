@@ -81,7 +81,7 @@ const useArrowTableStyles = makeStyles({
     userSelect: "none",
     zIndex: 1,
     "&:hover": {
-      backgroundColor: "rgba(59, 182, 231, 0.24)",
+      backgroundColor: "rgba(136, 140, 141, 0.24)",
     },
     "&:active": {
       backgroundColor: "rgba(4, 53, 214, 0.56)",
@@ -293,7 +293,7 @@ const DraggableTableHeader = ({
 
   const style: CSSProperties = {
     transform: CSS.Translate.toString(transform),
-    boxShadow: isDragging ? tokens.shadow8 : "none",
+    boxShadow: isDragging ? tokens.shadow28 : "none",
     transition: 'width transform 0.2s ease-in-out',
     width: header.column.getSize(),
     zIndex: isDragging ? 2 : 0,
@@ -371,19 +371,21 @@ function tableToObjects(table: ATable): Record<string, any>[] {
 
 function inferColumnsFromTable(table: ATable, styles: Record<any, string>): ColumnDef<any>[] {
   const columnHelper = createColumnHelper<any>();
+  const randNum = Math.random().toString(36).slice(2);
   const rowNumberCol = columnHelper.display({
-      id: `auto-add-row-number-${Math.random().toString(36).slice(2)}`,
+      id: `auto-add-row-number-${randNum}`,
       header: (_row) => <MdNumbers />,
       // cell 的 info 物件包含 row 屬性，其 index 是從 0 開始的行索引
       cell: info => info.row.index + 1,
       size: 80,
   });
   const dataCols = table.schema.fields.map((field) => {
+    console.log(field.type)
     const colName = field.name;
     return columnHelper.accessor(  
       row => row[colName], 
       {
-        id: colName,
+        id: `${colName}-${randNum}`,
         header: () => <span>{colName}</span>,
         size: 160,
         cell: info => {
@@ -391,15 +393,21 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>): Colu
           if (value === null) return <span className={styles.nullValue}>{"null"}</span>;
           // boolean
           if (field.typeId === 6) return <span className={styles.boolValue}>{`${value}`}</span>;
-          // Timestamp (typeId = 15)
           if (field.typeId === 8) {
-            const unit = (field.type as any).unit; // e.g. "MILLISECOND" or "MICROSECOND"
-            const ms = unit === "MICROSECOND" ? Number(value) / 1000 : Number(value);
+            const ms = Number(value);
             const date = new Date(ms);
             // 轉成 YYYY-MM-DD HH:mm:ss
             const formatted = date.toISOString().split("T")[0];
             return <span>{formatted}</span>;
           }
+
+          if (field.typeId === 10) {
+            const ms = Number(value);
+            const date = new Date(ms);
+            const formatted = date?.toISOString();
+            return <span>{formatted}</span>;
+          }
+          
           return <span>{ String(value) }</span>;
         },
         footer: () => <span>{colName}</span>

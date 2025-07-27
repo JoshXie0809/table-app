@@ -3,7 +3,7 @@ import { FluentProvider, makeStyles, tokens, webLightTheme } from "@fluentui/rea
 import { ButtonToolBox } from "../../my-components-v1/button-toolbox/ButtonToolBox";
 import { RibbonGroup } from "../../my-components-v1/button-toolbox/RibbonGroup";
 import { ButtonLoadDB } from "../../my-components-v1/button-toolbox/button-sql-tool/ButtonLoadDB";
-import { ListDB } from "../../my-components-v1/sql-tool-db-list/ListDB";
+import { ListDB, updateDBList$ } from "../../my-components-v1/sql-tool-db-list/ListDB";
 import { SetShowArrowTable } from "../../my-components-v1/sql-tool-arrow-table/SetShowArrowTable";
 import { MonacoEditor } from "../../my-components-v1/monaca-editor/MonacoEditor";
 
@@ -13,6 +13,7 @@ import {
   PanelGroup, 
   PanelResizeHandle 
 } from "react-resizable-panels";
+import { useEffect } from "react";
 
 // 樣式定義保持不變，但需要為拖動條新增樣式
 const useStyles = makeStyles({
@@ -69,7 +70,7 @@ const useStyles = makeStyles({
   // 拖動條中間的視覺提示線
   resizeHandleGrip: {
     position: 'absolute',
-    backgroundColor: tokens.colorStatusDangerBackground3Pressed,
+    backgroundColor: tokens.colorPaletteRoyalBlueBorderActive,
     '&[data-direction="vertical"]': {
         height: '2px',
         width: '100px',
@@ -90,6 +91,9 @@ const useStyles = makeStyles({
 // 您的組件
 export const SQLApp = () => {
   const styles = useStyles();
+  useEffect(() => {
+    updateDBList$.next();
+  }, [])
   return (
     <FluentProvider theme={webLightTheme} applyStylesToPortals={true}>
       <div className={styles.root}>
