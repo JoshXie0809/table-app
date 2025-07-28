@@ -1,5 +1,5 @@
 import "./SQLApp.css"
-import { FluentProvider, makeStyles, tokens, webLightTheme } from "@fluentui/react-components";
+import { FluentProvider, makeStyles, tokens, webDarkTheme, webLightTheme } from "@fluentui/react-components";
 import { ButtonToolBox } from "../../my-components-v1/button-toolbox/ButtonToolBox";
 import { RibbonGroup } from "../../my-components-v1/button-toolbox/RibbonGroup";
 import { ButtonLoadDB } from "../../my-components-v1/button-toolbox/button-sql-tool/ButtonLoadDB";
@@ -42,7 +42,7 @@ const useStyles = makeStyles({
     height: "100%",
   },
   leftPaneContent: {
-    backgroundColor: tokens.colorNeutralBackground3,
+    // backgroundColor: tokens.colorNeutralBackground3,
     padding: tokens.spacingHorizontalS, // 為 ListDB 內容增加一些內邊距
     boxSizing: "border-box",
     border: `1px solid ${tokens.colorNeutralStroke1}`,
@@ -95,7 +95,7 @@ export const SQLApp = () => {
     updateDBList$.next();
   }, [])
   return (
-    <FluentProvider theme={webLightTheme} applyStylesToPortals={true}>
+    <FluentProvider theme={webDarkTheme} applyStylesToPortals={true}>
       <div className={styles.root}>
         <ButtonToolBox>
           <RibbonGroup label="檔案">

@@ -1,0 +1,12 @@
+:root {
+  --virtual-padding-left: 0px;
+  --virtual-padding-right: 0px;
+}
+
+.left-column-spacer {
+  width: var(--virtual-padding-left);
+}
+
+.right-column-spacer {
+  width: var(--virtual-padding-right);
+}

@@ -5,7 +5,7 @@ import { showDBTable$ } from '../sql-tool-arrow-table/SetShowArrowTable';
 import { Play20Regular } from '@fluentui/react-icons';
 
 export const MonacoEditor: React.FC = () => {
-  const [val, setVal] = useState("");
+  const [val, setVal] = useState("-- 請在這邊寫 duckdb sql 查詢資料\n-- Alt+] 是縮排指令\n");
 
   const handleEditorMount: OnMount = (editor, monaco) => {
     // Bind indent shortcut (Ctrl + ])
@@ -58,6 +58,7 @@ export const MonacoEditor: React.FC = () => {
         value={val}
         onChange={(newVal) => setVal(newVal ?? "")}
         onMount={handleEditorMount}
+        theme='vs-dark'
       />
     </div>
   );

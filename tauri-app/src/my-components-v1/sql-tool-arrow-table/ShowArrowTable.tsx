@@ -1,3 +1,4 @@
+import "./ShowArrowTable.css"
 import React, { CSSProperties, useEffect } from 'react'
 import { Table as ATable} from "apache-arrow";
 import { Header, Cell, ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
@@ -209,6 +210,32 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   )
 
   const { rows } = useMemo(() => tableInstance.getRowModel(), [tableObj]);
+  const visibleColumns= useMemo(() => tableInstance.getVisibleLeafColumns(), [tableObj]);
+  const colVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableCellElement>({
+    count: visibleColumns.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: index => visibleColumns[index].getSize(),
+    horizontal: true,
+    overscan: 3,
+    onChange: instance => {
+      // requestAnimationFrame(() => {
+        const virtualColumns = instance.getVirtualItems();
+        const virtualPaddingLeft = virtualColumns[0]?.start ?? 0;
+        const virtualPaddingRight =
+          instance.getTotalSize() -
+          (virtualColumns[virtualColumns.length - 1]?.end ?? 0);
+        tableContainerRef.current?.style.setProperty(
+          '--virtual-padding-left',
+          `${virtualPaddingLeft}px`
+        );
+        tableContainerRef.current?.style.setProperty(
+          '--virtual-padding-right',
+          `${virtualPaddingRight}px`
+        );
+      // })
+    }
+  });
+
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
     estimateSize: () => 44, //estimate row height for accurate scrollbar dragging
@@ -219,9 +246,11 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
       navigator.userAgent.indexOf('Firefox') === -1
         ? element => element?.getBoundingClientRect().height
         : undefined,
-    overscan: 8,
+    overscan: 6,
   })
 
+  const virtualColumnIndexes = colVirtualizer.getVirtualIndexes();
+  console.log(virtualColumnIndexes)
   return (
     <DndContext
       autoScroll = {false}
@@ -241,9 +270,14 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
                 strategy={horizontalListSortingStrategy}
               >
                 <TableRow className={styles.headerRow}>
-                  {headerGroup.headers.map(header => (
-                    <DraggableTableHeader key={header.id} header={header} styles={styles} />
-                  ))}
+                  <td className="left-column-spacer" />
+                  {
+                    virtualColumnIndexes.map(virtualColumnIndex => {
+                      const header = headerGroup.headers[virtualColumnIndex];
+                      return <DraggableTableHeader header={header} key={header.id} styles={styles} />
+                    })
+                  }
+                  <td className="right-column-spacer" />
                 </TableRow>
               </SortableContext>
             ))}
@@ -260,15 +294,14 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
                       transform: `translateY(${item.start}px)`, //this should always be a `style` as it changes on scroll
                     }}
                   >
-                    {row.getVisibleCells().map(cell => (
-                      <SortableContext
-                        key={cell.id}
-                        items={columnOrder}
-                        strategy={horizontalListSortingStrategy}
-                      >
-                        <DragAlongCell key={cell.id} cell={cell} styles={styles}/>
-                      </SortableContext>
-                    ))}
+                    <td className="left-column-spacer" />
+                    <VirtualRowRender 
+                      row={row}
+                      styles={styles}
+                      columnOrder={columnOrder} 
+                      virtualColumnIndexes={virtualColumnIndexes}
+                    />
+                    <td className="right-column-spacer" />
                   </TableRow>
                 )
               })
@@ -290,7 +323,6 @@ const DraggableTableHeader = ({
     useSortable({
       id: header.column.id,
     })
-
   const style: CSSProperties = {
     transform: CSS.Translate.toString(transform),
     boxShadow: isDragging ? tokens.shadow28 : "none",
@@ -332,6 +364,28 @@ const DraggableTableHeader = ({
       />
     </TableHeaderCell>
   )
+}
+
+const VirtualRowRender = (
+  {row, virtualColumnIndexes, styles, columnOrder} : 
+  {
+    row: Row<any>, 
+    virtualColumnIndexes: number[],
+    styles: any,
+    columnOrder: string[]
+  }
+) => {
+  const visibleCells = row.getVisibleCells();
+  return virtualColumnIndexes.map(virtualColumnIndex => {
+    const cell = visibleCells[virtualColumnIndex];
+    return <SortableContext
+        key={cell.id}
+        items={columnOrder}
+        strategy={horizontalListSortingStrategy}
+      >
+        <DragAlongCell key={cell.id} cell={cell} styles={styles}/>
+    </SortableContext>
+  })
 }
 
 const DragAlongCell = ({ cell, styles }: { cell: Cell<any, unknown>, styles: any }) => {
@@ -380,14 +434,13 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>): Colu
       size: 80,
   });
   const dataCols = table.schema.fields.map((field) => {
-    console.log(field.type)
     const colName = field.name;
     return columnHelper.accessor(  
       row => row[colName], 
       {
         id: `${colName}-${randNum}`,
         header: () => <span>{colName}</span>,
-        size: 160,
+        size: 200,
         cell: info => {
           const value: any = info.getValue();
           if (value === null) return <span className={styles.nullValue}>{"null"}</span>;

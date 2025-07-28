@@ -3,7 +3,7 @@ import { showDBTable$ } from "../sql-tool-arrow-table/SetShowArrowTable";
 import { ImTable2 } from "react-icons/im";
 import { LuInfo } from "react-icons/lu";
 import { DBInfo } from "./ListDB";
-
+import { MoreHorizontal20Regular } from "@fluentui/react-icons";
 export interface ListTableProps {
   alias: string,
   dbInfo: DBInfo | undefined,
@@ -26,23 +26,32 @@ export const ListTable: React.FC<ListTableProps> = ({
             >
               <TreeItemLayout iconBefore={<ImTable2 />}
                 actions={{
-                  visible: true,
+                  // visible: true,
                   children: (
-                    <Button
-                      icon={<LuInfo/>}
-                      appearance="subtle"
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        showDBTable$.next({
-                          alias,
-                          tableName: value,
-                          type: "TableInfo"
-                        })}
-                      }
-                      title="show the schema of table"
-                    >
-                      info
-                    </Button>
+                    <>
+                      <Button
+                        icon={<LuInfo/>}
+                        appearance="transparent"
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          showDBTable$.next({
+                            alias,
+                            tableName: value,
+                            type: "TableInfo"
+                          })}
+                        }
+                        title="show the schema of table"
+                      >
+                        info
+                      </Button>
+                      <Button
+                        icon={<MoreHorizontal20Regular/>}
+                        appearance="transparent"
+                      >
+
+                      </Button>
+                    </>
+                    
                   )
                 }}
                 onClick={() => {

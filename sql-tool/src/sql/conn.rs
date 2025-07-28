@@ -35,7 +35,6 @@ impl MyConnection {
         conn.execute(&sql, [])?;
         conn.execute_batch("CHECKPOINT;")?;
         self.attach_map.remove(path);
-        
         Ok(())
     }
 
@@ -48,19 +47,33 @@ impl MyConnection {
         self.attach_map.get(&path.to_string()).map(|u| u.clone())
     }
 
-    pub fn list_db_tables(&self, path: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
-        let conn = self.give_connection();
-        let alias = match self.get_db_alias(path) {
-            Some(a) => a,
-            None => return Err("connection does not contained this db.".into())
-        }; 
+    // fn read_arrow_ipc_stream(&self, record_batches: Vec<arrow::record_batch::RecordBatch>) 
+    // {
+    //     let conn = self.give_connection();
+    // }
 
+    pub fn list_db(&self) -> Result<Vec<(String, Option<String>)>, Box<dyn std::error::Error>> {
+        let conn = self.give_connection();
+        let sql = "pragma database_list;";
+        let mut stmt = conn.prepare(&sql)?;
+        let mut rows = stmt.query([])?;
+        let mut name_and_file_list = vec![];
+        while let Some(row) =  rows.next()? {
+            let name: String = row.get("name")?;
+            let file: Option<String> = row.get("file")?;
+            name_and_file_list.push((name, file));
+        }
+        conn.execute_batch("CHECKPOINT;")?;
+        Ok(name_and_file_list)
+    }
+
+    pub fn list_db_tables(&self, alias: &str) -> Result<Vec<String>, Box<dyn std::error::Error>> {
+        let conn = self.give_connection();
         // 取得 db 內所有的 table
         let sql = format!(
             "select table_name from information_schema.tables where table_catalog = '{}';",
             alias
         );
-
         let mut stmt = conn.prepare(&sql)?;
         let mut rows = stmt.query([])?;
         let mut names = vec![];
@@ -72,17 +85,11 @@ impl MyConnection {
         Ok(names)
     }
 
-    pub fn table_info(&self, path: &str, table_name: &str) 
+    pub fn table_info(&self, alias: &str, table_name: &str) 
         -> Result<Option<Vec<arrow::record_batch::RecordBatch>>, Box<dyn std::error::Error>>
     {
-        let table_names = self.list_db_tables(path)?;
-        let is_contained = table_names.contains(&table_name.to_string());
-        if !is_contained { return Ok(None); }
+
         let conn = self.give_connection();
-        let alias = match self.get_db_alias(path) {
-            Some(a) => a,
-            None => return Err("connection does not contained this db.".into())
-        };
         let sql = format!("describe {alias}.{table_name}");
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
             .prepare(&sql)?
@@ -93,17 +100,10 @@ impl MyConnection {
         Ok(Some(record_batchs))
     }
 
-    pub fn show_all_table(&self, path: &str, table_name: &str)
+    pub fn show_all_table(&self, alias: &str, table_name: &str)
         -> Result<Option<Vec<arrow::record_batch::RecordBatch>>, Box<dyn std::error::Error>>
     {
-        let table_names = self.list_db_tables(path)?;
-        let is_contained = table_names.contains(&table_name.to_string());
-        if !is_contained { return Ok(None); }
         let conn = self.give_connection();
-        let alias = match self.get_db_alias(path) {
-            Some(a) => a,
-            None => return Err("connection does not contained this db.".into())
-        };
         let sql = format!("select * from {alias}.{table_name};");
         let record_batchs: Vec<arrow::record_batch::RecordBatch> = conn
             .prepare(&sql)?
