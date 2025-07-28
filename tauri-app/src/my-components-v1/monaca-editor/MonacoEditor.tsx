@@ -58,7 +58,7 @@ export const MonacoEditor: React.FC = () => {
         value={val}
         onChange={(newVal) => setVal(newVal ?? "")}
         onMount={handleEditorMount}
-        theme='vs-dark'
+        theme='vs-light'
       />
     </div>
   );
