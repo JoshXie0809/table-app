@@ -37,6 +37,8 @@ pub struct BasePayload {
 pub struct CellMeta {
     pub has_display_formatter: Option<bool>,
     pub display_style_class: Option<String>,
+    pub has_validation_function: Option<bool>,
+    pub is_quick_editable: Option<bool>,
     pub default_cell_content: CellContent,
     #[ts(type = "Record<string, any>")]
     pub cell_schema: Schema,
@@ -58,15 +60,28 @@ impl CellMeta {
             None => None
         };
 
+        let has_validation_function_opt = value.get("has_validation_function");
+        let has_validation_function = match has_validation_function_opt {
+            Some(validation) => validation.as_bool(),
+            None => None
+        };
+
+        let is_quick_editable_opt = value.get("is_quick_editable");
+        let is_quick_editable = match is_quick_editable_opt {
+            Some(validation) => validation.as_bool(),
+            None => None
+        };
+
         let default_cell_config = plugin.default_cell_config();
         let default_cell_content = plugin.to_cell_content(default_cell_config)?;
-
         let cell_schema = plugin.get_schema();
 
         Ok(
             CellMeta { 
                 has_display_formatter, 
-                display_style_class, 
+                display_style_class,
+                has_validation_function,
+                is_quick_editable,
                 default_cell_content,
                 cell_schema
             }

@@ -63,6 +63,7 @@ function App() {
       }
       const css_map = await loadCellPluginCssMap();
       if (css_map.data) injectCellPluginCSS(css_map.data);
+      console.log(vcRef.current);
     }
 
     if(sheetName)

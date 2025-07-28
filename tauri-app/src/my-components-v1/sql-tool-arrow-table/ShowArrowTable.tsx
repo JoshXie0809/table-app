@@ -191,7 +191,6 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
     if (tableContainerRef.current) {
       tableContainerRef.current.style.overflowY = 'auto';
     }
-
     const { active, over } = event
     if (active && over && active.id !== over.id) {
       setColumnOrder(columnOrder => {
@@ -201,15 +200,12 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
       })
     }
   }
-
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
-
   const { rows } = useMemo(() => tableInstance.getRowModel(), [tableObj]);
-
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
     estimateSize: () => 44, //estimate row height for accurate scrollbar dragging
@@ -222,8 +218,6 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
         : undefined,
     overscan: 6,
   })
-
-
   return (
     <DndContext
       autoScroll = {false}
@@ -339,8 +333,6 @@ const DraggableTableHeader = ({
     </TableHeaderCell>
   )
 }
-
-
 
 const DragAlongCell = ({ cell, styles }: { cell: Cell<any, unknown>, styles: any }) => {
   const { isDragging, setNodeRef, transform } = useSortable({

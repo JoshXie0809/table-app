@@ -48,6 +48,8 @@ export const useInputCellStateManager = (
       if(!vc || !inputCell) return;
       if(row === null || col === null) return;
       const val = vc.getCellDisplayValue(row, col);
+      const quickEdiable = vc.getCellIsQuickEditable(row, col);
+      inputCell.setQuickEditable(quickEdiable);
       if(!val) inputCell.setQuickEditInputCellValue("");
       else inputCell.setQuickEditInputCellValue(val);
     })

@@ -96,6 +96,19 @@ export class VirtualCells implements IVirtualCells {
     return null;
   }
 
+  getCellIsQuickEditable(row: number, col: number): boolean {
+    let cell = this.getCell(row, col);
+    if(cell === undefined) cell = this.getDefaultCell();
+    // 如果預設出問題，設定不行
+    if(cell === undefined) return false;
+    const type = cell.type
+    const meta = this.cellMetaMap.get(type);
+    if(meta === undefined) return false
+    const quickEdiable = meta.isQuickEditable;
+    if(quickEdiable) return quickEdiable;
+    return false;
+  }
+
   hasCellFormatter(cell: CellContent | undefined) {
     if(!cell) return false;
     const type = cell.type;

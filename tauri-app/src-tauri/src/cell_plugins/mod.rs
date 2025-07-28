@@ -7,7 +7,7 @@ use crate::cell_plugins::cell::{BasePayload, CellContent};
 pub mod cell;
 pub mod null_cell;
 pub mod text_cell;
-
+pub mod number_cell;
 pub mod registry; // 稍後會建立這個模組來管理所有插件
 
 pub trait CellPlugin: Send + Sync {

@@ -45,7 +45,7 @@ pub fn sql_attach_db (
 
     match conn.attach_db(&path, &alias) {
         Ok(()) => ApiResponse::success(Some("Attached".to_string())),
-        Err((e)) => ApiResponse::error(e.to_string())
+        Err(e) => ApiResponse::error(e.to_string())
     }
 
 }

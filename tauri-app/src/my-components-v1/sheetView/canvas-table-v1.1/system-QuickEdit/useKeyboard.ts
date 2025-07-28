@@ -28,7 +28,10 @@ const keyWithZone$ = keydown$.pipe(
 
 export const enter$ = keyWithZone$.pipe(
   filter(({event}) => event.key === 'Enter'),
-  filter(({focusedZone}) => focusedZone === "system-quick-edit" || focusedZone === undefined)
+  filter(({focusedZone}) => 
+    focusedZone === "system-quick-edit" || 
+    focusedZone === "system-quick-edit-inputcell" ||
+    focusedZone === undefined)
 );
 
 function isArrow(key: string):boolean {
@@ -45,17 +48,19 @@ function isArrow(key: string):boolean {
 
 export const arrow$ = keyWithZone$.pipe(
   filter(({event}) => isArrow(event.key)),
-  filter(({focusedZone}) => focusedZone === undefined)
+  filter(({focusedZone}) => {
+    return focusedZone === undefined || focusedZone === "system-quick-edit";
+  })
 );
 
-export const tab$ = keyWithZone$.pipe(
-  filter(({event}) => event.key === "Tab"),
-  filter(({focusedZone}) => focusedZone === undefined)
-);
+// export const tab$ = keyWithZone$.pipe(
+//   filter(({event}) => event.key === "Tab"),
+//   filter(({focusedZone}) => focusedZone === undefined)
+// );
 
 export const esc$ = keyWithZone$.pipe(
   filter(({event}) => event.key === "Escape"),
-  filter(({focusedZone}) => focusedZone === "system-quick-edit")
+  filter(({focusedZone}) => focusedZone === "system-quick-edit-inputcell")
 )
 
 export const useKeyboard = (

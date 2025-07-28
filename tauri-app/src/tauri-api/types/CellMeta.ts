@@ -4,6 +4,8 @@ import type { CellContent } from "./CellContent";
 export type CellMeta = {
   hasDisplayFormatter: boolean | null;
   displayStyleClass: string | null;
+  hasValidationFunction: boolean | null;
+  isQuickEditable: boolean | null;
   defaultCellContent: CellContent;
   cellSchema: Record<string, any>;
 };

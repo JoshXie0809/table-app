@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::cell_plugins::cell::CellMeta;
+use crate::cell_plugins::number_cell::NumberCellPlugin;
 
 use super::null_cell::NullCellPlugin;
 use super::text_cell::TextCellPlugin; // 引入 TextCellPlugin
@@ -45,6 +46,7 @@ impl CellPluginRegistry {
     fn register_default_plugins(&mut self) {
         self.register(TextCellPlugin); // 註冊 TextCellPlugin
         self.register(NullCellPlugin);
+        self.register(NumberCellPlugin);
     }
 
     // fn register_custom_plugins(&mut self) {
