@@ -3,7 +3,7 @@ import { showDBTable$ } from "../sql-tool-arrow-table/SetShowArrowTable";
 import { ImTable2 } from "react-icons/im";
 import { LuInfo } from "react-icons/lu";
 import { DBInfo } from "./ListDB";
-import { MoreHorizontal20Regular } from "@fluentui/react-icons";
+import { MoreHorizontal32Regular } from "@fluentui/react-icons";
 export interface ListTableProps {
   alias: string,
   dbInfo: DBInfo | undefined,
@@ -45,11 +45,18 @@ export const ListTable: React.FC<ListTableProps> = ({
                         info
                       </Button>
                       <Button
-                        icon={<MoreHorizontal20Regular/>}
+                        icon={<MoreHorizontal32Regular/>}
                         appearance="transparent"
-                      >
-
-                      </Button>
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          showDBTable$.next({
+                            alias: "",
+                            tableName: "",
+                            type: "Query",
+                            sql: `select random() as ${value};`
+                          })
+                        }}
+                      />
                     </>
                     
                   )

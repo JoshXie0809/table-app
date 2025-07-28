@@ -1,6 +1,6 @@
 import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { VirtualCells } from "../../../VirtualCells";
-import { Button, Input, tokens } from "@fluentui/react-components";
+import { Button, Input, Menu, MenuItem, MenuList, MenuPopover, MenuProps, MenuTrigger, tokens, Toolbar } from "@fluentui/react-components";
 import { SettingsRegular} from "@fluentui/react-icons";
 
 export interface QuickEditInputCellProps {
@@ -23,7 +23,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
     const vc = vcRef.current;
     const inputRef = useRef<HTMLInputElement>(null);
     const [isFocused, setIsFocused] = useState(false);
-    const [quiclEditable, setQuickEditable] = useState(false);
+    const [quickEditable, setQuickEditable] = useState(false);
     const [quickEditInputCellValue, setQuickEditInputCellValue] = useState("");
     const latestValueRef = useRef("");
 
@@ -39,7 +39,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       setQuickEditInputCellValue,
       setQuickEditable,
       latestValueRef,
-    }), [isFocused]);
+    }), [isFocused, setQuickEditInputCellValue, setQuickEditable]);
     if (!vc) return null;
 
     const handleKeyDown = () => {
@@ -91,7 +91,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
         <Input 
           id="system-quick-edit-cell"
           data-zone = "system-quick-edit-inputcell"
-          disabled={!quiclEditable}
+          disabled={!quickEditable}
           placeholder="輸入"
           autoComplete="on"
           value={quickEditInputCellValue}
@@ -101,14 +101,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
           onKeyDown={handleKeyDown}
           aria-autocomplete="none"
           contentAfter={
-            <Button 
-              data-zone="system-quick-edit-setting"
-              icon={<SettingsRegular />} 
-              onClick={() => {
-                console.log("fffji")
-              }}
-              appearance="transparent"
-            />
+            <MenuButton />
           }
           style={{
             height: `${Math.round(vc.cellHeight)}px`,
@@ -116,7 +109,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
             width: inputWidth,
             display: "flex",
             border: "1px solid rgb(96, 151, 96)",
-            boxShadow: tokens.shadow2,
+            boxShadow: tokens.shadow8,
             boxSizing: "border-box",
             backgroundColor: tokens.colorNeutralBackground1,
           }}
@@ -140,7 +133,38 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
           {/* 如果 input 是空的，我們用 placeholder 來決定最小寬度 */}
           {quickEditInputCellValue}
         </span>
+        <div id="system-quick-edit-setting-menu-mount-node" />
       </div>
     );
   }
 );
+
+const MenuButton = () => {
+  // 不再需要手動管理 open state
+  return (
+    <Menu 
+      data-zone="system-quick-edit-setting"
+      mountNode={document.getElementById("system-quick-edit-setting-menu-mount-node")}
+    >
+      {/* ✨ 1. 使用 MenuTrigger*/}
+      <MenuTrigger>
+        <Button 
+          icon={<SettingsRegular />}
+          appearance="transparent"
+          onClick={(event) => {
+            event.stopPropagation()
+          }}
+        />
+      </MenuTrigger>
+
+      {/* ✨ 2. MenuPopover 和 MenuList 保持不變 */}
+      <MenuPopover>
+        <MenuList data-zone="system-quick-edit-setting-list">
+          <MenuItem>New</MenuItem>
+          <MenuItem>Fuck</MenuItem>
+          <MenuItem>Old</MenuItem>
+        </MenuList>
+      </MenuPopover>
+    </Menu>
+  );
+}
