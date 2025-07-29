@@ -1,7 +1,8 @@
 import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { VirtualCells } from "../../../VirtualCells";
-import { Button, Input, Menu, MenuItem, MenuList, MenuPopover, MenuProps, MenuTrigger, tokens, Toolbar } from "@fluentui/react-components";
+import { Button, Input, Menu, MenuDivider, MenuItem, MenuItemRadio, MenuList, MenuPopover, MenuProps, MenuTrigger, tokens } from "@fluentui/react-components";
 import { SettingsRegular} from "@fluentui/react-icons";
+import { rc$ } from "./useInputCellStateManager";
 
 export interface QuickEditInputCellProps {
   vcRef: RefObject<VirtualCells>
@@ -40,7 +41,6 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       setQuickEditable,
       latestValueRef,
     }), [isFocused, setQuickEditInputCellValue, setQuickEditable]);
-    if (!vc) return null;
 
     const handleKeyDown = () => {
       requestAnimationFrame(() => {
@@ -51,10 +51,8 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
 
         const containerRect = container.getBoundingClientRect();
         const inputRect = inputEl.getBoundingClientRect();
-
         const headerHeight = Math.round(vc.cellHeight) +2;
         const headerWidth = Math.round(vc.cellWidth) +2;
-
         const cond1 = (inputRect.top < containerRect.top + headerHeight);
         const cond2 = (inputRect.left < containerRect.left + headerWidth)
         const isCoveredByHeader =  cond1 || cond2;
@@ -86,6 +84,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       }
     }, [quickEditInputCellValue]); // 每當 value 改變時，就重新執行此 effect
 
+    if (!vc) return null;
     return (
       <div data-zone = "system-quick-edit" tabIndex={0}>
         <Input 
@@ -101,7 +100,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
           onKeyDown={handleKeyDown}
           aria-autocomplete="none"
           contentAfter={
-            <MenuButton />
+            <MenuButton vc={vc}/>
           }
           style={{
             height: `${Math.round(vc.cellHeight)}px`,
@@ -134,12 +133,15 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
           {quickEditInputCellValue}
         </span>
         <div id="system-quick-edit-setting-menu-mount-node" />
+        <div id="system-quick-edit-setting-sub-menu-mount-node" />
       </div>
     );
   }
 );
 
-const MenuButton = () => {
+const MenuButton = (
+  {vc}: {vc: VirtualCells}
+) => {
   // 不再需要手動管理 open state
   return (
     <Menu 
@@ -147,7 +149,7 @@ const MenuButton = () => {
       mountNode={document.getElementById("system-quick-edit-setting-menu-mount-node")}
     >
       {/* ✨ 1. 使用 MenuTrigger*/}
-      <MenuTrigger>
+      <MenuTrigger disableButtonEnhancement>
         <Button 
           icon={<SettingsRegular />}
           appearance="transparent"
@@ -161,10 +163,53 @@ const MenuButton = () => {
       <MenuPopover>
         <MenuList data-zone="system-quick-edit-setting-list">
           <MenuItem>New</MenuItem>
-          <MenuItem>Fuck</MenuItem>
-          <MenuItem>Old</MenuItem>
+          <MenuItem>Open Edit Panel</MenuItem>
+          <MenuDivider />
+          <SettingCellType vc={vc}/>
+        </MenuList>
+      </MenuPopover>
+      
+    </Menu>
+  );
+}
+
+const SettingCellType = (
+  {vc}: {vc: VirtualCells}
+) => {
+  let rc = rc$.getValue();
+  const list: string[] = vc.getAllCellType();
+  const nowType = vc.getCellCurrnetType(rc.row ?? 0, rc.col ?? 0);
+  const [checkedValues, setCheckedValues] = React.useState<
+    Record<string, string[]>
+  >({ "cell-type": [nowType] });
+
+  const onChange: MenuProps["onCheckedValueChange"] = (
+    _e, { name, checkedItems }
+  ) => {
+    setCheckedValues((s) => ({ ...s, [name]: checkedItems }));
+  };
+  return (
+    <Menu 
+      checkedValues={checkedValues}
+      onCheckedValueChange={onChange}
+      data-zone="system-quick-edit-setting"
+      mountNode={document.getElementById("system-quick-edit-setting-sub-menu-mount-node")}
+    >
+      <MenuTrigger disableButtonEnhancement>
+        <MenuItem>Setting Cell Type</MenuItem>
+      </MenuTrigger>
+      <MenuPopover>
+        <MenuList data-zone="system-quick-edit-setting-list">
+          {
+            list.map((type) => {
+              return(
+                <MenuItemRadio key={type} name="cell-type" value={type}>
+                  {type}
+                </MenuItemRadio>)
+            })
+          }
         </MenuList>
       </MenuPopover>
     </Menu>
-  );
+  )
 }

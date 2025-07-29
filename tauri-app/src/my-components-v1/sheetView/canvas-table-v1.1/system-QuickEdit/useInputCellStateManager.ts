@@ -4,10 +4,10 @@ import { target$ } from "./SystemQuickEdit";
 import { QuickEditInputCellHandle } from "./InputCell";
 import { TransSystemName } from "../RenderManager";
 import { useKeyboard } from "./useKeyboard";
-import { Subject } from "rxjs";
+import { BehaviorSubject} from "rxjs";
 import { useQuickEditAppender } from "./QuiclEditAppender";
 
-export const rc$ = new Subject<{row: number | null, col:number | null }>();
+export const rc$ = new BehaviorSubject<{row: number | null, col:number | null }>({row: null, col: null});
 
 export const useInputCellStateManager = (
   divRef: RefObject<HTMLDivElement | null>,

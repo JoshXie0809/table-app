@@ -156,6 +156,21 @@ export class VirtualCells implements IVirtualCells {
     this.dirtyCells.clear();
   }
 
+  getCellCurrnetType(row: number, col: number): string {
+    let cell = this.getCell(row, col);
+    if(cell === undefined) cell = this.getDefaultCell();
+    if(cell === undefined) return "Text";
+    const type: string = cell.type;
+    return type;
+  }
+
+  getAllCellType(): string[] {
+    const list = this.cellMetaMap.keys();
+    const arr = Array.from(list);
+    arr.push("ArrowTable");
+    return arr.sort();
+  }
+
   async requestDisplayValueAndUpdate() {
     const cells: ICell[] = []
     this.dirtyCells.forEach((v) => {
