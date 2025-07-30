@@ -3,6 +3,7 @@ import { VirtualCells } from "../../../VirtualCells";
 import { Button, Input, Menu, MenuDivider, MenuItem, MenuItemRadio, MenuList, MenuPopover, MenuProps, MenuTrigger, tokens } from "@fluentui/react-components";
 import { SettingsRegular} from "@fluentui/react-icons";
 import { rc$ } from "./useInputCellStateManager";
+import { Subject } from "rxjs";
 
 export interface QuickEditInputCellProps {
   vcRef: RefObject<VirtualCells>
@@ -173,6 +174,8 @@ const MenuButton = (
   );
 }
 
+export const cellTypeConvert$ = new Subject<{row: number | null, col: number | null, newType: string}>()
+
 const SettingCellType = (
   {vc}: {vc: VirtualCells}
 ) => {
@@ -186,7 +189,13 @@ const SettingCellType = (
   const onChange: MenuProps["onCheckedValueChange"] = (
     _e, { name, checkedItems }
   ) => {
-    setCheckedValues((s) => ({ ...s, [name]: checkedItems }));
+    const row = rc.row;
+    const col = rc.col;
+    const newType = checkedItems[0];
+    setCheckedValues((s) => {
+      cellTypeConvert$.next({row, col, newType});
+      return ({ ...s, [name]: checkedItems })
+    });
   };
   return (
     <Menu 

@@ -45,6 +45,7 @@ impl CellPlugin for NumberCellPlugin {
         let mut map: HashMap<String, Value> = HashMap::new();
         map.insert("has_display_formatter".to_string(), json!(false));
         map.insert("display_style_class".to_string(), json!("cell-plugin-number"));
+        map.insert("is_quick_editable".to_string(), json!(true));
         json!(map)
     }
 

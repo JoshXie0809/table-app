@@ -66,6 +66,13 @@ export class VirtualCells implements IVirtualCells {
   setCellByCoord(row: number, col: number, cellContent: CellContent): void {
     this.cellsMap.set(this.toKey(row, col), cellContent);
   }
+  setCellTypeByCoord(row: number, col: number, newType: string): void {
+    let cell = this.getCell(row, col);
+    if(cell === undefined) cell = this.getDefaultCell();
+    if(cell === undefined) return;
+    cell.type = newType;
+    this.setCell({row, col, cellData: cell});
+  }
 
   getCell(row: number, col: number): CellContent | undefined {
     return this.cellsMap.get(this.toKey(row, col));
@@ -167,7 +174,6 @@ export class VirtualCells implements IVirtualCells {
   getAllCellType(): string[] {
     const list = this.cellMetaMap.keys();
     const arr = Array.from(list);
-    arr.push("ArrowTable");
     return arr.sort();
   }
 

@@ -35,12 +35,12 @@ class QuickEditAppender {
     const key = vc.toKey(row, col);
     return this.appender.get(key);
   }
-  setCell(row: number, col: number, newValue: string, vc: VirtualCells) 
+  setCellValue(row: number, col: number, newValue: string, vc: VirtualCells) 
   {
     const cell = this.getCell(row, col , vc);
     if(cell === undefined ) return;
     let { now } = cell;
-    setCellContentValue(now, newValue, vc);  
+    setCellContentValue(now, newValue, vc);
   }
   deleteCell(row: number, col: number, vc: VirtualCells) 
   {
@@ -97,7 +97,7 @@ export function useQuickEditAppender()
       // 初始化失敗直接退出
       if( !initSuccess ) return;
       // 寫入數據到 qea 中
-      qea.setCell(row, col, value, cellsVC);
+      qea.setCellValue(row, col, value, cellsVC);
       // 檢查來降低數據量
       const cell = qea.getCell(row, col, cellsVC);
       if(cell === undefined) return;
@@ -131,6 +131,7 @@ export function useQuickEditAppender()
       if(qea === null) return;
       const cells = qea.getAllCellOnSave(cellsVC);
       const sheetPath = cellsVC.sheetPath;
+      console.log("save 1");
       let res = await saveSheet({cells, sheetPath});
       if(res.success) qea.deleteAllCell();
     })

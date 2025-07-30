@@ -6,7 +6,7 @@ import { HeadingNode } from "@lexical/rich-text";
 import { LexicalErrorBoundary } from "@lexical/react/LexicalErrorBoundary";
 import { makeStyles, Text, tokens } from "@fluentui/react-components";
 import { LexicalHeadingInputRulePlugin } from "./Lexical-Heading-Inputrule";
-import { LexicalTreeViewPlugin } from "./Lexical-TreeView";
+// import { LexicalTreeViewPlugin } from "./Lexical-TreeView";
 import { LexicalToolBar } from "./Lexical-ToolBar";
 import { LexicalCalcInputRulePlugin } from "./Lexical-Calc-Inputrule";
 import { MyCodeNode } from "./NodePlugin/MyCodeNode";
@@ -62,8 +62,8 @@ export function MyLexicalEditor() {
           <ListPlugin />
           <CheckListPlugin />
           <TimestampPlugin />
-          <hr className={styles.divider} />
-          <LexicalTreeViewPlugin />
+          {/* <hr className={styles.divider} /> */}
+          {/* <LexicalTreeViewPlugin /> */}
         </div>
       </LexicalComposer>
     </div>

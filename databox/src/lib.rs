@@ -7,7 +7,8 @@ fn create_arrow_batch()
     -> Result<Vec<RecordBatch>, Box<dyn std::error::Error>>
 {
     let conn = duckdb::Connection::open_in_memory()?;
-    let sql = "SELECT * FROM sqlite_scan('C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/data/vote.sqlite', 'content_tbl')";
+    conn.execute("attach 'C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/data/data.duckdb' as db;", [])?;
+    let sql = "SELECT * FROM db.cars;";
     let record_batches: Vec<RecordBatch> = conn
         .prepare(&sql)?
         .query_arrow([])?

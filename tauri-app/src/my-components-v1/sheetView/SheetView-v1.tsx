@@ -7,7 +7,6 @@ import { TopLeftCell } from "./SheetView-TopLeftCell.tsx";
 import { tokens } from "@fluentui/react-components";
 import { SheetViewContext, useCreateSheetViewContextValue } from "./SheetView-Context.tsx";
 import { ScrollEventManager } from "../scroll-manager/ScrollManager.ts";
-
 export interface SheetViewProps {
   vcRef: RefObject<VirtualCells>
   children?: React.ReactNode
@@ -141,7 +140,6 @@ export const SheetView11: React.FC<SheetViewProps> = ({
         }
       }
 
-
       // 推入動畫任務
       jobs.push({
         dx,
@@ -191,9 +189,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
       if (inertiaTimeout) clearTimeout(inertiaTimeout);
     };
   }, [rowHeight, cellWidth]);
-
-
-  
+ 
   return (
     <SheetViewContext.Provider value={value}>
       <div
