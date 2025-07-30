@@ -50,6 +50,7 @@ export const useInputCellStateManager = (
       const val = vc.getCellDisplayValue(row, col);
       const quickEdiable = vc.getCellIsQuickEditable(row, col);
       inputCell.setQuickEditable(quickEdiable);
+      inputCell.setVisible();
       if(!val) inputCell.setQuickEditInputCellValue("");
       else inputCell.setQuickEditInputCellValue(val);
     })

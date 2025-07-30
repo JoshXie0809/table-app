@@ -60,7 +60,7 @@ export const arrow$ = keyWithZone$.pipe(
 
 export const esc$ = keyWithZone$.pipe(
   filter(({event}) => event.key === "Escape"),
-  filter(({focusedZone}) => focusedZone === "system-quick-edit-inputcell")
+  filter(({focusedZone}) => focusedZone === "system-quick-edit-inputcell" || focusedZone === undefined)
 )
 
 export const useKeyboard = (
@@ -89,7 +89,12 @@ export const useKeyboard = (
     const sub = esc$.subscribe(() => {
       const inputCell = inputCellRef.current;
       if(!inputCell) return;
-      if(inputCell.isFocused) inputCell.blur();
+      if(inputCell.isFocused) {
+        inputCell.blur();
+        return;
+      }
+      rc$.next({row: null, col: null});
+      inputCell.setHidden();
     })
     return () => sub.unsubscribe();
   })

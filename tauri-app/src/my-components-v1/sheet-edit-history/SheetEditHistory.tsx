@@ -3,6 +3,8 @@ import { Subject } from "rxjs";
 import { setCellContentValue, validateCellContent, VirtualCells } from "../VirtualCells";
 import { RManager } from "../sheetView/canvas-table-v1.1/RenderManager";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
+import { Toast, ToastBody, Toaster, ToastTitle, useId, useToastController } from "@fluentui/react-components";
+import { rc$ } from "../sheetView/canvas-table-v1.1/system-QuickEdit/useInputCellStateManager";
 
 export type EditSheet =
   | {editType: "EditCellValue"}
@@ -19,6 +21,18 @@ export const SheetEditHistory = (
     vmRef: RefObject<VManager>
   }
 ) => {
+  const toasterId = useId("sheet-view-edit-sheet-system");
+  const { dispatchToast } = useToastController(toasterId);
+  const notify = (err: any) => {
+    dispatchToast(
+      <Toast>
+        <ToastTitle>Change Cell Type Error</ToastTitle>
+        <ToastBody>{JSON.stringify(err)}</ToastBody>
+      </Toast>,
+      {intent: "error"}
+    )
+  };
+
   useEffect(() => {
     const sub = sheetEditEmit$.subscribe((payload) => {
       const vc = vcRef.current;
@@ -41,12 +55,16 @@ export const SheetEditHistory = (
         setCellContentValue(newCellContent, String(newCellContent.payload.value), vc);
         const validateResult = validateCellContent(newCellContent, vc)
         console.log(newCellContent)
-        if(validateResult.success === false) return;        
+        if(validateResult.success === false) {
+          notify(validateResult.error);
+          return;
+        }
         const vmCell = vm.getCellByRowCol(row, col)
         if(vmCell === undefined) return;
         vc.setCell({row, col, cellData: newCellContent});
         rm.markDirty(vmCell);
         rm.flush();
+        rc$.next({row, col});
       }
       
     })
@@ -55,6 +73,6 @@ export const SheetEditHistory = (
   }, []);
 
   return(
-    null
+    <Toaster toasterId={toasterId} position="bottom-start"/>
   )
 }

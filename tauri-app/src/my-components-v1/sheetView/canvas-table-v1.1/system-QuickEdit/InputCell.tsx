@@ -18,6 +18,8 @@ export interface QuickEditInputCellHandle {
   setQuickEditInputCellValue: React.Dispatch<React.SetStateAction<string>>
   setQuickEditable: React.Dispatch<React.SetStateAction<boolean>>
   latestValueRef: RefObject<string>;
+  setVisible: () => void,
+  setHidden: () => void,
 }
 
 export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEditInputCellProps>(
@@ -28,7 +30,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
     const [quickEditable, setQuickEditable] = useState(false);
     const [quickEditInputCellValue, setQuickEditInputCellValue] = useState("");
     const latestValueRef = useRef("");
-
+    const [visibility, setVisibility] = useState<"visible" | "hidden">("visible");
     useEffect(() => {
       latestValueRef.current = quickEditInputCellValue;
     }, [quickEditInputCellValue])
@@ -40,6 +42,8 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
       getInputElement: () => inputRef.current,
       setQuickEditInputCellValue,
       setQuickEditable,
+      setVisible: () => setVisibility("visible"),
+      setHidden: () => setVisibility("hidden"),
       latestValueRef,
     }), [isFocused, setQuickEditInputCellValue, setQuickEditable]);
 
@@ -94,6 +98,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
           disabled={!quickEditable}
           placeholder="輸入"
           autoComplete="on"
+          spellCheck={false}
           value={quickEditInputCellValue}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
@@ -104,6 +109,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
             <MenuButton vc={vc}/>
           }
           style={{
+            visibility: visibility,
             height: `${Math.round(vc.cellHeight)}px`,
             minWidth: `${Math.round(vc.cellWidth)}px`,
             width: inputWidth,
@@ -111,6 +117,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
             border: "1px solid rgb(96, 151, 96)",
             boxShadow: tokens.shadow8,
             boxSizing: "border-box",
+            transition: "width 0.1s ease-out",
             backgroundColor: tokens.colorNeutralBackground1,
           }}
           input={{ref: inputRef}}
