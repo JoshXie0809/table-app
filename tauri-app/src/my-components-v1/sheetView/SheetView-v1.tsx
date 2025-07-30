@@ -30,6 +30,8 @@ export const SheetView11: React.FC<SheetViewProps> = ({
 
   const value = useCreateSheetViewContextValue(vcRef, containerRef);
 
+  // 使用 sheet-edit-紀錄中心
+
   // 註冊 scoll-event-manager
   useEffect(() => {
     if(!containerRef.current) return;
@@ -238,7 +240,7 @@ export const SheetView11: React.FC<SheetViewProps> = ({
         <RowHeader rowHeaderRef={rowHeaderRef} containerRef={containerRef} vcRef={vcRef} />
         <ColHeader colHeaderRef={colHeaderRef} containerRef={containerRef} vcRef={vcRef} />
         <TopLeftCell containerRef={containerRef} tlcRef={tlcRef} />
-
+        
         {children}
       </div>
 

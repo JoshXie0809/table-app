@@ -3,7 +3,7 @@ import { VirtualCells } from "../../../VirtualCells";
 import { Button, Input, Menu, MenuDivider, MenuItem, MenuItemRadio, MenuList, MenuPopover, MenuProps, MenuTrigger, tokens } from "@fluentui/react-components";
 import { SettingsRegular} from "@fluentui/react-icons";
 import { rc$ } from "./useInputCellStateManager";
-import { Subject } from "rxjs";
+import { sheetEditEmit$ } from "../../../sheet-edit-history/SheetEditHistory";
 
 export interface QuickEditInputCellProps {
   vcRef: RefObject<VirtualCells>
@@ -169,12 +169,9 @@ const MenuButton = (
           <SettingCellType vc={vc}/>
         </MenuList>
       </MenuPopover>
-      
     </Menu>
   );
 }
-
-export const cellTypeConvert$ = new Subject<{row: number | null, col: number | null, newType: string}>()
 
 const SettingCellType = (
   {vc}: {vc: VirtualCells}
@@ -185,15 +182,14 @@ const SettingCellType = (
   const [checkedValues, setCheckedValues] = React.useState<
     Record<string, string[]>
   >({ "cell-type": [nowType] });
-
   const onChange: MenuProps["onCheckedValueChange"] = (
     _e, { name, checkedItems }
   ) => {
-    const row = rc.row;
-    const col = rc.col;
-    const newType = checkedItems[0];
     setCheckedValues((s) => {
-      cellTypeConvert$.next({row, col, newType});
+      const row = rc.row;
+      const col = rc.col;
+      if(row !== null && col !== null)
+        sheetEditEmit$.next({editType: "EditCellType", newCellType: checkedItems[0], row, col});
       return ({ ...s, [name]: checkedItems })
     });
   };

@@ -9,6 +9,7 @@ import { usePolling } from "../hooks/usePolling";
 import { useSyncContainerDims } from "../hooks/useSyncContainerDims";
 import { useTickingRef } from "../hooks/useTickingRef";
 import { useRegisterSystemRef } from "./SheetView-Context";
+import { SheetEditHistory } from "../sheet-edit-history/SheetEditHistory";
 
 export interface GridContentProps {
   containerRef: RefObject<HTMLDivElement>;
@@ -24,16 +25,11 @@ export const GridContent: React.FC<GridContentProps> = ({
 
   // 時刻監聽 container 變化
   const containerDims = useContainerDimensions(containerRef);
-
   const vmRef = useRef<null | VManager>(null);
   const rmRef = useRef<null | RManager>(null);
   const scrollStopTimer = useRef<number | null>(null); 
-
   const tickingRef = useTickingRef();
-
-
   const {stopPolling, startPollingIfDirty} = usePolling(vcRef, rmRef);
-
   const transSystemName: TransSystemName = "cells";
 
   // 註冊 managers 到 sheetViewContext
@@ -125,5 +121,7 @@ export const GridContent: React.FC<GridContentProps> = ({
     };
   }, []); // 空依賴陣列表示只在組件 mount 和 unmount 時執行
 
-  return null;
+  return (
+    <SheetEditHistory vcRef={vcRef} rmRef={rmRef} vmRef={vmRef}/>
+  );
 };
