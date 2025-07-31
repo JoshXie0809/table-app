@@ -1,11 +1,12 @@
 import { Button, tokens, Toolbar } from '@fluentui/react-components';
 import Editor, { OnMount } from '@monaco-editor/react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { showDBTable$ } from '../sql-tool-arrow-table/SetShowArrowTable';
 import { Play20Regular } from '@fluentui/react-icons';
 
 export const MonacoEditor: React.FC = () => {
-  const [val, setVal] = useState("-- 請在這邊寫 duckdb sql 查詢資料\n-- Alt+] 是縮排指令\n");
+  const [val, setVal] = useState("-- 請在這邊寫 duckdb sql 查詢資料\n-- Alt+] 是縮排指令\n-- Ctrl + Enter 是執行程式碼\n");
+  const valRef = useRef<string | null>(null);
 
   const handleEditorMount: OnMount = (editor, monaco) => {
     // Bind indent shortcut (Ctrl + ])
@@ -23,6 +24,15 @@ export const MonacoEditor: React.FC = () => {
         editor.trigger('keyboard', 'editor.action.outdentLines', null);
       }
     );
+
+    // Shift + Enter to run
+    editor.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
+      () => {
+        console.log(valRef)
+        showDBTable$.next({alias: "", tableName: "", sql: valRef.current ?? "", type: "Query"});
+      }
+    )
   };
 
   return (
@@ -56,7 +66,10 @@ export const MonacoEditor: React.FC = () => {
         }}
         language='sql'
         value={val}
-        onChange={(newVal) => setVal(newVal ?? "")}
+        onChange={(newVal) => {
+          setVal(newVal ?? "");
+          valRef.current = newVal ?? "";
+        }}
         onMount={handleEditorMount}
         theme='vs-light'
       />

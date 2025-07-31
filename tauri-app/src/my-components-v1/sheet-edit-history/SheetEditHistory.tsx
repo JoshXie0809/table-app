@@ -1,10 +1,11 @@
-import { RefObject, useEffect } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { Subject } from "rxjs";
-import { setCellContentValue, validateCellContent, VirtualCells } from "../VirtualCells";
+import { getCellContentValue, setCellContentValue, validateCellContent, VirtualCells } from "../VirtualCells";
 import { RManager } from "../sheetView/canvas-table-v1.1/RenderManager";
 import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
 import { Toast, ToastBody, Toaster, ToastTitle, useId, useToastController } from "@fluentui/react-components";
 import { rc$ } from "../sheetView/canvas-table-v1.1/system-QuickEdit/useInputCellStateManager";
+import { CellContent } from "../../tauri-api/types/CellContent";
 
 export type EditSheet =
   | {editType: "EditCellValue"}
@@ -12,6 +13,14 @@ export type EditSheet =
   | {editType: "EditCellOtherPayload"}
   | {editType: "EditCellType", newCellType: string, row: number, col: number}
   ;
+
+export interface HistroyLog {
+  editType: string;
+  row: number,
+  col: number,
+  from: CellContent | undefined,
+  to: CellContent | undefined,
+}
 
 export const sheetEditEmit$ = new Subject<EditSheet>();
 export const SheetEditHistory = (
@@ -22,12 +31,15 @@ export const SheetEditHistory = (
   }
 ) => {
   const toasterId = useId("sheet-view-edit-sheet-system");
+  const editHistoryRef = useRef<HistroyLog[]>([]);
+  const editCellsRef = useRef<Map<string, CellContent | undefined>>(new Map());
+
   const { dispatchToast } = useToastController(toasterId);
-  const notify = (err: any) => {
+  const notify = (val: any, newType: string) => {
     dispatchToast(
       <Toast>
-        <ToastTitle>Change Cell Type Error</ToastTitle>
-        <ToastBody>{JSON.stringify(err)}</ToastBody>
+        <ToastTitle>Setting Cell Type Error</ToastTitle>
+        <ToastBody>{`can not change value="${String(val)}" to ${newType}-type`}</ToastBody>
       </Toast>,
       {intent: "error"}
     )
@@ -54,19 +66,31 @@ export const SheetEditHistory = (
         newCellContent.type = payload.newCellType;
         setCellContentValue(newCellContent, String(newCellContent.payload.value), vc);
         const validateResult = validateCellContent(newCellContent, vc)
-        console.log(newCellContent)
         if(validateResult.success === false) {
-          notify(validateResult.error);
+          const val = getCellContentValue(newCellContent);
+          notify(val, payload.newCellType);
           return;
         }
+        
         const vmCell = vm.getCellByRowCol(row, col)
         if(vmCell === undefined) return;
         vc.setCell({row, col, cellData: newCellContent});
         rm.markDirty(vmCell);
         rm.flush();
         rc$.next({row, col});
+        const editHistory = editHistoryRef.current;
+        editHistory.push({
+          editType: payload.editType,
+          row: payload.row,
+          col: payload.col,
+          from: oldCellContent,
+          to: newCellContent
+        })
+        editCellsRef.current.set(vc.toKey(row, col), newCellContent);
       }
-      
+
+      console.log(editHistoryRef.current);
+      console.log(editCellsRef.current);
     })
 
     return () => sub.unsubscribe();

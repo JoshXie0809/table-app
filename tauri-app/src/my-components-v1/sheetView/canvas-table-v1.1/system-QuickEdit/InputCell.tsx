@@ -1,15 +1,16 @@
 import React, { forwardRef, RefObject, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react";
 import { VirtualCells } from "../../../VirtualCells";
 import { Button, Input, Menu, MenuDivider, MenuItem, MenuItemRadio, MenuList, MenuPopover, MenuProps, MenuTrigger, tokens } from "@fluentui/react-components";
-import { SettingsRegular} from "@fluentui/react-icons";
+import { bundleIcon, SettingsRegular} from "@fluentui/react-icons";
 import { rc$ } from "./useInputCellStateManager";
 import { sheetEditEmit$ } from "../../../sheet-edit-history/SheetEditHistory";
+import { CopyRegular, CopyFilled} from "@fluentui/react-icons";
+const CopyIcon = bundleIcon(CopyFilled, CopyRegular);
 
 export interface QuickEditInputCellProps {
   vcRef: RefObject<VirtualCells>
   containerRef: RefObject<HTMLElement>
 }
-
 export interface QuickEditInputCellHandle {
   focus: () => void;
   blur: () => void;
@@ -85,7 +86,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
         // 測量 sizer span 的寬度
         const newWidth = sizerRef.current.getBoundingClientRect().width;
         // 加上一個小小的緩衝空間 (約等於左右 padding)，讓文字不會緊貼邊緣
-        setInputWidth(newWidth + 52); 
+        setInputWidth(Math.ceil(newWidth + 52));
       }
     }, [quickEditInputCellValue]); // 每當 value 改變時，就重新執行此 effect
 
@@ -117,7 +118,7 @@ export const QuickEditInputCell = forwardRef<QuickEditInputCellHandle, QuickEdit
             border: "1px solid rgb(96, 151, 96)",
             boxShadow: tokens.shadow8,
             boxSizing: "border-box",
-            transition: "width 0.1s ease-out",
+            // transition: "width 0.05s ease-out",
             backgroundColor: tokens.colorNeutralBackground1,
           }}
           input={{ref: inputRef}}
@@ -153,12 +154,14 @@ const MenuButton = (
   // 不再需要手動管理 open state
   return (
     <Menu 
+      hasIcons
       data-zone="system-quick-edit-setting"
       mountNode={document.getElementById("system-quick-edit-setting-menu-mount-node")}
     >
       {/* ✨ 1. 使用 MenuTrigger*/}
       <MenuTrigger disableButtonEnhancement>
         <Button 
+          tabIndex={-1}
           icon={<SettingsRegular />}
           appearance="transparent"
           onClick={(event) => {
@@ -170,7 +173,7 @@ const MenuButton = (
       {/* ✨ 2. MenuPopover 和 MenuList 保持不變 */}
       <MenuPopover>
         <MenuList data-zone="system-quick-edit-setting-list">
-          <MenuItem>New</MenuItem>
+          <MenuItem icon={<CopyIcon />}>Copy To Clipboard</MenuItem>
           <MenuItem>Open Edit Panel</MenuItem>
           <MenuDivider />
           <SettingCellType vc={vc}/>

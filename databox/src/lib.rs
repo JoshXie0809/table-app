@@ -8,7 +8,8 @@ fn create_arrow_batch()
 {
     let conn = duckdb::Connection::open_in_memory()?;
     conn.execute("attach 'C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/data/data.duckdb' as db;", [])?;
-    let sql = "SELECT * FROM db.cars;";
+    conn.execute("attach 'C:/Users/USER/Desktop/dotnet_test/React-test/my-workspace/data/vote.sqlite' as vote (type sqlite);", [])?;
+    let sql = "SELECT * FROM vote.content_tbl;";
     let record_batches: Vec<RecordBatch> = conn
         .prepare(&sql)?
         .query_arrow([])?
@@ -50,10 +51,39 @@ async fn arrow_handler() -> Result<impl IntoResponse, impl IntoResponse> {
     }
 }
 
+/// CSV handler (轉換 Arrow -> CSV)
+async fn arrow_csv_handler() -> Result<impl IntoResponse, impl IntoResponse> {
+    match create_arrow_batch() {
+        Ok(batches) => {
+            let mut buf = Vec::new();
+            {
+                let mut writer = arrow::csv::Writer::new(&mut buf);
+                for batch in batches {
+                    writer.write(&batch).unwrap();
+                }
+            }
+
+            Ok(
+                Response::builder()
+                    .header("content-type", "text/csv; charset=utf-8")
+                    .body(Body::from(buf))
+                    .unwrap()
+            )
+        }
+        Err(err) => Err(Response::builder()
+            .status(500)
+            .body(Body::from(format!("Error: {}", err)))
+            .unwrap()),
+    }
+}
+
 /// 建立 Router
 pub fn build_arrow_router() -> Router {
-    Router::new().route("/arrow", get(arrow_handler))
+    Router::new()
+        .route("/arrow", get(arrow_handler))
+        .route("/arrow-csv", get(arrow_csv_handler))
 }
+
 
 pub fn build_router() -> Router
 {
@@ -71,7 +101,11 @@ pub fn build_router() -> Router
 pub async fn start_server(port: u16) 
     -> Result<(), Box<dyn std::error::Error>>
 {
-    let app = build_arrow_router();
+    let app = 
+        build_arrow_router()
+        .route("/hello", get(|| async {
+            "hello world"
+        }));
     let addr = format!("127.0.0.1:{}", port);
 
     println!("Server running at http://{addr}");
