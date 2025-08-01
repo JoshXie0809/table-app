@@ -1,6 +1,6 @@
 import React, { CSSProperties, useEffect } from 'react'
 import { Table as ATable} from "apache-arrow";
-import { Header, Cell, ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, } from "@tanstack/react-table";
+import { Header, Cell, ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, GroupingState, getExpandedRowModel, getGroupedRowModel, getFilteredRowModel, } from "@tanstack/react-table";
 import { useMemo, useRef, useState } from "react";
 import { Button, Divider, makeStyles, Table, TableBody, TableCell, TableHeader, TableHeaderCell, TableRow, tokens  } from "@fluentui/react-components";
 import { ColumnResizeMode } from '@tanstack/react-table';
@@ -65,9 +65,9 @@ const useArrowTableStyles = makeStyles({
       overflow: "hidden",
       textOverflow: "ellipsis", // 超出範圍時顯示...
     },
-    "&:first-of-type > div" : {
-      justifyContent: "end",
-    }
+    // "&:first-of-type > div" : {
+    //   justifyContent: "end",
+    // }
   },
   headerDragger: {
   },
@@ -106,7 +106,7 @@ const useArrowTableStyles = makeStyles({
     "& > td:first-of-type": {
       backgroundColor: tokens.colorNeutralBackground2,
       color: tokens.colorBrandForeground1,
-      justifyContent: "end",
+      // justifyContent: "end",
       fontWeight: "bolder",
       borderRight: `1px solid ${tokens.colorNeutralStroke1}`,
       fontSize: "16px",
@@ -165,18 +165,29 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   const columns = useMemo(() => inferColumnsFromTable(table, styles, randNum), [table, styles, randNum]);
   // 製作排序表
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
-  // 切換表格時紀錄
+  // 製作 grouping 模式
+  const [grouping, setGrouping] = useState<GroupingState>([]);
+
   useEffect(() => {
-    setColumnOrder(() => columns.map(c => c.id!))
+    setColumnOrder(() => 
+      columns
+        .map(c => c.id!)
+    );
+    setGrouping([]);
   }, [columns])
+
   // Initialize TanStack Table
   const tableInstance = useReactTable({
     data: tableObj,
     columns,
     columnResizeMode,
     getCoreRowModel: getCoreRowModel(),
-    state: { columnOrder },
+    getExpandedRowModel: getExpandedRowModel(),
+    getGroupedRowModel: getGroupedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    state: { columnOrder, grouping },
     onColumnOrderChange: setColumnOrder,
+    onGroupingChange: setGrouping,
   });
   // ✨ 修改 handleDragStart
   const handleDragStart = () => {
@@ -205,7 +216,9 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
-  const { rows } = useMemo(() => tableInstance.getRowModel(), [tableObj]);
+  
+  const { rows } = tableInstance.getRowModel();
+
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
     estimateSize: () => 44, //estimate row height for accurate scrollbar dragging
@@ -218,6 +231,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
         : undefined,
     overscan: 6,
   })
+  
   return (
     <DndContext
       autoScroll = {false}
@@ -256,7 +270,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
                 const row = rows[item.index] as Row<any>
                 return (
                   <TableRow 
-                    key={row.id} 
+                    key={row.id}
                     className={styles.virtualRow} 
                     style={{ 
                       transform: `translateY(${item.start}px)`, //this should always be a `style` as it changes on scroll
@@ -264,13 +278,15 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
                   >
                     {
                       row.getVisibleCells().map((cell) => {
-                        return <SortableContext
-                            key={cell.id}
-                            items={columnOrder}
-                            strategy={horizontalListSortingStrategy}
-                          >
-                            <DragAlongCell key={cell.id} cell={cell} styles={styles}/>
-                        </SortableContext>
+                        return (
+                          <SortableContext
+                              key={cell.id}
+                              items={columnOrder}
+                              strategy={horizontalListSortingStrategy}
+                            >
+                              <DragAlongCell key={cell.id} row={row} cell={cell} styles={styles}/>
+                          </SortableContext>
+                        );
                       })
                     }
                   </TableRow>
@@ -315,6 +331,21 @@ const DraggableTableHeader = ({
         appearance='subtle'
         icon={<MdOutlineDragIndicator/>}
       />
+      {header.column.getCanGroup() ? (
+        // If the header can be grouped, let's add a toggle
+        <button
+          {...{
+            onClick: header.column.getToggleGroupingHandler(),
+            style: {
+              cursor: 'pointer',
+            },
+          }}
+        >
+          {header.column.getIsGrouped()
+            ? `🛑(${header.column.getGroupedIndex()}) `
+            : `👊 `}
+        </button>
+      ) : null}{' '}
       {
         header.isPlaceholder
         ? null
@@ -328,13 +359,12 @@ const DraggableTableHeader = ({
           onMouseDown: header.getResizeHandler(),
           onTouchStart: header.getResizeHandler(),
         }}
-        
       />
     </TableHeaderCell>
   )
 }
 
-const DragAlongCell = ({ cell, styles }: { cell: Cell<any, unknown>, styles: any }) => {
+const DragAlongCell = ({ row, cell, styles }: { row: Row<any>, cell: Cell<any, unknown>, styles: any }) => {
   const { isDragging, setNodeRef, transform } = useSortable({
     id: cell.column.id,
   })
@@ -347,14 +377,70 @@ const DragAlongCell = ({ cell, styles }: { cell: Cell<any, unknown>, styles: any
     width: cell.column.getSize(),
     zIndex: isDragging ? 1 : 0,
   }
+  if(cell.getIsPlaceholder()) 
+    style.borderBottom = "0px";
+  else if(cell.getIsGrouped() && row.getIsExpanded()) 
+    style.borderBottom = "0px";
 
+  const parent = row.getParentRow();
+  const isLastInGroup = parent
+    ? parent.subRows[parent.subRows.length - 1].id === row.id
+    : false;
+  if(isLastInGroup) style.borderBottom = undefined;
+  
   return (
-    <TableCell key={cell.id} 
+    <TableCell 
       className={styles.tableCell} 
       ref={setNodeRef}
-      style={{ ...style, width: cell.column.getSize() }} 
+      key={cell.id}
+      {...{
+        style: {
+          ...style, 
+          width: cell.column.getSize(),
+          background: cell.getIsGrouped()
+            ? tokens.colorNeutralBackground1
+            : cell.getIsAggregated()
+              ? tokens.colorNeutralBackground2
+              : tokens.colorNeutralBackground1
+        },
+      }}
     >
-      {flexRender(cell.column.columnDef.cell, cell.getContext())}                        
+      {cell.getIsGrouped() ? (
+        // If it's a grouped cell, add an expander and row count
+        <>
+          <button
+            {...{
+              onClick: row.getToggleExpandedHandler(),
+              style: {
+                cursor: row.getCanExpand()
+                  ? 'pointer'
+                  : 'normal',
+              },
+            }}
+          >
+            {row.getIsExpanded() ? '👇' : '👉'}{' '}
+            {flexRender(
+              cell.column.columnDef.cell,
+              cell.getContext()
+            )}{' '}
+            ({row.subRows.length})
+          </button>
+        </>
+      ) : cell.getIsAggregated() ? (
+        // If the cell is aggregated, use the Aggregated
+        // renderer for cell
+        flexRender(
+          cell.column.columnDef.aggregatedCell ??
+            cell.column.columnDef.cell,
+          cell.getContext()
+        )
+      ) : cell.getIsPlaceholder() ? null : ( // For cells with repeated values, render null
+        // Otherwise, just render the regular cell
+        flexRender(
+          cell.column.columnDef.cell,
+          cell.getContext()
+        )
+      )}
     </TableCell>
   )
 }
@@ -373,6 +459,7 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>, randN
   const columnHelper = createColumnHelper<any>();
   const rowNumberCol = columnHelper.display({
       id: `auto-add-row-number-${randNum}`,
+      enableGrouping: false,
       header: (_row) => <MdNumbers />,
       // cell 的 info 物件包含 row 屬性，其 index 是從 0 開始的行索引
       cell: info => info.row.index + 1,
@@ -386,6 +473,9 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>, randN
         id: `${colName}-${randNum}`,
         header: () => <span>{colName}</span>,
         size: 200,
+        getGroupingValue: row => row[colName],
+        aggregationFn: "count",
+        aggregatedCell: ({ getValue }) => `Count: ${getValue()}`,
         cell: info => {
           const value: any = info.getValue();
           if (value === null) return <span className={styles.nullValue}>{"null"}</span>;

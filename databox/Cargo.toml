@@ -8,3 +8,5 @@ axum = "0.8.4"
 tokio = "1.46.1"
 arrow = { workspace = true }
 duckdb = { workspace = true }
+parquet = { workspace = true }
+headers = "0.4.1"
