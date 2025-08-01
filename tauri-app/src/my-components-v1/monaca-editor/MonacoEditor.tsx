@@ -29,7 +29,6 @@ export const MonacoEditor: React.FC = () => {
     editor.addCommand(
       monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter,
       () => {
-        console.log(valRef)
         showDBTable$.next({alias: "", tableName: "", sql: valRef.current ?? "", type: "Query"});
       }
     )

@@ -1,4 +1,4 @@
-import React, { CSSProperties, useEffect } from 'react'
+import React, { CSSProperties, useCallback, useEffect, useLayoutEffect } from 'react'
 import { Table as ATable} from "apache-arrow";
 import { Header, Cell, ColumnDef, createColumnHelper, flexRender, getCoreRowModel, Row, useReactTable, GroupingState, getExpandedRowModel, getGroupedRowModel, getFilteredRowModel, } from "@tanstack/react-table";
 import { useMemo, useRef, useState } from "react";
@@ -161,8 +161,8 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   const [columnResizeMode] = useState<ColumnResizeMode>('onChange');
   const styles = useArrowTableStyles();
   const tableObj = useMemo(() => tableToObjects(table), [table]);
-  const randNum = useMemo(() => Math.random().toString(36).slice(2), [table]);
-  const columns = useMemo(() => inferColumnsFromTable(table, styles, randNum), [table, styles, randNum]);
+  const randNum = useMemo(() => Math.random().toString(36).slice(2), [tableObj]);
+  const columns = useMemo(() => inferColumnsFromTable(table, styles, randNum), [styles, randNum]);
   // 製作排序表
   const [columnOrder, setColumnOrder] = useState<string[]>([]);
   // 製作 grouping 模式
@@ -173,7 +173,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
       columns
         .map(c => c.id!)
     );
-    setGrouping([]);
+    setGrouping(() => []);
   }, [columns])
 
   // Initialize TanStack Table
@@ -217,7 +217,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
     useSensor(KeyboardSensor, {})
   )
   
-  const { rows } = tableInstance.getRowModel();
+  const rows = tableInstance.getRowModel().rows;
 
   const rowVirtualizer = useVirtualizer<HTMLDivElement, HTMLTableRowElement>({
     count: rows.length,
@@ -284,7 +284,9 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
                               items={columnOrder}
                               strategy={horizontalListSortingStrategy}
                             >
-                              <DragAlongCell key={cell.id} row={row} cell={cell} styles={styles}/>
+                              <DragAlongCell key={cell.id} row={row} cell={cell} 
+                                styles={styles}
+                              />
                           </SortableContext>
                         );
                       })
@@ -333,18 +335,19 @@ const DraggableTableHeader = ({
       />
       {header.column.getCanGroup() ? (
         // If the header can be grouped, let's add a toggle
-        <button
+        <Button
           {...{
             onClick: header.column.getToggleGroupingHandler(),
             style: {
               cursor: 'pointer',
             },
           }}
+          icon={header.column.getIsGrouped() ? "🛑" : "👊"}
         >
-          {header.column.getIsGrouped()
-            ? `🛑(${header.column.getGroupedIndex()}) `
-            : `👊 `}
-        </button>
+          {
+            header.column.getIsGrouped() && `${header.column.getGroupedIndex()}` 
+          }
+        </Button>
       ) : null}{' '}
       {
         header.isPlaceholder
@@ -364,7 +367,9 @@ const DraggableTableHeader = ({
   )
 }
 
-const DragAlongCell = ({ row, cell, styles }: { row: Row<any>, cell: Cell<any, unknown>, styles: any }) => {
+const DragAlongCell = ({ row, cell, styles }: 
+  { row: Row<any>, cell: Cell<any, unknown>, styles: any }
+) => {
   const { isDragging, setNodeRef, transform } = useSortable({
     id: cell.column.id,
   })
@@ -377,16 +382,18 @@ const DragAlongCell = ({ row, cell, styles }: { row: Row<any>, cell: Cell<any, u
     width: cell.column.getSize(),
     zIndex: isDragging ? 1 : 0,
   }
-  if(cell.getIsPlaceholder()) 
-    style.borderBottom = "0px";
-  else if(cell.getIsGrouped() && row.getIsExpanded()) 
-    style.borderBottom = "0px";
+  const isExpanded = row.getIsExpanded()
+  // if(cell.getIsPlaceholder()) 
+  //   style.borderBottom = "0px";
+  
+  // // if(cell.getIsGrouped() && isExpanded) 
+  // //   style.borderBottom = "0px";
 
-  const parent = row.getParentRow();
-  const isLastInGroup = parent
-    ? parent.subRows[parent.subRows.length - 1].id === row.id
-    : false;
-  if(isLastInGroup) style.borderBottom = undefined;
+  // const parent = row.getParentRow();
+  // const isLastInGroup = parent
+  //   ? parent.subRows[parent.subRows.length - 1].id === row.id
+  //   : false;
+  // if(isLastInGroup) style.borderBottom = undefined;
   
   return (
     <TableCell 
@@ -400,7 +407,7 @@ const DragAlongCell = ({ row, cell, styles }: { row: Row<any>, cell: Cell<any, u
           background: cell.getIsGrouped()
             ? tokens.colorNeutralBackground1
             : cell.getIsAggregated()
-              ? tokens.colorNeutralBackground2
+              ? tokens.colorNeutralBackground3
               : tokens.colorNeutralBackground1
         },
       }}
@@ -408,7 +415,7 @@ const DragAlongCell = ({ row, cell, styles }: { row: Row<any>, cell: Cell<any, u
       {cell.getIsGrouped() ? (
         // If it's a grouped cell, add an expander and row count
         <>
-          <button
+          <Button
             {...{
               onClick: row.getToggleExpandedHandler(),
               style: {
@@ -417,14 +424,14 @@ const DragAlongCell = ({ row, cell, styles }: { row: Row<any>, cell: Cell<any, u
                   : 'normal',
               },
             }}
+            icon={isExpanded ? '👇' : '👉'}
           >
-            {row.getIsExpanded() ? '👇' : '👉'}{' '}
             {flexRender(
               cell.column.columnDef.cell,
               cell.getContext()
-            )}{' '}
+            )}
             ({row.subRows.length})
-          </button>
+          </Button>
         </>
       ) : cell.getIsAggregated() ? (
         // If the cell is aggregated, use the Aggregated
@@ -475,7 +482,8 @@ function inferColumnsFromTable(table: ATable, styles: Record<any, string>, randN
         size: 200,
         getGroupingValue: row => row[colName],
         aggregationFn: "count",
-        aggregatedCell: ({ getValue }) => `Count: ${getValue()}`,
+        // aggregatedCell: ({ getValue }) => `Count: ${getValue()}`,
+        aggregatedCell: () => "",
         cell: info => {
           const value: any = info.getValue();
           if (value === null) return <span className={styles.nullValue}>{"null"}</span>;
