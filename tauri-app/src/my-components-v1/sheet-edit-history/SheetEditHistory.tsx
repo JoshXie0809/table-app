@@ -8,9 +8,7 @@ import { rc$ } from "../sheetView/canvas-table-v1.1/system-QuickEdit/useInputCel
 import { CellContent } from "../../tauri-api/types/CellContent";
 
 export type EditSheet =
-  | {editType: "EditCellValue"}
-  | {editType: "EditCellCSS"}
-  | {editType: "EditCellOtherPayload"}
+  | {editType: "EditCellValue", newCellValue: string, row: number, col: number}
   | {editType: "EditCellType", newCellType: string, row: number, col: number}
   ;
 
@@ -35,11 +33,21 @@ export const SheetEditHistory = (
   const editCellsRef = useRef<Map<string, CellContent | undefined>>(new Map());
 
   const { dispatchToast } = useToastController(toasterId);
-  const notify = (val: any, newType: string) => {
+  const notifyEditCellType = (val: any, type: string) => {
     dispatchToast(
       <Toast>
         <ToastTitle>Setting Cell Type Error</ToastTitle>
-        <ToastBody>{`can not change value="${String(val)}" to ${newType}-type`}</ToastBody>
+        <ToastBody>{`can not change to type="${type}" with value="${String(val)}"`}</ToastBody>
+      </Toast>,
+      {intent: "error"}
+    )
+  };
+
+  const notifyEditCellValue = (val: any, type: string) => {
+    dispatchToast(
+      <Toast>
+        <ToastTitle>Setting Cell Type Error</ToastTitle>
+        <ToastBody>{`can not set value="${String(val)}" with type="${type}"`}</ToastBody>
       </Toast>,
       {intent: "error"}
     )
@@ -53,42 +61,50 @@ export const SheetEditHistory = (
       if(rm === null) return;
       const vm = vmRef.current;
       if(vm === null) return;
+      
+      const {row, col} = payload;
+      const oldCellContent = vc.getCell(row, col)
+      let newCellContent;
+      if(oldCellContent === undefined)
+        newCellContent = vc.getDefaultCell();
+      else 
+        newCellContent = structuredClone(oldCellContent);
+      if(newCellContent === undefined) return;
 
-      if(payload.editType === "EditCellType") {
-        const {row, col} = payload;
-        const oldCellContent = vc.getCell(row, col)
-        let newCellContent;
-        if(oldCellContent === undefined)
-          newCellContent = vc.getDefaultCell();
-        else 
-          newCellContent = structuredClone(oldCellContent);
-        if(newCellContent === undefined) return;
+      if(payload.editType === "EditCellValue") {
+        const validateResult = setCellContentValue(newCellContent, payload.newCellValue, vc);
+        if(validateResult.success === false && validateResult.error) {
+          notifyEditCellValue(payload.newCellValue, validateResult.error.type);
+          return;
+        }
+      }
+      else
+      if(payload.editType === "EditCellType") {  
         newCellContent.type = payload.newCellType;
         setCellContentValue(newCellContent, String(newCellContent.payload.value), vc);
         const validateResult = validateCellContent(newCellContent, vc)
         if(validateResult.success === false) {
           const val = getCellContentValue(newCellContent);
-          notify(val, payload.newCellType);
+          notifyEditCellType(val, payload.newCellType);
           return;
         }
-        
-        const vmCell = vm.getCellByRowCol(row, col)
-        if(vmCell === undefined) return;
-        vc.setCell({row, col, cellData: newCellContent});
-        rm.markDirty(vmCell);
-        rm.flush();
-        rc$.next({row, col});
-        const editHistory = editHistoryRef.current;
-        editHistory.push({
-          editType: payload.editType,
-          row: payload.row,
-          col: payload.col,
-          from: oldCellContent,
-          to: newCellContent
-        })
-        editCellsRef.current.set(vc.toKey(row, col), newCellContent);
       }
 
+      const vmCell = vm.getCellByRowCol(row, col)
+      if(vmCell === undefined) return;
+      vc.setCell({row, col, cellData: newCellContent});
+      rm.markDirty(vmCell);
+      rm.flush();
+      rc$.next({row, col});
+      const editHistory = editHistoryRef.current;
+      editHistory.push({
+        editType: payload.editType,
+        row: payload.row,
+        col: payload.col,
+        from: oldCellContent,
+        to: newCellContent
+      })
+      editCellsRef.current.set(vc.toKey(row, col), newCellContent);
       console.log(editHistoryRef.current);
       console.log(editCellsRef.current);
     })

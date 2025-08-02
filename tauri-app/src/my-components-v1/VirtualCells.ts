@@ -218,6 +218,12 @@ export type setCellContentResult =
 export function getCellContentValue(cell: CellContent) {
   return cell.payload.value;
 }
+
+export function setCellContentCellType(cell: CellContent, newCellType: string, vc: VirtualCells) 
+{
+  
+}
+
 export function setCellContentValue(cell: CellContent, newValue: string, vc: VirtualCells) : setCellContentResult
 {
   const type = cell.type;
@@ -250,7 +256,7 @@ export function validateCellContent(cell: CellContent, vc: VirtualCells) : setCe
   const validator = getValidatorResult.ok.validator;
   const validationResult = validator(cell);
   validator.errors
-  if(!validationResult) 
+  if(!validationResult)
     return {
       success: false, 
       error: {
