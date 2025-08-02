@@ -66,15 +66,15 @@ export const SheetEditHistory = (
       const oldCellContent = vc.getCell(row, col)
       let newCellContent;
       if(oldCellContent === undefined)
-        newCellContent = vc.getDefaultCell();
+        newCellContent = structuredClone(vc.getDefaultCell());
       else 
         newCellContent = structuredClone(oldCellContent);
       if(newCellContent === undefined) return;
 
       if(payload.editType === "EditCellValue") {
         const validateResult = setCellContentValue(newCellContent, payload.newCellValue, vc);
-        if(validateResult.success === false && validateResult.error) {
-          notifyEditCellValue(payload.newCellValue, validateResult.error.type);
+        if(validateResult.success === false) {
+          notifyEditCellValue(payload.newCellValue, validateResult.error?.type ?? "unkown");
           return;
         }
       }

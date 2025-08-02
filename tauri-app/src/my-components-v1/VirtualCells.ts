@@ -79,9 +79,9 @@ export class VirtualCells implements IVirtualCells {
   }
 
   getDefaultCell(cellType: string = "Text") :CellContent | undefined {
-    const textCellMeta = this.cellMetaMap.get(cellType);
-    if(textCellMeta === undefined) return undefined;
-    return textCellMeta.defaultCellContent;
+    const CellMeta = this.cellMetaMap.get(cellType);
+    if(CellMeta === undefined) return undefined;
+    return CellMeta.defaultCellContent;
   }
 
   getCellDisplayValue(row: number, col: number): string | null {
@@ -219,10 +219,10 @@ export function getCellContentValue(cell: CellContent) {
   return cell.payload.value;
 }
 
-export function setCellContentCellType(cell: CellContent, newCellType: string, vc: VirtualCells) 
-{
+// export function setCellContentCellType(cell: CellContent, newCellType: string, vc: VirtualCells) 
+// {
   
-}
+// }
 
 export function setCellContentValue(cell: CellContent, newValue: string, vc: VirtualCells) : setCellContentResult
 {
