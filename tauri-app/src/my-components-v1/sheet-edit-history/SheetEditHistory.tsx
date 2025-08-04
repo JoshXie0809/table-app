@@ -6,6 +6,7 @@ import { VManager } from "../sheetView/canvas-table-v1.1/VirtualizationMangaer";
 import { Toast, ToastBody, Toaster, ToastTitle, useId, useToastController } from "@fluentui/react-components";
 import { rc$ } from "../sheetView/canvas-table-v1.1/system-QuickEdit/useInputCellStateManager";
 import { CellContent } from "../../tauri-api/types/CellContent";
+import { isEqual } from "lodash";
 
 export type EditSheet =
   | {editType: "EditCellValue", newCellValue: string, row: number, col: number}
@@ -46,7 +47,7 @@ export const SheetEditHistory = (
   const notifyEditCellValue = (val: any, type: string) => {
     dispatchToast(
       <Toast>
-        <ToastTitle>Setting Cell Type Error</ToastTitle>
+        <ToastTitle>Setting Cell Value Error</ToastTitle>
         <ToastBody>{`can not set value="${String(val)}" with type="${type}"`}</ToastBody>
       </Toast>,
       {intent: "error"}
@@ -90,6 +91,7 @@ export const SheetEditHistory = (
         }
       }
 
+      if(isEqual(newCellContent, oldCellContent)) return;
       const vmCell = vm.getCellByRowCol(row, col)
       if(vmCell === undefined) return;
       vc.setCell({row, col, cellData: newCellContent});

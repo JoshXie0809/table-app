@@ -6,7 +6,7 @@ import { Button, Divider, makeStyles, Table, TableBody, TableCell, TableHeader, 
 import { ColumnResizeMode } from '@tanstack/react-table';
 import { MdNumbers } from "react-icons/md";
 import { useVirtualizer } from '@tanstack/react-virtual';
-import { MdOutlineDragIndicator } from "react-icons/md";
+import { DragRegular } from '@fluentui/react-icons';
 import {
   DndContext,
   KeyboardSensor,
@@ -157,7 +157,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
   table,
 }) => 
 {
-  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);  
   const [columnResizeMode] = useState<ColumnResizeMode>('onChange');
   const styles = useArrowTableStyles();
   const tableObj = useMemo(() => tableToObjects(table), [table]);
@@ -211,6 +211,8 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
       })
     }
   }
+  
+
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
@@ -231,7 +233,7 @@ export const ShowArrowTable: React.FC<ArrowTableProps> = ({
         : undefined,
     overscan: 6,
   })
-  
+
   return (
     <DndContext
       autoScroll = {false}
@@ -330,8 +332,8 @@ const DraggableTableHeader = ({
     >
       <Button {...attributes} {...listeners} 
         className={styles.headerDragger}
-        appearance='subtle'
-        icon={<MdOutlineDragIndicator/>}
+        appearance='transparent'
+        icon={<DragRegular fontSize={14}/>}
       />
       {header.column.getCanGroup() ? (
         // If the header can be grouped, let's add a toggle
@@ -385,10 +387,8 @@ const DragAlongCell = ({ row, cell, styles }:
   const isExpanded = row.getIsExpanded()
   // if(cell.getIsPlaceholder()) 
   //   style.borderBottom = "0px";
-  
   // // if(cell.getIsGrouped() && isExpanded) 
   // //   style.borderBottom = "0px";
-
   // const parent = row.getParentRow();
   // const isLastInGroup = parent
   //   ? parent.subRows[parent.subRows.length - 1].id === row.id
@@ -405,10 +405,10 @@ const DragAlongCell = ({ row, cell, styles }:
           ...style, 
           width: cell.column.getSize(),
           background: cell.getIsGrouped()
-            ? tokens.colorNeutralBackground1
+            ? undefined
             : cell.getIsAggregated()
-              ? tokens.colorNeutralBackground3
-              : tokens.colorNeutralBackground1
+              ? tokens.colorNeutralBackground2
+              : undefined
         },
       }}
     >
