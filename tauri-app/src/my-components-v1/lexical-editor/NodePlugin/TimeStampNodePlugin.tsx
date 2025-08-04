@@ -15,7 +15,8 @@ export function TimestampPlugin() {
         if(payload === "") {
           // 代表沒有選取到文字
           // 表示所有的時間都插入
-          const timestampNode = $createTimestampNode(new Date().toLocaleTimeString());
+          const tstring = (new Date()).toLocaleTimeString();
+          const timestampNode = $createTimestampNode(tstring);
           const textNodeAfter = $createTextNode(" ");
           const textNodeBefore = $createTextNode(" ");
           selection.insertNodes([textNodeBefore, timestampNode, textNodeAfter]);

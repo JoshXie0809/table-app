@@ -62,6 +62,7 @@ export function MyLexicalEditor() {
           <ListPlugin />
           <CheckListPlugin />
           <TimestampPlugin />
+          
           {/* <hr className={styles.divider} /> */}
           {/* <LexicalTreeViewPlugin /> */}
         </div>
@@ -73,7 +74,9 @@ export function MyLexicalEditor() {
 export const useLexicalStyles = makeStyles({
   "editor-container": {
     minWidth: "400px",
-    maxWidth: "1000px",
+    // maxWidth: "1000px",
+    // maxWidth: "90%",
+    overflow: "auto",
     margin: "24px auto 16px",
     backgroundColor: tokens.colorNeutralBackground3,
     borderRadius: tokens.fontSizeBase300,

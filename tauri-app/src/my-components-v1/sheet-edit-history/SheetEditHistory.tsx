@@ -110,8 +110,8 @@ export const SheetEditHistory = (
         to: newCellContent
       })
       editCellsRef.current.set(vc.toKey(row, col), newCellContent);
-      console.log(editHistoryRef.current);
-      console.log(editCellsRef.current);
+      // console.log(editHistoryRef.current);
+      // console.log(editCellsRef.current);
     })
 
     return () => sub.unsubscribe();
@@ -131,7 +131,10 @@ export const SheetEditHistory = (
 
       const sheetPath = vc.sheetPath;
       let res = await saveSheet({cells, sheetPath});
-      console.log(res, cells)
+      // console.log(res, cells)
+      if(res.success === false) return;
+      editCellsRef.current.clear();
+      editHistoryRef.current = [];
     });
 
     return () => sub.unsubscribe();
