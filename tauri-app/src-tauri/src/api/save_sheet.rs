@@ -1,7 +1,7 @@
 use serde::Deserialize;
 use tauri::command;
 use ts_rs::TS;
-use crate::{api::{base::ApiResponse, load_sheet::ICell}, io::saver::save_sheet_append_cells};
+use crate::{api::{base::ApiResponse}, cell_plugins::cell::CellContent, io::saver::save_sheet_append_cells};
 
 #[command]
 pub fn save_sheet(
@@ -24,5 +24,14 @@ pub fn save_sheet(
 #[ts(export)]
 pub struct SaveSheetRequest {
     pub sheet_path: String,
-    pub cells: Vec<ICell>,
+    pub cells: Vec<SaveSheetICell>,
+}
+
+
+#[derive(Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+pub struct SaveSheetICell {
+    pub row: u32,
+    pub col: u32,
+    pub cell_data: Option<CellContent>,
 }

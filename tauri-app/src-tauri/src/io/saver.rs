@@ -7,7 +7,7 @@ use std::{
 };
 
 use crate::{
-    api::load_sheet::ICell, sheet_plugins::stored_sheet::{StoredSheetData, StoredSheetMeta}
+    api::{save_sheet::SaveSheetICell}, sheet_plugins::stored_sheet::{StoredSheetData, StoredSheetMeta}
 };
 
 pub fn save_to_fake_extension(
@@ -144,39 +144,41 @@ pub fn new_duckdb_temp_path() -> PathBuf {
 }
 
 pub fn save_sheet_append_cells(
-    path: &str,                  // Fake Extension 資料夾路徑
-    cells: Vec<ICell>
+    path: &str,
+    cells: Vec<SaveSheetICell>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    // 直接組合 data.duckdb 的完整路徑
     let db_path = std::path::Path::new(path).join("data.duckdb");
-
-    // 直接連線到該 DuckDB 檔案
     let mut conn = Connection::open(&db_path)?;
     let tx = conn.transaction()?;
 
-    let mut stmt = tx.prepare(
-        "INSERT OR REPLACE INTO cells 
-         (row, col, type, value, other_payload) 
-         VALUES (?, ?, ?, ?, ?);"
+    let mut stmt_insert = tx.prepare(
+        "INSERT OR REPLACE INTO cells (row, col, type, value, other_payload)
+         VALUES (?, ?, ?, ?, ?)"
+    )?;
+
+    let mut stmt_delete = tx.prepare(
+        "DELETE FROM cells WHERE row = ? AND col = ?"
     )?;
 
     for cell in cells {
         let row = cell.row;
         let col = cell.col;
-        let cell = cell.cell_data;
+        if let Some(cell_data) = cell.cell_data {
+            let value_str = cell_data.payload.value.to_string();
+            let other_payload_str = serde_json::to_string(&json!({
+                "display_value": cell_data.payload.display_value,
+                "display_style_class": cell_data.payload.display_style_class,
+                "extra_fields": cell_data.payload.extra_fields,
+            }))?;
 
-        let value_str = cell.payload.value.to_string();
-        let other_payload_str = serde_json::to_string(&json!({
-            "display_value": cell.payload.display_value,
-            "display_style_class": cell.payload.display_style_class,
-            "extra_fields": cell.payload.extra_fields,
-        }))?;
-
-        stmt.execute(params![ row, col, cell.cell_type_id, value_str, other_payload_str ])?;
+            stmt_insert.execute(params![row, col, cell_data.cell_type_id, value_str, other_payload_str])?;
+        } else {
+            stmt_delete.execute(params![row, col])?;
+        }
     }
 
     tx.commit()?;
-    conn.execute_batch("CHECKPOINT;")?; // 確保資料寫回檔案
+    conn.execute_batch("CHECKPOINT;")?;
 
     Ok(())
 }

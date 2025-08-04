@@ -7,6 +7,9 @@ import { Toast, ToastBody, Toaster, ToastTitle, useId, useToastController } from
 import { rc$ } from "../sheetView/canvas-table-v1.1/system-QuickEdit/useInputCellStateManager";
 import { CellContent } from "../../tauri-api/types/CellContent";
 import { isEqual } from "lodash";
+import { fileSaveRequest$ } from "../button-toolbox/ButtonSaveSheet";
+import { saveSheet } from "../../tauri-api/saveSheet";
+import { SaveSheetICell } from "../../tauri-api/types/SaveSheetICell";
 
 export type EditSheet =
   | {editType: "EditCellValue", newCellValue: string, row: number, col: number}
@@ -17,8 +20,8 @@ export interface HistroyLog {
   editType: string;
   row: number,
   col: number,
-  from: CellContent | undefined,
-  to: CellContent | undefined,
+  from: CellContent | null,
+  to: CellContent | null,
 }
 
 export const sheetEditEmit$ = new Subject<EditSheet>();
@@ -31,7 +34,7 @@ export const SheetEditHistory = (
 ) => {
   const toasterId = useId("sheet-view-edit-sheet-system");
   const editHistoryRef = useRef<HistroyLog[]>([]);
-  const editCellsRef = useRef<Map<string, CellContent | undefined>>(new Map());
+  const editCellsRef = useRef<Map<string, CellContent | null>>(new Map());
 
   const { dispatchToast } = useToastController(toasterId);
   const notifyEditCellType = (val: any, type: string) => {
@@ -103,13 +106,33 @@ export const SheetEditHistory = (
         editType: payload.editType,
         row: payload.row,
         col: payload.col,
-        from: oldCellContent,
+        from: oldCellContent ?? null,
         to: newCellContent
       })
       editCellsRef.current.set(vc.toKey(row, col), newCellContent);
       console.log(editHistoryRef.current);
       console.log(editCellsRef.current);
     })
+
+    return () => sub.unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    const sub = fileSaveRequest$.subscribe(async () => {
+      const vc = vcRef.current;
+      if(vc === null) return;
+      const editCells = editCellsRef.current;
+      const cells: SaveSheetICell[] = [];
+      for(const kv of editCells) {
+        const {row, col} = vc.toRC(kv[0]);
+        const cellData = kv[1];
+        cells.push({row, col, cellData})
+      }
+
+      const sheetPath = vc.sheetPath;
+      let res = await saveSheet({cells, sheetPath});
+      console.log(res, cells)
+    });
 
     return () => sub.unsubscribe();
   }, []);
